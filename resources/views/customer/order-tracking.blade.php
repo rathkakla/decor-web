@@ -1,10 +1,10 @@
-<?php $site_name = "DECOR"; ?>
+@php $site_name = "DECOR"; @endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Tracking — <?= $site_name ?></title>
+    <title>Order Tracking — {{ $site_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -27,46 +27,45 @@
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
+    <!-- HEADER (Sama seperti halaman profil) -->
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
-            
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
+            <div class="flex items-center space-x-8 flex-1">
+                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
+                    {{ $site_name }}
+                </a>
+                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+                </div>
+            </div>
+            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
+                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
+                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
+                <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
+            </nav>
+            <div class="flex items-center space-x-6 flex-1 justify-end">
+                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                </a>
+                <button class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-regular fa-bell text-lg"></i>
+                </button>
+                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
+                    <a href="{{ route('customer.profile') }}">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
+                    </a>
+                </div>
             </div>
         </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-             <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-           
-        </nav>
-
-        <div class="flex items-center space-x-6 flex-1 justify-end">
-            <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-solid fa-bag-shopping text-lg"></i>
-            </a>
-            <button class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-regular fa-bell text-lg"></i>
-            </button>
-            <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" class="w-full h-full object-cover bg-slate-100">
-            </div>
-        </div>
-    </div>
-</header>
+    </header>
 
     <main class="flex-grow flex content-container w-full bg-white">
-        <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
+        <!-- SIDEBAR (TETAP SAMA) -->
+        <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0">
             <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
-                <h3 class="font-bold text-lg">Julian Voss</h3>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
                 <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Pro Member</p>
             </div>
 
@@ -74,102 +73,172 @@
                 <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
                 </a>
-                <a href="{{ route('order') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
+                <a href="{{ route('customer.orders') ?? '#' }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
                     <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
                 </a>
-                <a href="{{ route('customer.returns') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
+                <a href="#" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
                 </a>
-                
-               <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
-    <i class="fa-regular fa-heart text-xs"></i>
-    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-</a>
-<div class="pt-6 mt-6 border-t border-gray-100">
-                    <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/seller')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-shop text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Seller</span>
-                    </a>
-                </div>
-
+                <a href="#" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
+                    <i class="fa-regular fa-heart text-xs"></i>
+                    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
+                </a>
             </nav>
         </aside>
 
-        <div class="flex-grow p-12">
-            <div class="max-w-3xl">
-                <div class="flex justify-between items-end mb-12">
-                    <div>
-                        <h1 class="text-4xl font-bold tracking-tighter mb-2">Track Order</h1>
-                        <p class="text-[11px] text-gray-400 uppercase tracking-widest font-bold">Order ID: #DC-9920184</p>
+        <!-- MAIN CONTENT: NEW LAYOUT -->
+        <div class="flex-grow p-12 bg-[#fafafa]/30">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-3xl font-bold tracking-tighter mb-1 text-gray-900">My Orders</h1>
+                <p class="text-sm text-gray-500 mb-10">Manage your active shipments and view past purchases.</p>
+
+                @forelse($orders as $order)
+                
+                @php 
+                    $isCompleted = $order->status == 'completed'; 
+                    $isShipped = in_array($order->status, ['shipped', 'completed']);
+                    $isProcessed = in_array($order->status, ['paid', 'shipped', 'completed']);
+                @endphp
+
+                <!-- MAIN CARD UNTUK SETIAP PESANAN -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] mb-8 overflow-hidden">
+                    
+                    <!-- HEADER CARD -->
+                    <div class="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="text-[10px] font-black text-primary uppercase tracking-widest">
+                                {{ $order->status == 'shipped' ? 'In Transit' : ($order->status == 'completed' ? 'Delivered' : $order->status) }}
+                            </span>
+                            <h2 class="text-xl font-bold text-gray-900 mt-1">Order #DEC-{{ $order->id }}</h2>
+                            <p class="text-xs text-gray-500 mt-1 font-medium">
+                                Ordered on {{ $order->created_at->format('M d, Y') }} <span class="mx-2">&bull;</span> Total: <span class="font-bold text-gray-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
+                            </p>
+                        </div>
+                        
+                        <!-- TOMBOL TRACK LIVE LOCATION -->
+                        <button class="bg-[#1a1a1a] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-black transition-colors shadow-sm">
+                            Track Live Location
+                        </button>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1">Estimated Arrival</p>
-                        <p class="font-bold text-primary">24 Oct, 2026</p>
+
+                    <!-- BODY CARD (2 KOLOM) -->
+                    <div class="p-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                        
+                        <!-- KOLOM KIRI: DELIVERY STATUS -->
+                        <div class="lg:col-span-4">
+                            <h3 class="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-8">Delivery Status</h3>
+                            
+                            <div class="relative pl-3 space-y-8">
+                                <!-- Garis Vertikal Timeline -->
+                                <div class="absolute left-[17px] top-2 bottom-2 w-[2px] {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }}"></div>
+
+                                <!-- Step 1: Ordered -->
+                                <div class="relative flex items-start gap-5">
+                                    <div class="z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center ring-[6px] ring-white">
+                                        <i class="fa-solid fa-check text-[9px] text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-900">Ordered</h4>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $order->created_at->format('M d, h:i A') }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Processed -->
+                                <div class="relative flex items-start gap-5 {{ !$isProcessed ? 'opacity-40' : '' }}">
+                                    <div class="z-10 w-5 h-5 rounded-full {{ $isProcessed ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
+                                        <i class="fa-solid fa-check text-[9px] {{ $isProcessed ? 'text-white' : 'text-transparent' }}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-900">Processed</h4>
+                                        <p class="text-xs text-gray-400 mt-0.5">Payment confirmed</p>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: Shipped -->
+                                <div class="relative flex items-start gap-5 {{ !$isShipped ? 'opacity-40' : '' }}">
+                                    <!-- Lingkaran Outlined khusus status ini seperti di gambar -->
+                                    <div class="z-10 w-5 h-5 rounded-full {{ $isShipped && !$isCompleted ? 'border-2 border-primary bg-white' : ($isShipped ? 'bg-primary' : 'bg-gray-200') }} flex items-center justify-center ring-[6px] ring-white">
+                                        @if($isCompleted)
+                                            <i class="fa-solid fa-check text-[9px] text-white"></i>
+                                        @elseif($isShipped)
+                                            <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm {{ $isShipped && !$isCompleted ? 'text-primary' : 'text-gray-900' }}">Shipped</h4>
+                                        <p class="text-xs {{ $isShipped && !$isCompleted ? 'text-primary' : 'text-gray-400' }} mt-0.5">In transit via {{ $order->shipping_courier }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Step 4: Delivered -->
+                                <div class="relative flex items-start gap-5 {{ !$isCompleted ? 'opacity-40' : '' }}">
+                                    <div class="z-10 w-5 h-5 rounded-full {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }} flex items-center justify-center ring-[6px] ring-white">
+                                        <i class="fa-solid fa-check text-[9px] {{ $isCompleted ? 'text-white' : 'text-transparent' }}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-900">Delivered</h4>
+                                        <p class="text-xs text-gray-400 mt-0.5">Estimated arrival</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KOLOM KANAN: ORDER SUMMARY -->
+                        <div class="lg:col-span-8">
+                            <h3 class="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-6">Order Summary</h3>
+                            
+                            <!-- Looping Produk -->
+                            <div class="space-y-6">
+                                @foreach($order->orderItems as $item)
+                                <div class="flex items-center gap-5">
+                                    <div class="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                                        <img src="{{ $item->product->images->first()->img_url ?? 'https://via.placeholder.com/200' }}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between items-start">
+                                            <h4 class="font-bold text-sm text-gray-900">{{ $item->product->name }}</h4>
+                                            <p class="font-bold text-sm text-gray-900">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Material: Wood / Default</p>
+                                        <p class="text-xs text-gray-500 mt-0.5">Qty: {{ $item->quantity }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Kotak Alamat & Payment -->
+                            <div class="mt-8 p-6 bg-[#fafafa] rounded-xl flex flex-col md:flex-row gap-8">
+                                <div class="flex-1">
+                                    <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Shipping Address</h4>
+                                    <p class="text-xs text-gray-600 leading-relaxed font-medium">
+                                        {{ $user->full_name }}<br>
+                                        {{ $customer->address ?? 'Alamat belum diatur' }}<br>
+                                        {{ $customer->city ?? 'Indonesia' }}
+                                    </p>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Payment</h4>
+                                    <p class="text-xs text-gray-600 leading-relaxed font-medium capitalize">
+                                        {{ str_replace('_', ' ', $order->payment_method) }}
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
-
-                <div class="space-y-0 relative">
-                    <div class="absolute left-[11px] top-2 bottom-2 w-[2px] bg-gray-100"></div>
-
-                    <div class="relative flex items-start gap-8 pb-12">
-                        <div class="z-10 w-6 h-6 rounded-full bg-primary flex items-center justify-center ring-4 ring-white">
-                            <i class="fa-solid fa-check text-[10px] text-white"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-sm">Order Delivered</h4>
-                            <p class="text-[11px] text-gray-400 mt-1">Recipient: Concierge at Architectural Studio</p>
-                            <p class="text-[10px] font-bold text-primary uppercase mt-2">10:45 AM, 23 Oct</p>
-                        </div>
-                    </div>
-
-                    <div class="relative flex items-start gap-8 pb-12">
-                        <div class="z-10 w-6 h-6 rounded-full bg-primary flex items-center justify-center ring-4 ring-white">
-                            <i class="fa-solid fa-truck text-[10px] text-white"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-sm">Out for Delivery</h4>
-                            <p class="text-[11px] text-gray-400 mt-1">Courier is on the way to your destination.</p>
-                            <p class="text-[10px] font-bold text-primary uppercase mt-2">08:20 AM, 23 Oct</p>
-                        </div>
-                    </div>
-
-                    <div class="relative flex items-start gap-8 opacity-40">
-                        <div class="z-10 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center ring-4 ring-white"></div>
-                        <div>
-                            <h4 class="font-bold text-sm">Order Processed</h4>
-                            <p class="text-[11px] text-gray-400 mt-1">We are preparing your furniture for shipment.</p>
-                        </div>
-                    </div>
+                @empty
+                <!-- TAMPILAN KOSONG JIKA BELUM ADA ORDER -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                    <p class="text-gray-500">You don't have any orders yet.</p>
                 </div>
+                @endforelse
 
-                <div class="mt-16 p-8 bg-gray-50/50 rounded-[2rem] border border-gray-100 flex items-center gap-8">
-                    <div class="w-24 h-24 bg-white rounded-2xl overflow-hidden border border-gray-100">
-                        <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=200" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-grow">
-                        <h4 class="font-bold">Hans Wegner Shell Chair</h4>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Scandinavian Classics | Walnut Edition</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <p class="text-sm font-bold text-primary">€1.240,00</p>
-                            <a href="{{ route('invoice') }}">
-    <button class="text-[10px] font-bold border-b border-gray-200 py-1 uppercase tracking-widest hover:border-primary transition-colors">
-        View Invoice
-    </button>
-</a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </main>
 
+    <!-- FOOTER -->
     <footer class="bg-primary text-white py-12 px-6 mt-12">
         <div class="max-w-6xl mx-auto"> 
             <div class="flex flex-col md:flex-row justify-between items-start border-b border-white/20 pb-10 gap-10">
@@ -192,7 +261,7 @@
                         <a href="#" class="hover:text-white/70">Privacy Policy</a>
                     </div>
                     <div class="flex flex-col space-y-3">
-                         <a href="{{ route('customer.help-center') }}" class="hover:text-white/70 transition-colors">Help Center</a>
+                         <a href="{{ route('customer.help-center') ?? '#' }}" class="hover:text-white/70 transition-colors">Help Center</a>
                         <a href="#" class="hover:text-white/70">FAQ</a>
                     </div>
                 </div>

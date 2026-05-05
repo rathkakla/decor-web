@@ -23,12 +23,32 @@ class CustomerController extends Controller
         return view('customer.designers'); 
     }
 
-    public function profile() { 
-        return view('customer.profile'); 
-    }
+    public function profile() 
+{ 
+    $user = Auth::user();
+    
+    // Gunakan firstOrCreate: 
+    // Ini akan mencari data customer. Kalau tidak ada, Laravel akan 
+    // OTOMATIS membuatkan satu baris baru di database untuk user ini.
+    $customer = \App\Models\Customer::firstOrCreate(
+        ['user_id' => $user->id]
+    );
 
-    public function orders() { 
-        return view('customer.order-tracking'); 
+    return view('customer.profile', compact('user', 'customer')); 
+}
+    
+    public function orders() {
+        $user = Auth::user();
+        $customer = Customer::where('user_id', $user->id)->first();
+
+        // Ambil semua pesanan milik customer ini, urutkan dari yang terbaru
+        // Jangan lupa bawa relasi orderItems dan product-nya
+        $orders = Order::with('orderItems.product.images')
+                       ->where('customer_id', $customer->id)
+                       ->latest()
+                       ->get();
+
+        return view('customer.order-tracking', compact('user', 'customer', 'orders'));
     }
 
     public function productDetail($id) { 
@@ -102,6 +122,20 @@ class CustomerController extends Controller
 
         return redirect()->route('customer.cart')->with('success', 'Item ditambahkan ke keranjang!');
     }
+    
+    // Fungsi untuk Toggle Checkbox Keranjang
+    public function toggleCartItem(Request $request, $id)
+    {
+        // Cari item keranjangnya
+        $cartItem = \App\Models\CartItem::findOrFail($id);
+        
+        // Update status is_selected sesuai nilai dari checkbox (1 atau 0)
+        $cartItem->is_selected = $request->is_selected;
+        $cartItem->save();
+
+        // Kembalikan ke halaman keranjang (halaman akan otomatis memuat ulang hitungan total)
+        return back();
+    }
 
     public function incrementCart($id) {
         $item = CartItem::findOrFail($id);
@@ -124,8 +158,9 @@ class CustomerController extends Controller
         return back()->with('success', 'Item berhasil dihapus');
     }
 
-    // --- CHECKOUT & ORDER LOGIC ---
+   // --- CHECKOUT & ORDER LOGIC ---
 
+    // 1. FUNGSI INI TETAP ADA (JANGAN DIHAPUS YAA)
     public function checkout() { 
         $customer = Customer::where('user_id', Auth::id())->first();
         $cart = Cart::with('cartItems.product')->where('customer_id', $customer->id)->first();
@@ -137,61 +172,137 @@ class CustomerController extends Controller
         return view('customer.checkout', compact('cart', 'customer')); 
     }
 
+    // 2. FUNGSI INI YANG BARU (GANTIKAN YANG LAMA DENGAN INI)
     public function placeOrder(Request $request)
-{
-    // Validasi data input form
-    $request->validate([
-        'payment_method' => 'required|in:bank_transfer,cod',
-    ]);
-
-    $customer = Customer::where('user_id', Auth::id())->first();
-    $cart = Cart::with('cartItems.product')->where('customer_id', $customer->id)->first();
-
-    DB::transaction(function () use ($customer, $cart, $request) {
-        $subtotal = 0;
-        foreach ($cart->cartItems as $item) {
-            if ($item->is_selected) {
-                $subtotal += ($item->product->price * $item->quantity);
-            }
-        }
-
-        $shipping = $subtotal > 0 ? 150000 : 0;
-        $tax = $subtotal * 0.11;
-        $totalPrice = $subtotal + $shipping + $tax;
-
-        // 1. Buat data Order beserta Metode Pembayaran
-        $order = Order::create([
-            'customer_id' => $customer->id,
-            'total_price' => $totalPrice, 
-            'shipping_courier' => 'Curated White-Glove Delivery',
-            // Pastikan kolom 'payment_method' ada di tabel 'orders' kamu ya!
-            'payment_method' => $request->payment_method, 
-            'status' => 'pending',
+    {
+        // Validasi data input form
+        $request->validate([
+            'payment_method' => 'required|in:bank_transfer,cod',
         ]);
 
-        // 2. Pindahkan CartItems ke OrderItems
-        foreach ($cart->cartItems as $item) {
-            if ($item->is_selected) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'price' => $item->product->price,
-                ]);
+        $customer = Customer::where('user_id', Auth::id())->first();
+        $cart = Cart::with('cartItems.product')->where('customer_id', $customer->id)->first();
 
-                $item->product->decrement('stock', $item->quantity);
-            }
+        // Pastikan ada barang yang dipilih
+        if (!$cart || $cart->cartItems->where('is_selected', true)->count() == 0) {
+            return back()->with('error', 'Belum ada barang yang dipilih untuk dicheckout.');
         }
 
-        // 3. Kosongkan item yang di-checkout dari Keranjang
-        $cart->cartItems()->where('is_selected', true)->delete();
-    });
+        // Variabel penampung ID Order
+        $createdOrderId = null;
 
-    return redirect()->route('customer.homepage')->with('success', 'Pesanan Anda berhasil dibuat!');
-}
+        DB::transaction(function () use ($customer, $cart, $request, &$createdOrderId) {
+            
+            $selectedItems = $cart->cartItems->where('is_selected', true);
+
+            $groupedItems = $selectedItems->groupBy(function ($item) {
+                return $item->product->seller_id;
+            });
+
+            foreach ($groupedItems as $sellerId => $items) {
+                
+                $subtotal = $items->sum(function($item) {
+                    return $item->quantity * $item->product->price;
+                });
+                
+                $shipping = 150000;
+                $tax = $subtotal * 0.11;
+                $totalPrice = $subtotal + $shipping + $tax;
+
+                $order = Order::create([
+                    'customer_id' => $customer->id,
+                    'total_price' => $totalPrice, 
+                    'shipping_courier' => 'Curated White-Glove Delivery',
+                    'payment_method' => $request->payment_method, 
+                    'status' => 'paid', 
+                ]);
+
+                // Simpan ID Order yang baru dibuat
+                $createdOrderId = $order->id;
+
+                foreach ($items as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->product->price,
+                    ]);
+
+                    $item->product->decrement('stock', $item->quantity);
+                    $item->delete();
+                }
+            }
+        });
+
+        // Redirect ke halaman Success yang baru kita buat
+        return redirect()->route('customer.success', ['id' => $createdOrderId]);
+    }
 
     public function returnRequest() {
-    // Pastikan foldernya benar (customer/return-request.blade.php)
-    return view('customer.return-request'); 
+        // Pastikan foldernya benar (customer/return-request.blade.php)
+        return view('customer.return-request'); 
+    }
+
+    public function storeProfile($id) {
+        // 1. Cari data Seller berdasarkan ID
+        $seller = \App\Models\Seller::with('user')->findOrFail($id);
+
+        // 2. Ambil semua produk milik Seller tersebut
+        $products = \App\Models\Product::with(['images', 'category'])
+                            ->where('seller_id', $seller->id)
+                            ->latest()
+                            ->get();
+
+        // 3. (Opsional) Hitung total produk
+        $totalProducts = $products->count();
+
+        return view('customer.seller-store', compact('seller', 'products', 'totalProducts'));
+    }
+
+   public function updateAddress(Request $request)
+{
+    // Cek apakah ini update alamat utama atau secondary
+    if ($request->type == 'secondary') {
+        $data = [
+            'address_2' => $request->address,
+            'city_2'    => $request->city
+        ];
+    } else {
+        $data = [
+            'address' => $request->address,
+            'city'    => $request->city
+        ];
+    }
+
+    \App\Models\Customer::updateOrCreate(
+        ['user_id' => Auth::id()],
+        $data
+    );
+
+    return back()->with('success', 'Alamat berhasil diperbarui!');
+}
+public function deleteAddress()
+{
+    $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
+    // Kita set null saja karena ini alamat default di tabel customer
+    $customer->update(['address' => null, 'city' => null]);
+
+    return back()->with('success', 'Alamat berhasil dihapus.');
+}
+
+public function updateInfo(Request $request)
+{
+    $user = Auth::user();
+    
+    // Update nama di tabel Users
+    $user->update(['full_name' => $request->full_name]);
+
+    // Update atau Buat data di tabel Customers
+    Customer::updateOrCreate(
+        ['user_id' => $user->id],
+        ['phone' => $request->phone]
+    );
+
+    return back()->with('success', 'Informasi pribadi berhasil diperbarui.');
 }
 }

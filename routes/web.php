@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -73,6 +74,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/cart/decrement/{id}', [CustomerController::class, 'decrementCart'])->name('cart.decrement');
         Route::delete('/cart/remove/{id}', [CustomerController::class, 'removeItem'])->name('cart.remove');
         Route::post('/checkout/place-order', [CustomerController::class, 'placeOrder'])->name('place-order');
+        Route::patch('/cart/toggle/{id}', [CustomerController::class, 'toggleCartItem'])->name('cart.toggle');
+        Route::get('/order/success/{id}', [OrderController::class, 'success'])->name('success');
+        // Rute untuk Update Alamat (yang tadi kita buat di modal)
+        Route::patch('/profile/update-address', [CustomerController::class, 'updateAddress'])->name('profile.update-address');
+
+        // Rute untuk Hapus Alamat (biar error RouteNotFound-nya hilang)
+        Route::delete('/profile/delete-address', [CustomerController::class, 'deleteAddress'])->name('profile.delete-address');
+
+        // Rute untuk Update Info Personal (nama & telepon)
+Route::patch('/profile/update-info', [CustomerController::class, 'updateInfo'])->name('profile.update-info');
+        
+        // Halaman Profil Toko (Seller Storefront)
+        Route::get('/store/{id}', [CustomerController::class, 'storeProfile'])->name('store');
         
 
         // 2. Halaman yang langsung memanggil View (Sesuai foto folder kamu)
@@ -86,7 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/product-favorite', fn () => view('customer.product-favorite'))->name('product-favorite');
         Route::get('/return-request', fn () => view('customer.return-request'))->name('return-request');
         Route::get('/riwayat-chat', fn () => view('customer.riwayat-chat'))->name('riwayat-chat');
-        Route::get('/success', fn () => view('customer.success'))->name('success');
+        
 
     });
 });

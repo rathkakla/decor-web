@@ -12,9 +12,9 @@
         }
     }
 
-    // Biaya tambahan (Bisa kamu buat dinamis nanti)
-    $shipping = $subtotal > 0 ? 250.00 : 0;
-    $taxes = $subtotal * 0.11; // Contoh PPN 11%
+    // Biaya tambahan (Contoh Rp 150.000)
+    $shipping = $subtotal > 0 ? 150000 : 0; 
+    $taxes = $subtotal * 0.11; // PPN 11%
     $total_amount = $subtotal + $shipping + $taxes;
 @endphp
 
@@ -121,8 +121,18 @@
                     @foreach ($cart->cartItems as $item)
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-6 border-b border-gray-100 pb-10">
                         <div class="flex items-center h-full pt-1">
-                            <input type="checkbox" class="custom-checkbox" {{ $item->is_selected ? 'checked' : '' }}>
-                        </div>
+    <form action="{{ route('customer.cart.toggle', $item->id) }}" method="POST" class="m-0">
+        @csrf
+        @method('PATCH')
+        <!-- Trik rahasia: Jika checkbox tidak dicentang, form akan mengirim nilai 0 -->
+        <input type="hidden" name="is_selected" value="0">
+        <!-- Jika dicentang, akan mengirim nilai 1 -->
+        <input type="checkbox" name="is_selected" value="1" class="custom-checkbox" 
+               onchange="this.form.submit()" 
+               {{ $item->is_selected ? 'checked' : '' }}>
+    </form>
+</div>
+                        
 
                         <div class="flex flex-1 flex-col md:flex-row gap-8 w-full">
                             <img src="{{ $item->product->images->first()->img_url ?? 'https://via.placeholder.com/400' }}" 
@@ -178,20 +188,24 @@
                     <div class="space-y-4 mb-8">
                         <div class="flex justify-between text-xs uppercase tracking-wider text-gray-500">
                             <span>Subtotal</span>
-                            <span class="font-bold text-gray-900">${{ number_format($subtotal, 2) }}</span>
+                            <!-- Ubah ke format Rupiah -->
+                            <span class="font-bold text-gray-900">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between text-xs uppercase tracking-wider text-gray-500">
                             <span>Shipping</span>
-                            <span class="font-bold text-gray-900">${{ number_format($shipping, 2) }}</span>
+                            <!-- Ubah ke format Rupiah -->
+                            <span class="font-bold text-gray-900">Rp {{ number_format($shipping, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between text-xs uppercase tracking-wider text-gray-500">
                             <span>PPN (11%)</span>
-                            <span class="font-bold text-gray-900">${{ number_format($taxes, 2) }}</span>
+                            <!-- Ubah ke format Rupiah -->
+                            <span class="font-bold text-gray-900">Rp {{ number_format($taxes, 0, ',', '.') }}</span>
                         </div>
                     </div>
                     <div class="border-t border-gray-200 pt-8 flex justify-between items-end mb-8">
                         <span class="text-sm uppercase font-bold tracking-widest">Total Amount</span>
-                        <span class="text-2xl font-bold text-primary">${{ number_format($total_amount, 2) }}</span>
+                        <!-- Ubah ke format Rupiah -->
+                        <span class="text-2xl font-bold text-primary">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
                     </div>
 
                     <a href="{{ route('customer.checkout') }}" class="block w-full">

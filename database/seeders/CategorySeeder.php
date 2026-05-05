@@ -15,9 +15,9 @@ class CategorySeeder extends Seeder
             'Chair', 
             'Lighting', 
             'Bed', 
-            'Cabinet / Storage', 
+            'Cabinet', 
             'Desk', 
-            'Shelf / Rack', 
+            'Shelf', 
             'Outdoor Furniture'
         ];
 

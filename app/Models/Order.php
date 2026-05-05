@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    // Sesuaikan dengan nama kolom yang ada di database kamu ya
     protected $fillable = [
         'customer_id',
         'total_price',
@@ -14,4 +13,16 @@ class Order extends Model
         'payment_method',
         'status',
     ];
+
+    // Relasi: Satu pesanan punya banyak barang (Order Items)
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    // Relasi: Satu pesanan dimiliki oleh satu Customer
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 }

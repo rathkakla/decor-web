@@ -218,27 +218,30 @@
         </div>
 
         <div class="border border-gray-100 rounded-2xl p-5 space-y-4">
-            <div class="flex items-center justify-between">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Sold by</h4>
-                <span class="text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-full">Verified Partner</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($product->seller->user->full_name ?? 'Decor') }}" class="w-full h-full">
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="font-bold text-gray-900 text-sm truncate">{{ $product->seller->user->full_name ?? 'Decor Merchant' }}</p>
-                    <p class="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                        <i class="fa-solid fa-location-dot text-[9px]"></i> {{ $product->seller->city ?? 'Indonesia' }}
-                    </p>
-                </div>
-            </div>
-            <a href="#" class="w-full flex items-center justify-center gap-2.5 border border-primary text-primary py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-200 active:scale-[0.98]">
-                <i class="fa-regular fa-message"></i> Chat with Seller
-            </a>
-        </div>
-
+    <div class="flex items-center justify-between">
+        <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Sold by</h4>
+        <span class="text-[9px] font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-full">Verified Partner</span>
     </div>
+    
+    <!-- UBAH DIV INI MENJADI TAG <a> -->
+    <a href="{{ route('customer.store', $product->seller_id) }}" class="flex items-center gap-4 group cursor-pointer hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-all">
+        <div class="w-12 h-12 rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50 group-hover:border-primary transition-colors">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($product->seller->user->full_name ?? 'Decor') }}" class="w-full h-full">
+        </div>
+        <div class="flex-1 min-w-0">
+            <!-- Tambahkan group-hover:text-primary agar nama berubah warna saat disorot -->
+            <p class="font-bold text-gray-900 text-sm truncate group-hover:text-primary transition-colors">{{ $product->seller->user->full_name ?? 'Decor Merchant' }}</p>
+            <p class="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                <i class="fa-solid fa-location-dot text-[9px]"></i> {{ $product->seller->city ?? 'Indonesia' }}
+            </p>
+        </div>
+    </a>
+    
+    <!-- Tombol Chat tetap dipertahankan -->
+    <a href="#" class="w-full flex items-center justify-center gap-2.5 border border-primary text-primary py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-200 active:scale-[0.98]">
+        <i class="fa-regular fa-message"></i> Chat with Seller
+    </a>
+</div>
 </div>
 
 <section class="bg-gray-50/60 py-16 border-t border-gray-100">

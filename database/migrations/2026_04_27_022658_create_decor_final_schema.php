@@ -23,9 +23,18 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('phone', 20)->nullable();
+    
+    // Alamat Utama
+            $table->text('address')->nullable();
+            $table->string('city', 100)->nullable();
+    
+    // Alamat Kedua (Secondary)
+            $table->text('address_2')->nullable();
+            $table->string('city_2', 100)->nullable();
+    
             $table->string('profile_image')->nullable();
             $table->timestamps();
-        });
+});
 
         Schema::create('sellers', function (Blueprint $table) {
             $table->id();

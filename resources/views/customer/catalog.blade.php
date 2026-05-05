@@ -215,12 +215,15 @@
                                     View product
                                 </button>
                             </a>
-                            <form action="{{ route('customer.cart.add', $p->id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="w-11 h-11 bg-white rounded-lg flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 text-gray-700 shrink-0">
-                                    <i class="fa-solid fa-plus text-xs"></i>
-                                </button>
-                            </form>
+                            <form action="{{ route('customer.cart.store') }}" method="POST">
+     @csrf
+    <input type="hidden" name="product_id" value="{{ $p->id }}">
+    <input type="hidden" name="quantity" value="1">
+    
+    <button type="submit" class="w-11 h-11 bg-white rounded-lg flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 text-gray-700 shrink-0" title="Add to Cart">
+        <i class="fa-solid fa-plus text-xs"></i>
+    </button>
+</form>
                         </div>
                     </div>
 

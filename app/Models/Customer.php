@@ -11,10 +11,14 @@ class Customer extends Model
 
     // Tambahkan baris ini untuk memberi izin pengisian data
     protected $fillable = [
-        'user_id',
-        'phone',
-        'profile_image',
-    ];
+    'user_id',
+    'phone',
+    'profile_image',
+    'address', 
+    'city',    
+    'address_2', // <-- Tambahkan ini
+    'city_2',    // <-- Tambahkan ini
+];
 
     // Opsional: Relasi balik ke tabel User
     public function user()
