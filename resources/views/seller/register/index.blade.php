@@ -89,7 +89,7 @@
                             <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Owner's Full Name</label><input type="text" name="name" value="{{ old('name') }}" placeholder="Julian Vane" required class="input-underline text-sm font-bold"></div>
                             <div class="grid grid-cols-2 gap-8">
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Phone Number</label><input type="text" name="phone" value="{{ old('phone') }}" placeholder="+62 812..." class="input-underline text-sm font-bold"></div>
-                                <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Bank Name</label><input type="text" name="bank_name" placeholder="BCA / Mandiri" class="input-underline text-sm font-bold"></div>
+                                <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Bank Name</label><input type="text" name="bank_name" placeholder="BCA / Mandiri / BNI / Others" class="input-underline text-sm font-bold"></div>
                             </div>
                             <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Account Number</label><input type="text" id="accNumber" name="account_number" placeholder="0000 0000 0000" class="input-underline text-sm font-black tracking-widest"></div>
                         </div>

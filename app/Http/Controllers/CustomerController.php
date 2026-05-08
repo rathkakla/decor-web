@@ -8,10 +8,11 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Category;
+use App\Models\Favorite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
 class CustomerController extends Controller
 {
     // --- NAVIGATION ---
@@ -37,19 +38,25 @@ class CustomerController extends Controller
     return view('customer.profile', compact('user', 'customer')); 
 }
     
-    public function orders() {
-        $user = Auth::user();
-        $customer = Customer::where('user_id', $user->id)->first();
+        public function orders()
+{
+    $user = Auth::user();
+    
+    // Ambil data customer (termasuk alamatnya untuk ditampilkan di UI)
+    $customer = \App\Models\Customer::firstOrCreate(
+        ['user_id' => $user->id]
+    );
+    
+    // Ambil semua pesanan milik customer ini, urutkan dari yang terbaru
+    // Kita panggil juga relasi orderItems, product, dan images agar tidak error di looping Blade
+    $orders = \App\Models\Order::with(['orderItems.product.images'])
+                ->where('customer_id', $customer->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        // Ambil semua pesanan milik customer ini, urutkan dari yang terbaru
-        // Jangan lupa bawa relasi orderItems dan product-nya
-        $orders = Order::with('orderItems.product.images')
-                       ->where('customer_id', $customer->id)
-                       ->latest()
-                       ->get();
+    return view('customer.order-tracking', compact('user', 'customer', 'orders'));
+}
 
-        return view('customer.order-tracking', compact('user', 'customer', 'orders'));
-    }
 
     public function productDetail($id) { 
         $product = Product::with(['images', 'category', 'seller'])->findOrFail($id);
@@ -62,13 +69,63 @@ class CustomerController extends Controller
                             ->limit(3)
                             ->get();
 
-        return view('customer.product-detail', compact('product', 'relatedProducts')); 
+        $isFavorite = false;
+        if (Auth::check()) {
+            $customer = Customer::where('user_id', Auth::id())->first();
+            if ($customer) {
+                $isFavorite = Favorite::where('customer_id', $customer->id)
+                                      ->where('product_id', $product->id)
+                                      ->exists();
+            }
+        }
+
+        return view('customer.product-detail', compact('product', 'relatedProducts', 'isFavorite')); 
     }
 
-    public function catalog() {
-        $products = Product::with('images', 'category')->get();
-        return view('customer.catalog', compact('products'));
+  public function catalog(Request $request)
+{
+    $categories = \App\Models\Category::all();
+    $materials = ['Wood', 'Metal', 'Leather', 'Fabric', 'Marble'];
+    $styles = ['Minimalist', 'Modern', 'Industrial', 'Classic', 'Scandinavian'];
+
+    $query = Product::with(['images', 'category']);
+
+    // 1. Filter Search & Category
+    if ($request->filled('search')) {
+        $query->where('name', 'like', '%' . $request->search . '%');
     }
+    if ($request->filled('category')) {
+        $query->whereHas('category', function($q) use ($request) {
+            $q->where('name', $request->category); 
+        });
+    }
+
+    // 2. Filter Material & Style
+    if ($request->filled('material')) {
+        $query->whereIn('material', (array)$request->material);
+    }
+    if ($request->filled('style')) {
+        $query->whereIn('style', (array)$request->style);
+    }
+
+    // 3. Logika Sorting (Hanya menyusun query, belum mengambil data)
+    if ($request->filled('sort')) {
+        if ($request->sort === 'price_low') {
+            $query->orderBy('price', 'asc');
+        } elseif ($request->sort === 'price_high') {
+            $query->orderBy('price', 'desc');
+        } else {
+            $query->latest();
+        }
+    } else {
+        $query->latest(); 
+    }
+
+    // 4. EKSEKUSI DATA (Hanya panggil ini SEKALI di akhir)
+    $products = $query->get();
+
+    return view('customer.catalog', compact('products', 'categories', 'materials', 'styles'));
+}
     
     // --- CART LOGIC ---
 
@@ -238,22 +295,30 @@ class CustomerController extends Controller
         return redirect()->route('customer.success', ['id' => $createdOrderId]);
     }
 
-    public function returnRequest() {
-        // Pastikan foldernya benar (customer/return-request.blade.php)
-        return view('customer.return-request'); 
+    public function returnRequest($order_item_id = null)
+{
+    $user = Auth::user();
+    
+    // 1. Ambil data order item yang dipilih (beserta relasi produk dan order-nya)
+    $orderItem = null;
+    if ($order_item_id) {
+        $orderItem = \App\Models\OrderItem::with(['product', 'order'])
+                        ->where('id', $order_item_id)
+                        // Kita bisa tambah proteksi: Pastikan ini milik user yang login
+                        ->whereHas('order', function ($query) use ($user) {
+                            $query->where('customer_id', $user->customer->id)
+                                  ->where('status', 'completed'); // Syarat: harus completed
+                        })
+                        ->first();
     }
 
-    public function storeProfile($id) {
-        // 1. Cari data Seller berdasarkan ID
+    return view('customer.return-request', compact('user', 'orderItem'));
+}
+
+    public function storeProfile($id)
+    {
         $seller = \App\Models\Seller::with('user')->findOrFail($id);
-
-        // 2. Ambil semua produk milik Seller tersebut
-        $products = \App\Models\Product::with(['images', 'category'])
-                            ->where('seller_id', $seller->id)
-                            ->latest()
-                            ->get();
-
-        // 3. (Opsional) Hitung total produk
+        $products = \App\Models\Product::with('images')->where('seller_id', $id)->get();
         $totalProducts = $products->count();
 
         return view('customer.seller-store', compact('seller', 'products', 'totalProducts'));
@@ -305,4 +370,44 @@ public function updateInfo(Request $request)
 
     return back()->with('success', 'Informasi pribadi berhasil diperbarui.');
 }
+
+    // --- FAVORITE LOGIC ---
+    public function toggleFavorite(Request $request, $productId)
+    {
+        $customer = Customer::where('user_id', Auth::id())->first();
+
+        if (!$customer) {
+            return back()->with('error', 'Silakan lengkapi profil Anda terlebih dahulu.');
+        }
+
+        $favorite = Favorite::where('customer_id', $customer->id)
+                            ->where('product_id', $productId)
+                            ->first();
+
+        if ($favorite) {
+            // Remove from favorite
+            $favorite->delete();
+            return back()->with('success', 'Produk dihapus dari wishlist.');
+        } else {
+            // Add to favorite
+            Favorite::create([
+                'customer_id' => $customer->id,
+                'product_id' => $productId
+            ]);
+            return back()->with('success', 'Produk ditambahkan ke wishlist!');
+        }
+    }
+
+    public function productFavorite()
+    {
+        $user = Auth::user();
+        $customer = Customer::firstOrCreate(['user_id' => $user->id]);
+        
+        $favorites = Favorite::with('product.images', 'product.category')
+                             ->where('customer_id', $customer->id)
+                             ->latest()
+                             ->get();
+
+        return view('customer.product-favorite', compact('user', 'customer', 'favorites'));
+    }
 }

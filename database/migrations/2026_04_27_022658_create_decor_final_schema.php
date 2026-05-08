@@ -164,8 +164,10 @@ return new class extends Migration
         Schema::create('returns', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+            // KAMU PERLU TAMBAHKAN INI NANTI (Opsional, jika return per-produk):
+            // $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->text('reason');
-            $table->string('status', 50);
+            $table->string('status', 50); // Misalnya: 'pending', 'approved', 'rejected'
             $table->date('return_date');
             $table->timestamps();
         });

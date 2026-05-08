@@ -1,10 +1,13 @@
-<?php $site_name = "DECOR"; ?>
+@php 
+    $site_name = "DECOR"; 
+    $user = Auth::user(); // Memanggil data user yang sedang login agar dinamis
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Return Request — <?= $site_name ?></title>
+    <title>Return Request — {{ $site_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -27,65 +30,67 @@
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
-   <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
             
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+            <div class="flex items-center space-x-8 flex-1">
+                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
+                    {{ $site_name }}
+                </a>
+                
+                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+                </div>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
+                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
+                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
+                 <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
+            </nav>
+
+            <div class="flex items-center space-x-6 flex-1 justify-end">
+                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                </a>
+                <button class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-regular fa-bell text-lg"></i>
+                </button>
+                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
+                    <a href="{{ route('customer.profile') }}" class="block w-full h-full">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
+                    </a>
+                </div>
             </div>
         </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-             <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-           
-        </nav>
-
-        <div class="flex items-center space-x-6 flex-1 justify-end">
-            <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-solid fa-bag-shopping text-lg"></i>
-            </a>
-            <button class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-regular fa-bell text-lg"></i>
-            </button>
-            <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" class="w-full h-full object-cover bg-slate-100">
-            </div>
-        </div>
-    </div>
-</header>
+    </header>
 
     <main class="flex-grow flex content-container w-full bg-white">
+        <!-- ASIDE: SIDEBAR NAVIGATION -->
         <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
             <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
-                <h3 class="font-bold text-lg">Julian Voss</h3>
-                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Pro Member</p>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
+                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
             </div>
 
             <nav class="space-y-1">
                 <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
                 </a>
-                <a href="{{ route('order') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
+                <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
                 </a>
-                <a href="{{ route('customer.returns') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
+                <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
                     <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
                 </a>
             
-               <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
-    <i class="fa-regular fa-heart text-xs"></i>
-    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-</a>
-<div class="pt-6 mt-6 border-t border-gray-100">
+                <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
+                    <i class="fa-regular fa-heart text-xs"></i>
+                    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
+                </a>
+                <div class="pt-6 mt-6 border-t border-gray-100">
                     <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
                     
                     <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
@@ -98,11 +103,10 @@
                         <span class="text-[11px] uppercase tracking-widest">Seller</span>
                     </a>
                 </div>
-
-                
             </nav>
         </aside>
 
+        <!-- CONTENT AREA -->
         <div class="flex-grow p-12">
             <div class="max-w-3xl">
                 <header class="mb-12">
@@ -159,7 +163,7 @@
         </div>
     </main>
 
-     <footer class="bg-primary text-white py-12 px-6 mt-12">
+    <footer class="bg-primary text-white py-12 px-6 mt-12">
         <div class="max-w-6xl mx-auto"> 
             <div class="flex flex-col md:flex-row justify-between items-start border-b border-white/20 pb-10 gap-10">
                 <div class="space-y-4">
@@ -167,7 +171,7 @@
                         <div class="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
                             <i class="fa-solid fa-couch text-sm"></i>
                         </div>
-                        <span class="text-xl font-bold tracking-widest uppercase">DECOR</span>
+                        <span class="text-xl font-bold tracking-widest uppercase">{{ $site_name }}</span>
                     </div>
                     <div class="text-sm text-white/90 space-y-2">
                         <p class="flex items-center"><i class="fa-regular fa-envelope mr-3 text-xs"></i> decorofficial@gmail.com</p>

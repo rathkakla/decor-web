@@ -24,44 +24,59 @@
 <body class="text-gray-800">
 
     <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-        <div class="p-8">
-            <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
-        </div>
+    <div class="p-8">
+        <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
+        <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
+    </div>
 
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-            </a>
-            <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('products.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
-            </a>
-            <a href="{{ route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.orders') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
-            </a>
-            <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
-            </a>
-            <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.complaint.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
-            </a>
-            <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.reviews') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-            </a>
-            <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.reports') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-            </a>
-        </nav>
+    <!-- MENU UTAMA (ATAS) -->
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+        <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
+        </a>
+        <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.products.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
+        </a>
+        <a href="{{ route('seller.orders') ?? route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.orders*') || Request::routeIs('orders*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
+        </a>
+        <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
+        </a>
+        <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.complaint.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
+        </a>
+        <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.reviews*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
+        </a>
+        <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.reports*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
+        </a>
+    </nav>
 
-        <div class="p-4 border-t border-gray-100 space-y-1">
-            <a href="{{ route('seller.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.settings') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
-            </a>
-            <a href="{{ route('seller.support') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.support') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-headset mr-3 w-5 text-center"></i> Support
-            </a>
+    <!-- MENU PENGATURAN & LOGOUT (BAWAH) -->
+    <div class="p-4 border-t border-gray-100 space-y-1 bg-white">
+        <!-- Settings -->
+        <a href="{{ route('seller.settings') ?? '#' }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.settings*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
+        </a>
+        
+        <!-- Support -->
+        <a href="{{ route('seller.support') ?? '#' }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.support*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-headset mr-3 w-5 text-center"></i> Support
+        </a>
+        
+        <!-- Logout -->
+        <div class="pt-2 mt-2 border-t border-gray-50">
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="flex items-center w-full px-4 py-3 text-xs font-bold text-red-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5 text-center"></i> Logout
+                </button>
+            </form>
         </div>
-    </aside>
+    </div>
+</aside>
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
         
@@ -72,11 +87,10 @@
                 </button>
                 <h2 class="font-bold text-xs uppercase tracking-widest text-white leading-none">Inventory Gallery</h2>
             </div>
-            <div class="flex items-center space-x-6 text-white">
-                <button class="hover:opacity-80 transition-colors"><i class="fa-regular fa-bell text-xl"></i></button>
-                <div class="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center overflow-hidden border border-white/30">
-                     <img src="https://ui-avatars.com/api/?name=Audri&background=fff&color=B5733A" alt="User">
-                </div>
+            <<div class="flex items-center space-x-6 text-white">
+                <p class="text-[10px] font-bold uppercase tracking-widest">{{ Auth::user()->full_name }}</p>
+                <img src="https://ui-avatars.com/api/?name={{ Auth::user()->full_name }}&background=fff&color=B5733A" class="w-9 h-9 rounded-lg border-2 border-white/20">
+            </div>
             </div>
         </header>
 

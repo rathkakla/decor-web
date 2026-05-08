@@ -187,23 +187,29 @@
 
         <p class="text-[13px] text-gray-500 leading-relaxed">{{ $product->description }}</p>
 
-        <form action="{{ route('customer.cart.store') }}" method="POST" class="flex gap-3 items-center">
-            @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
-            
-            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light" onclick="changeQty(-1)">−</button>
-                <input type="number" id="qty-input" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-10 text-center text-sm font-bold text-gray-800 border-none outline-none focus:ring-0 bg-transparent" readonly>
-                <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light" onclick="changeQty(1, {{ $product->stock }})">+</button>
-            </div>
-            
-            <button type="submit" class="flex-1 text-center bg-primary text-white py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20 active:scale-[0.98]">
-                Add to Cart
-            </button>
-            <button type="button" class="w-12 h-12 border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-all">
-                <i class="fa-regular fa-heart"></i>
-            </button>
-        </form>
+        <div class="flex gap-3 items-center">
+            <form action="{{ route('customer.cart.store') }}" method="POST" class="flex-1 flex gap-3 items-center">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                
+                <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                    <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light" onclick="changeQty(-1)">−</button>
+                    <input type="number" id="qty-input" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="w-10 text-center text-sm font-bold text-gray-800 border-none outline-none focus:ring-0 bg-transparent" readonly>
+                    <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light" onclick="changeQty(1, {{ $product->stock }})">+</button>
+                </div>
+                
+                <button type="submit" class="flex-1 text-center bg-primary text-white py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20 active:scale-[0.98]">
+                    Add to Cart
+                </button>
+            </form>
+
+            <form action="{{ route('customer.favorite.toggle', $product->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="w-12 h-12 border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:border-primary hover:text-primary transition-all">
+                    <i class="fa-{{ $isFavorite ? 'solid text-red-500' : 'regular' }} fa-heart"></i>
+                </button>
+            </form>
+        </div>
 
         <div class="border-t border-gray-100 pt-6 space-y-4">
             <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Specifications</h4>
@@ -254,7 +260,7 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             @forelse ($relatedProducts as $rec)
-            <a href="{{ route('product.detail', $rec->id) }}" class="group">
+            <a href="{{ route('customer.product-detail', $rec->id) }}" class="group">
                 <div class="aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 mb-4 relative">
                     <img src="{{ asset($rec->images->first()->img_url ?? 'https://via.placeholder.com/500') }}" alt="{{ $rec->name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-500 rounded-2xl"></div>

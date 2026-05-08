@@ -166,12 +166,44 @@ class SellerController extends Controller
     // ==========================================
 
     public function orderIndex() {
-        $seller = Seller::where('user_id', Auth::id())->first();
-        
-        $orders = Order::whereHas('orderItems.product', function($query) use ($seller) {
-            $query->where('seller_id', $seller->id);
-        })->with(['customer.user', 'orderItems.product'])->latest()->get();
+    $seller = Seller::where('user_id', Auth::id())->first();
 
-        return view('seller.orders.index', compact('orders'));
+
+    $orders = Order::whereHas('orderItems.product', function($query) use ($seller) {
+    $query->where('seller_id', $seller->id);
+        })->with(['customer.user', 'orderItems.product.images'])->latest()->get();
+
+    return view('seller.orders.index', compact('orders'));
+    }
+
+    public function updateOrderStatus(Request $request, $id)
+{
+    $order = Order::findOrFail($id);
+    $order->update([
+        'status' => $request->status
+    ]);
+
+    return back()->with('success', 'Status pesanan #' . $id . ' berhasil diperbarui!');
+}
+
+    // READ: Detail Pesanan (show.blade.php)
+    public function showOrder($id)
+    {
+        $order = Order::with(['customer.user', 'orderItems.product.images'])->findOrFail($id);
+        return view('seller.orders.show', compact('order'));
+    }
+
+    // CETAK: Invoice (invoice.blade.php)
+    public function printInvoice($id)
+    {
+        $order = Order::with(['customer.user', 'orderItems.product'])->findOrFail($id);
+        return view('seller.orders.invoice', compact('order'));
+    }
+
+    // CETAK: Label Pengiriman (label.blade.php)
+    public function printLabel($id)
+    {
+        $order = Order::with(['customer.user'])->findOrFail($id);
+        return view('seller.orders.label', compact('order'));
     }
 }

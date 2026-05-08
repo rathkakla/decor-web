@@ -83,10 +83,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/profile/delete-address', [CustomerController::class, 'deleteAddress'])->name('profile.delete-address');
 
         // Rute untuk Update Info Personal (nama & telepon)
-Route::patch('/profile/update-info', [CustomerController::class, 'updateInfo'])->name('profile.update-info');
+        Route::patch('/profile/update-info', [CustomerController::class, 'updateInfo'])->name('profile.update-info');
         
         // Halaman Profil Toko (Seller Storefront)
         Route::get('/store/{id}', [CustomerController::class, 'storeProfile'])->name('store');
+        Route::get('/return-request/{order_id?}', [CustomerController::class, 'returnRequest'])->name('profile.return-request');
         
 
         // 2. Halaman yang langsung memanggil View (Sesuai foto folder kamu)
@@ -97,7 +98,8 @@ Route::patch('/profile/update-info', [CustomerController::class, 'updateInfo'])-
         Route::get('/help-center', fn () => view('customer.help-center'))->name('help-center');
         Route::get('/invoice', fn () => view('customer.invoice'))->name('invoice');
         Route::get('/portofolio', fn () => view('customer.portofolio'))->name('portofolio');
-        Route::get('/product-favorite', fn () => view('customer.product-favorite'))->name('product-favorite');
+        Route::get('/product-favorite', [CustomerController::class, 'productFavorite'])->name('product-favorite');
+        Route::post('/favorite/toggle/{productId}', [CustomerController::class, 'toggleFavorite'])->name('favorite.toggle');
         Route::get('/return-request', fn () => view('customer.return-request'))->name('return-request');
         Route::get('/riwayat-chat', fn () => view('customer.riwayat-chat'))->name('riwayat-chat');
         
@@ -126,7 +128,10 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
     // Kita buat alias 'orders' dan 'orders.index' agar link di Blade tidak error
     Route::get('/orders', [SellerController::class, 'orderIndex'])->name('orders');
     Route::get('/orders-list', [SellerController::class, 'orderIndex'])->name('orders.index');
-
+    Route::patch('/orders/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('orders.update-status');
+    Route::get('/orders/{id}/show', [SellerController::class, 'showOrder'])->name('orders.show');
+    Route::get('/orders/{id}/invoice', [SellerController::class, 'printInvoice'])->name('orders.invoice');
+    Route::get('/orders/{id}/label', [SellerController::class, 'printLabel'])->name('orders.label');
     // 4. Fitur Support & Komplain (Sesuai error 'Route not defined' tadi)
     Route::get('/complaints', [SellerController::class, 'support'])->name('complaint.index');
     Route::get('/support', [SellerController::class, 'support'])->name('support');

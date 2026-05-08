@@ -35,10 +35,20 @@
                 <?= $site_name ?>
             </a>
             
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-            </div>
+            <!-- Tambahkan tag form yang mengarah ke route katalog -->
+<form action="{{ route('customer.catalog') }}" method="GET" class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
+    
+    <!-- Tambahkan name="search" agar bisa dibaca $request->search di Controller -->
+    <!-- Tambahkan value="{{ request('search') }}" agar teks pencarian tidak hilang setelah enter -->
+    <input 
+        type="text" 
+        name="search" 
+        value="{{ request('search') }}" 
+        placeholder="Search..." 
+        class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400"
+    >
+</form>
         </div>
 
         <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">

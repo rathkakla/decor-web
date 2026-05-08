@@ -99,10 +99,20 @@
                 <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
                     {{ $site_name }}
                 </a>
-                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-                </div>
+                <!-- Tambahkan tag form yang mengarah ke route katalog -->
+<form action="{{ route('customer.catalog') }}" method="GET" class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
+    
+    <!-- Tambahkan name="search" agar bisa dibaca $request->search di Controller -->
+    <!-- Tambahkan value="{{ request('search') }}" agar teks pencarian tidak hilang setelah enter -->
+    <input 
+        type="text" 
+        name="search" 
+        value="{{ request('search') }}" 
+        placeholder="Search..." 
+        class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400"
+    >
+</form>
             </div>
 
             <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
@@ -156,52 +166,93 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-6 shrink-0">
-                    <select class="sort-select text-[11px] font-semibold uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2.5 pr-8 outline-none cursor-pointer hover:border-primary/30 transition-all">
-                        <option>Sort: Featured</option>
-                        <option>Price: Low to High</option>
-                        <option>Price: High to Low</option>
-                    </select>
-                    <span class="text-[11px] font-bold uppercase tracking-widest text-gray-300">
-                        {{ $products->count() }} items
-                    </span>
-                </div>
+    <select onchange="location = this.value;" class="sort-select text-[11px] font-semibold uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2.5 pr-8 outline-none cursor-pointer hover:border-primary/30 transition-all">
+        <option value="{{ request()->fullUrlWithQuery(['sort' => 'featured']) }}" {{ request('sort') == 'featured' ? 'selected' : '' }}>
+            Sort: Featured
+        </option>
+        <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_low']) }}" {{ request('sort') == 'price_low' ? 'selected' : '' }}>
+            Price: Low to High
+        </option>
+        <option value="{{ request()->fullUrlWithQuery(['sort' => 'price_high']) }}" {{ request('sort') == 'price_high' ? 'selected' : '' }}>
+            Price: High to Low
+        </option>
+    </select>
+    
+    <span class="text-[11px] font-bold uppercase tracking-widest text-gray-300">
+        {{ $products->count() }} items
+    </span>
+</div>
             </div>
         </section>
 
         <div class="content-container px-6 pb-16 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-12">
 
-            <aside class="space-y-8 pt-2">
-                <div>
-                    <h4 class="text-[10px] font-black uppercase tracking-[0.25em] mb-4 text-gray-400">Material</h4>
-                    <div class="space-y-3">
-                        @foreach ($materials as $m)
-                        <label class="flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center gap-3">
-                                <input type="checkbox" class="filter-check">
-                                <span class="text-[13px] text-gray-600 group-hover:text-primary transition-colors">{{ $m }}</span>
-                            </div>
-                        </label>
-                        @endforeach
-                    </div>
-                </div>
+           <form action="{{ route('customer.catalog') }}" method="GET" id="filterForm">
+    <!-- Tetap simpan pencarian & kategori yang aktif agar tidak hilang -->
+    <input type="hidden" name="search" value="{{ request('search') }}">
+    <input type="hidden" name="category" value="{{ request('category') }}">
 
-                <div class="w-full h-px bg-gray-100"></div>
+    <aside class="space-y-8 pt-2">
+        <!-- CATEGORIES (Tetap Link) -->
+        <div>
+    <h4 class="text-[10px] font-black uppercase tracking-[0.25em] mb-4 text-gray-400">Collections</h4>
+    <div class="space-y-3">
+        <!-- TOMBOL ALL PRODUCTS (Tambahkan kembali di sini) -->
+        <a href="{{ route('customer.catalog', request()->except('category')) }}" 
+           class="flex items-center justify-between group cursor-pointer">
+            <span class="text-[13px] {{ !request('category') ? 'font-bold text-primary' : 'text-gray-600' }} group-hover:text-primary transition-all">
+                All Products
+            </span>
+        </a>
 
-                <div>
-                    <h4 class="text-[10px] font-black uppercase tracking-[0.25em] mb-4 text-gray-400">Style</h4>
-                    <div class="space-y-2.5">
-                        @foreach ($styles as $s)
-                        <label class="flex items-center justify-between cursor-pointer group">
-                            <div class="flex items-center gap-3">
-                                <input type="checkbox" class="filter-check">
-                                <span class="text-[13px] text-gray-600 group-hover:text-primary transition-colors">{{ $s }}</span>
-                            </div>
-                        </label>
-                        @endforeach
-                    </div>
-                </div>
-            </aside>
+        @foreach ($categories as $cat)
+        <a href="{{ route('customer.catalog', array_merge(request()->query(), ['category' => $cat->name])) }}" 
+           class="flex items-center justify-between group cursor-pointer">
+            <span class="text-[13px] {{ request('category') == $cat->name ? 'font-bold text-primary' : 'text-gray-600' }} group-hover:text-primary transition-all">
+                {{ $cat->name }}
+            </span>
+        </a>
+        @endforeach
+    </div>
+</div>
 
+        <div class="w-full h-px bg-gray-100"></div>
+
+        <!-- MATERIAL (Checkbox) -->
+        <div>
+            <h4 class="text-[10px] font-black uppercase tracking-[0.25em] mb-4 text-gray-400">Material</h4>
+            <div class="space-y-3">
+                @foreach ($materials as $m)
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" name="material[]" value="{{ $m }}" 
+                           onchange="this.form.submit()"
+                           {{ in_array($m, (array)request('material')) ? 'checked' : '' }}
+                           class="filter-check w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                    <span class="text-[13px] text-gray-600 group-hover:text-primary transition-colors">{{ $m }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="w-full h-px bg-gray-100"></div>
+
+        <!-- STYLE (Checkbox) -->
+        <div>
+            <h4 class="text-[10px] font-black uppercase tracking-[0.25em] mb-4 text-gray-400">Style</h4>
+            <div class="space-y-3">
+                @foreach ($styles as $s)
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <input type="checkbox" name="style[]" value="{{ $s }}" 
+                           onchange="this.form.submit()"
+                           {{ in_array($s, (array)request('style')) ? 'checked' : '' }}
+                           class="filter-check w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary">
+                    <span class="text-[13px] text-gray-600 group-hover:text-primary transition-colors">{{ $s }}</span>
+                </label>
+                @endforeach
+            </div>
+        </div>
+    </aside>
+</form>
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-10 pt-2">
                 @foreach ($products as $i => $p)
                 <div class="product-card group cursor-pointer fade-up">
@@ -236,7 +287,7 @@
                                 {{ $p->name }}
                             </h3>
                             <span class="text-[13px] font-bold text-gray-800 shrink-0">
-                                ${{ number_format($p->price, 0) }}
+                                Rp.{{ number_format($p->price, 0) }}
                             </span>
                         </div>
                     </div>
