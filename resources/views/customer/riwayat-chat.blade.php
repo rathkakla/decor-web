@@ -55,7 +55,7 @@ $chat_type = isset($_GET['type']) ? $_GET['type'] : 'designer';
                 <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform"><i class="fa-solid fa-bag-shopping text-lg"></i></a>
                 <button class="text-primary hover:scale-110 transition-transform"><i class="fa-regular fa-bell text-lg"></i></button>
                 <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full bg-slate-100">
+                    <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
                 </div>
             </div>
         </div>
@@ -64,7 +64,7 @@ $chat_type = isset($_GET['type']) ? $_GET['type'] : 'designer';
     <main class="flex-grow flex content-container w-full bg-white">
         <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
             <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
                 <h3 class="font-bold text-lg">Julian Voss</h3>
                 <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Pro Member since 2022</p>
             </div>

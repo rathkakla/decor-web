@@ -79,7 +79,7 @@
 
         <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
             <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->username }}" class="w-full h-full bg-slate-100">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
             </a>
         </div>
     @else

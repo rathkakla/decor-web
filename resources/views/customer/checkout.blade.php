@@ -86,11 +86,11 @@
             <i class="fa-solid fa-bag-shopping text-lg"></i>
         </a>
 
-        <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-            <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->username }}" class="w-full h-full bg-slate-100">
-            </a>
-        </div>
+                    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
+                        <a href="{{ route('customer.profile') }}" class="block w-full h-full">
+                            <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
+                        </a>
+                    </div>
     @else
         <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
             Sign In
@@ -115,20 +115,39 @@
                 <div class="space-y-12">
                     <section>
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold tracking-tight">Shipping Address</h2>
-                            <a href="{{ route('customer.profile') }}" class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary hover:opacity-80">Edit Profile</a>
+                            <h2 class="text-2xl font-bold tracking-tight">Shipping Destination</h2>
+                            <a href="{{ route('customer.profile') }}" class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary hover:opacity-80">Manage Addresses</a>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-6 border-2 border-primary rounded-xl relative bg-orange-50/30">
-                                <i class="fa-solid fa-circle-check absolute top-4 right-4 text-primary"></i>
-                                <span class="text-[9px] font-bold uppercase tracking-widest text-primary mb-2 block">Primary Address</span>
-                                <p class="font-bold text-sm">{{ Auth::user()->full_name }}</p>
-                                <p class="text-xs text-gray-500 leading-relaxed mt-2">
-                                    {{ $customer->address ?? 'Alamat belum diisi. Silakan edit di menu Profil.' }}<br>
-                                    {{ $customer->city ?? 'Indonesia' }}
-                                </p>
+                        
+                        @if($customer->addresses->count() > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @foreach($customer->addresses as $address)
+                                <label class="block cursor-pointer relative">
+                                    <input type="radio" name="address_id" value="{{ $address->id }}" class="peer sr-only" {{ $address->is_main ? 'checked' : '' }} required>
+                                    <div class="p-6 border-2 border-gray-100 rounded-xl bg-white peer-checked:border-primary peer-checked:bg-orange-50/30 transition-all hover:border-primary/50 h-full">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400 peer-checked:text-primary">{{ $address->label }}</span>
+                                            <i class="fa-solid fa-circle-check text-primary opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                                        </div>
+                                        <p class="font-bold text-sm text-gray-800">{{ $address->recipient_name }}</p>
+                                        <p class="text-[10px] text-gray-500 font-medium">{{ $address->phone_number }}</p>
+                                        <p class="text-xs text-gray-500 leading-relaxed mt-2 line-clamp-2">
+                                            {{ $address->full_address }}<br>
+                                            <span class="font-bold">{{ $address->city }}</span>
+                                        </p>
+                                    </div>
+                                </label>
+                                @endforeach
                             </div>
-                        </div>
+                        @else
+                            <div class="p-10 border-2 border-dashed border-gray-200 rounded-2xl text-center bg-gray-50">
+                                <i class="fa-solid fa-map-location-dot text-3xl text-gray-300 mb-4 block"></i>
+                                <p class="text-sm text-gray-500 mb-4 font-medium">You haven't added any shipping addresses yet.</p>
+                                <a href="{{ route('customer.profile') }}">
+                                    <button type="button" class="bg-primary text-white px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Add Address First</button>
+                                </a>
+                            </div>
+                        @endif
                     </section>
 
                     <section>

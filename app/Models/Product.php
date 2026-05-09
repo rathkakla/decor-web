@@ -26,5 +26,10 @@ class Product extends Model
         return $this->belongsTo(Seller::class);
     }
 
-    
+    // Relasi ke Review
+    public function reviews() {
+        return $this->hasMany(Review::class);
+    }
+
+
 }

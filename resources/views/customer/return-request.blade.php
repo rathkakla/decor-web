@@ -1,6 +1,6 @@
-@php 
+@php
     $site_name = "DECOR"; 
-    $user = Auth::user(); // Memanggil data user yang sedang login agar dinamis
+    $avatar_url = Auth::user()->avatar_url;
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -59,7 +59,7 @@
                 </button>
                 <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
                     <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
+                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
                     </a>
                 </div>
             </div>
@@ -70,7 +70,7 @@
         <!-- ASIDE: SIDEBAR NAVIGATION -->
         <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
             <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
                 <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
                 <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
             </div>
@@ -114,51 +114,94 @@
                     <p class="text-[11px] text-gray-400 uppercase tracking-[0.2em] font-bold">Manage your product returns and refunds.</p>
                 </header>
 
-                <section class="mb-12">
-                    <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2 mb-6">Select Product</h3>
-                    <div class="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex items-center gap-6">
-                        <div class="w-20 h-20 bg-white rounded-xl overflow-hidden border border-gray-100 shrink-0">
-                            <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?w=200" class="w-full h-full object-cover">
+                @if($order)
+                <form action="{{ route('customer.return-request.submit', $order->id) }}" method="POST">
+                    @csrf
+                    <section class="mb-12">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2 mb-6">Select Order</h3>
+                        <div class="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex items-center gap-6">
+                            <div class="w-20 h-20 bg-white rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
+                                <i class="fa-solid fa-box text-3xl text-gray-300"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Order #DEC-{{ $order->id }}</p>
+                                <h4 class="font-bold text-sm">{{ $order->orderItems->count() }} items from this order</h4>
+                                <p class="text-[10px] text-gray-500">Delivered via {{ $order->shipping_courier }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-primary">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="space-y-8">
+                        <div class="space-y-6">
+                            <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2">Return Details</h3>
+                            
+                            <div class="grid grid-cols-1 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Reason for Return</label>
+                                    <select name="reason" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
+                                        <option value="">Select a reason...</option>
+                                        <option value="Damaged upon arrival">Damaged upon arrival</option>
+                                        <option value="Different from description">Different from description</option>
+                                        <option value="Quality not as expected">Quality not as expected</option>
+                                        <option value="Changed my mind">Changed my mind</option>
+                                    </select>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Additional Notes</label>
+                                    <textarea name="notes" rows="4" placeholder="Describe the issue in detail..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-xs outline-none focus:border-primary transition-all resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-4 pt-4">
+                            <a href="{{ route('customer.orders') }}" class="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all">Cancel</a>
+                            <button type="submit" class="px-10 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">Submit Request</button>
+                        </div>
+                    </section>
+                </form>
+                @else
+                <section class="space-y-6">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2 mb-6">My Return History</h3>
+                    
+                    @forelse($returns as $return)
+                    <a href="{{ route('customer.return-detail', $return->id) }}" class="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-start md:items-center gap-6 relative hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all group block">
+                        <div class="w-16 h-16 bg-white rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
+                            @if($return->order->orderItems->first() && $return->order->orderItems->first()->product->images->isNotEmpty())
+                                <img src="{{ $return->order->orderItems->first()->product->images->first()->img_url }}" class="w-full h-full object-cover">
+                            @else
+                                <i class="fa-solid fa-rotate-left text-2xl text-gray-300"></i>
+                            @endif
                         </div>
                         <div class="flex-grow">
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Order #DC-9920184</p>
-                            <h4 class="font-bold text-sm">Hans Wegner Shell Chair</h4>
-                            <p class="text-[10px] text-gray-500">Walnut / Black Leather Edition</p>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Order #DEC-{{ $return->order_id }}</p>
+                            <h4 class="font-bold text-sm">{{ $return->reason }}</h4>
+                            <p class="text-[10px] text-gray-500 mt-1">Requested on {{ \Carbon\Carbon::parse($return->return_date)->format('d M Y') }}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold text-primary">€1.240,00</p>
+                        <div class="text-right flex items-center gap-4">
+                            <span class="px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest 
+                                @if($return->status == 'pending') bg-yellow-100 text-yellow-600 
+                                @elseif($return->status == 'approved') bg-green-100 text-green-600 
+                                @elseif($return->status == 'rejected') bg-red-100 text-red-600 
+                                @endif">
+                                {{ $return->status }}
+                            </span>
                         </div>
+                    </a>
+                    @empty
+                    <div class="text-center py-20 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200">
+                            <i class="fa-solid fa-box-open text-2xl text-gray-300"></i>
+                        </div>
+                        <p class="text-gray-500 mb-4 font-medium">Belum ada pengajuan pengembalian barang.</p>
+                        <a href="{{ route('customer.orders') }}" class="inline-block bg-primary text-white px-6 py-2 text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">Lihat Riwayat Pesanan</a>
                     </div>
+                    @endforelse
                 </section>
-
-                <section class="space-y-8">
-                    <div class="space-y-6">
-                        <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2">Return Details</h3>
-                        
-                        <div class="grid grid-cols-1 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Reason for Return</label>
-                                <select class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
-                                    <option>Select a reason...</option>
-                                    <option>Damaged upon arrival</option>
-                                    <option>Different from description</option>
-                                    <option>Quality not as expected</option>
-                                    <option>Changed my mind</option>
-                                </select>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Additional Notes</label>
-                                <textarea rows="4" placeholder="Describe the issue in detail..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-xs outline-none focus:border-primary transition-all resize-none"></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-4 pt-4">
-                        <button class="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all">Cancel</button>
-                        <button class="px-10 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">Submit Request</button>
-                    </div>
-                </section>
+                @endif
             </div>
         </div>
     </main>

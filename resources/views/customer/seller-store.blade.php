@@ -103,35 +103,79 @@
 </head>
 <body>
 
-<!-- ══════════════ NAVBAR (Minimalist Version) ══════════════ -->
+<!-- ══════════════ NAVBAR ══════════════ -->
 <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div style="max-width:1200px; margin:0 auto;" class="flex justify-between items-center py-4 px-6">
+    <div class="flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
+
         <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                {{ $site_name }}
+            <a href="{{ route('customer.homepage') }}"
+                class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
+                DECOR
             </a>
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] focus-within:bg-white focus-within:border-primary/30 transition-all">
+
+            <div
+                class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
                 <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+                <input type="text" placeholder="Search..."
+                    class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
             </div>
         </div>
+
         <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-            <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
+            <a href="{{ route('customer.catalog') }}" class="{{ Route::is('customer.catalog') ? 'text-primary font-bold' : 'hover:text-primary' }} transition-all">Collections</a>
+            <a href="{{ route('customer.designers') }}" class="{{ Route::is('customer.designers') ? 'text-primary font-bold' : 'hover:text-primary' }} transition-all">Designers</a>
+            <a href="{{ route('customer.design-lab') }}" class="{{ Route::is('customer.design-lab') ? 'text-primary font-bold' : 'hover:text-primary' }} transition-all">AI Studio</a>
         </nav>
+
         <div class="flex items-center space-x-6 flex-1 justify-end">
-            <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-solid fa-bag-shopping text-lg"></i>
-            </a>
+            @auth
+                <div class="flex items-center gap-4 border-r pr-6 border-gray-100">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold leading-none mb-1">
+                            Welcome back</p>
+                        <p class="text-xs font-bold text-primary capitalize">{{ Auth::user()->full_name }}</p>
+                    </div>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors" title="Logout">
+                            <i class="fa-solid fa-power-off text-sm"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                </a>
+
+                <div
+                    class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
+                    <a href="{{ route('customer.profile') }}" class="block w-full h-full">
+                        <img src="{{ Auth::user()->avatar_url }}"
+                            class="w-full h-full bg-slate-100 object-cover">
+                    </a>
+                </div>
+            @else
+                <a href="{{ route('login') }}"
+                    class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
+                    Sign In
+                </a>
+
+                <a href="{{ route('role.selection') }}">
+                    <button
+                        class="bg-primary text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-opacity-90 transition-all">
+                        Join Us
+                    </button>
+                </a>
+            @endauth
         </div>
     </div>
 </header>
 
 <!-- ══════════════ COVER ══════════════ -->
 <div class="cover-wrap">
-    <!-- Gambar Cover Dinamis (Ganti dengan default jika belum punya kolom cover) -->
-    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1400" class="cover-img" alt="Store Cover">
+    <!-- Gambar Cover Dinamis -->
+    <img src="{{ $seller->store_banner_url }}" class="cover-img" alt="Store Cover">
     <div class="cover-overlay"></div>
     <div class="cover-grain"></div>
     <!-- Breadcrumb over cover -->
@@ -152,36 +196,28 @@
 
         <!-- Avatar -->
         <div class="seller-avatar-wrap">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($seller->user->username) }}" class="seller-avatar" alt="Avatar">
+            <img src="{{ $seller->store_image_url }}" class="seller-avatar" alt="Avatar">
             <div class="verified-ring" title="Verified Artisan">
                 <i class="fa-solid fa-check" style="font-size:9px;"></i>
             </div>
         </div>
-
+ 
         <!-- Meta -->
         <div class="seller-meta">
             <div class="seller-badge">
                 <i class="fa-solid fa-medal" style="font-size:9px;"></i> Verified Artisan
             </div>
             <h1 class="seller-name">{{ $seller->store_name ?? $seller->user->full_name }}</h1>
-            <p class="seller-tagline">"Crafting spaces where material meets memory."</p>
+            <p class="seller-tagline">"{{ $seller->store_description ?? 'Crafting spaces where material meets memory.' }}"</p>
             <div class="seller-loc">
                 <i class="fa-solid fa-location-dot" style="font-size:10px; color:var(--primary);"></i>
-                Indonesia
-                &nbsp;·&nbsp;
-                <i class="fa-regular fa-calendar" style="font-size:10px;"></i>
-                Since {{ $seller->created_at->format('Y') }}
-                &nbsp;·&nbsp;
-                <span style="color:#22C55E; font-weight:800;">
-                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22C55E;margin-right:4px;vertical-align:middle;"></span>
-                    Online Now
-                </span>
+                {{ $seller->store_address ?? 'Indonesia' }}
             </div>
-
+ 
             <!-- Inline stats -->
             <div class="seller-stats">
                 <div class="stat-item">
-                    <div class="stat-num" style="color:var(--primary);">4.9 ★</div>
+                    <div class="stat-num" style="color:var(--primary);">{{ number_format($averageRating, 1) }} ★</div>
                     <div class="stat-lbl">Store Rating</div>
                 </div>
                 <div class="stat-divider"></div>
@@ -189,14 +225,9 @@
                     <div class="stat-num">{{ $totalProducts }}</div>
                     <div class="stat-lbl">Products</div>
                 </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <div class="stat-num">< 1 hour</div>
-                    <div class="stat-lbl">Response Time</div>
-                </div>
             </div>
         </div>
-
+ 
         <!-- CTA -->
         <div class="cta-group">
             <a href="{{ route('customer.riwayat-chat') }}" class="btn-primary">

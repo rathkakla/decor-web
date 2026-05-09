@@ -91,8 +91,8 @@
                         <i class="fa-regular fa-copy text-gray-300"></i>
                     </div>
                     <div class="flex items-end space-x-3 text-gray-800">
-                        <h3 class="text-5xl font-black leading-none">12</h3>
-                        <span class="text-xs font-bold text-orange-500 mb-1">+4% vs last week</span>
+                        <h3 class="text-5xl font-black leading-none">{{ sprintf('%02d', $counts['pending']) }}</h3>
+                        <span class="text-xs font-bold text-orange-500 mb-1">Pending approval</span>
                     </div>
                 </div>
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden">
@@ -101,7 +101,7 @@
                         <i class="fa-solid fa-chart-line text-gray-300"></i>
                     </div>
                     <div class="flex items-end space-x-3 text-gray-800">
-                        <h3 class="text-5xl font-black leading-none">08</h3>
+                        <h3 class="text-5xl font-black leading-none">00</h3>
                         <span class="text-xs font-bold text-gray-400 mb-1 tracking-widest">Steady</span>
                     </div>
                 </div>
@@ -111,17 +111,17 @@
                         <i class="fa-regular fa-circle-check text-gray-300"></i>
                     </div>
                     <div class="flex items-end space-x-3 text-gray-800">
-                        <h3 class="text-5xl font-black leading-none">142</h3>
-                        <span class="text-xs font-bold text-green-500 mb-1">98% Success</span>
+                        <h3 class="text-5xl font-black leading-none">{{ sprintf('%02d', $counts['resolved']) }}</h3>
+                        <span class="text-xs font-bold text-green-500 mb-1">Resolved cases</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden p-4">
                 <div class="flex space-x-8 border-b border-gray-50 px-6 pt-4 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                    <button class="pb-4 border-b-2 border-primary text-primary">All (162)</button>
-                    <button class="pb-4 hover:text-primary transition-colors">Pending (20)</button>
-                    <button class="pb-4 hover:text-primary transition-colors">Resolved (142)</button>
+                    <a href="{{ route('seller.complaint.index') }}" class="pb-4 {{ $currentStatus == 'all' ? 'border-b-2 border-primary text-primary' : 'hover:text-primary transition-colors' }}">All ({{ $counts['all'] }})</a>
+                    <a href="{{ route('seller.complaint.index', ['status' => 'pending']) }}" class="pb-4 {{ $currentStatus == 'pending' ? 'border-b-2 border-primary text-primary' : 'hover:text-primary transition-colors' }}">Pending ({{ $counts['pending'] }})</a>
+                    <a href="{{ route('seller.complaint.index', ['status' => 'resolved']) }}" class="pb-4 {{ $currentStatus == 'resolved' ? 'border-b-2 border-primary text-primary' : 'hover:text-primary transition-colors' }}">Resolved ({{ $counts['resolved'] }})</a>
                 </div>
 
                 <table class="w-full text-left">
@@ -135,33 +135,40 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50 text-gray-800">
+                        @forelse($returns as $return)
                         @php
-                        $complaints = [
-                            ['id' => '#CS-9842', 'tag' => 'NEW', 'tag_col' => 'bg-orange-400', 'name' => 'Elena Rosales', 'tier' => 'PREMIUM MEMBER', 'issue' => 'Damaged Product: Velvet Chaise', 'date' => 'Oct 24, 2023', 'action' => 'OPEN DETAILS', 'act_col' => 'text-primary'],
-                            ['id' => '#CS-9840', 'tag' => 'INVESTIGATING', 'tag_col' => 'bg-orange-800', 'name' => 'Marcus Vane', 'tier' => 'REPEAT BUYER', 'issue' => 'Wrong Item: Received \'Oak...\'', 'date' => 'Oct 23, 2023', 'action' => 'OPEN DETAILS', 'act_col' => 'text-primary'],
-                            ['id' => '#CS-9838', 'tag' => 'RESOLVED', 'tag_col' => 'bg-gray-400', 'name' => 'Sarah Jenkins', 'tier' => 'STANDARD ACCOUNT', 'issue' => 'Missing Hardware: Assembly kit...', 'date' => 'Oct 22, 2023', 'action' => 'VIEW ARCHIVE', 'act_col' => 'text-gray-400'],
-                        ];
+                            $tag = strtoupper($return->status);
+                            $tag_col = match($return->status) {
+                                'pending' => 'bg-orange-400',
+                                'approved' => 'bg-green-500',
+                                'rejected' => 'bg-red-500',
+                                default => 'bg-gray-400'
+                            };
+                            $act_col = $return->status == 'pending' ? 'text-primary' : 'text-gray-400';
+                            $action = $return->status == 'pending' ? 'OPEN DETAILS' : 'VIEW ARCHIVE';
                         @endphp
-
-                        @foreach($complaints as $c)
                         <tr class="hover:bg-gray-50 transition-colors group">
                             <td class="px-8 py-6">
-                                <span class="text-xs font-bold text-gray-300 block mb-1">{{ $c['id'] }}</span>
-                                <span class="{{ $c['tag_col'] }} text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">{{ $c['tag'] }}</span>
+                                <span class="text-xs font-bold text-gray-300 block mb-1">#DEC-{{ $return->order_id }}</span>
+                                <span class="{{ $tag_col }} text-white text-[8px] font-black px-2 py-0.5 rounded uppercase">{{ $tag }}</span>
                             </td>
                             <td class="px-8 py-6">
-                                <h4 class="text-sm font-black leading-none">{{ $c['name'] }}</h4>
-                                <span class="text-[9px] font-bold text-gray-300 uppercase">{{ $c['tier'] }}</span>
+                                <h4 class="text-sm font-black leading-none">{{ $return->order->customer->user->full_name ?? 'Customer' }}</h4>
+                                <span class="text-[9px] font-bold text-gray-300 uppercase">Order #{{ $return->order_id }}</span>
                             </td>
-                            <td class="px-8 py-6 text-xs font-bold text-gray-600 tracking-tight">{{ $c['issue'] }}</td>
-                            <td class="px-8 py-6 text-xs font-bold text-gray-500">{{ $c['date'] }}</td>
+                            <td class="px-8 py-6 text-xs font-bold text-gray-600 tracking-tight">{{ $return->reason }}</td>
+                            <td class="px-8 py-6 text-xs font-bold text-gray-500">{{ \Carbon\Carbon::parse($return->return_date)->format('M d, Y') }}</td>
                             <td class="px-8 py-6 text-right">
-                                <a href="{{ route('seller.complaint.detail') }}" class="{{ $c['act_col'] }} text-[10px] font-black uppercase tracking-widest flex items-center justify-end ml-auto group-hover:scale-105 transition-transform">
-                                    {{ $c['action'] }} <i class="fa-solid fa-arrow-right ml-2 text-[8px]"></i>
+                                <a href="{{ route('seller.complaint.detail', $return->id) }}" class="{{ $act_col }} text-[10px] font-black uppercase tracking-widest flex items-center justify-end ml-auto group-hover:scale-105 transition-transform">
+                                    {{ $action }} <i class="fa-solid fa-arrow-right ml-2 text-[8px]"></i>
                                 </a>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="5" class="px-8 py-6 text-center text-xs font-bold text-gray-400">Belum ada komplain atau pengembalian.</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

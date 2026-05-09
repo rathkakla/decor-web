@@ -57,7 +57,7 @@
                 <i class="fa-regular fa-bell text-lg"></i>
             </button>
             <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Profile" class="w-full h-full object-cover bg-slate-100">
+                <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
             </div>
         </div>
     </div>

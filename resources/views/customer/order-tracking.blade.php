@@ -1,4 +1,4 @@
-@php $site_name = "DECOR"; @endphp
+<?php $site_name = "DECOR"; ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,7 +70,7 @@
 
         <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
             <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->username }}" class="w-full h-full bg-slate-100">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
             </a>
         </div>
     @else
@@ -92,7 +92,7 @@
         <!-- SIDEBAR (TETAP SAMA) -->
         <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0">
             <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
                 <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
                 <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
             </div>
@@ -149,7 +149,17 @@
                     <div class="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="text-[10px] font-black text-primary uppercase tracking-widest">
-                                {{ $order->status == 'shipped' ? 'In Transit' : ($order->status == 'completed' ? 'Delivered' : $order->status) }}
+                                @if($order->productReturn)
+                                    @if($order->productReturn->status == 'approved')
+                                        <span class="text-green-600">Returned</span>
+                                    @elseif($order->productReturn->status == 'rejected')
+                                        <span class="text-red-500">Return Rejected</span>
+                                    @else
+                                        <span class="text-yellow-600">Return Pending</span>
+                                    @endif
+                                @else
+                                    {{ $order->status == 'shipped' ? 'In Transit' : ($order->status == 'completed' ? 'Delivered' : $order->status) }}
+                                @endif
                             </span>
                             <h2 class="text-xl font-bold text-gray-900 mt-1">Order #DEC-{{ $order->id }}</h2>
                             <p class="text-xs text-gray-500 mt-1 font-medium">
@@ -158,18 +168,37 @@
                         </div>
                         
                         <!-- TOMBOL AKSI (TRACKING / RETURN) -->
-<div class="flex gap-3">
-    @if($order->status == 'shipped')
+<div class="flex gap-3 items-center">
+    <a href="{{ route('invoice.download', $order->id) }}" target="_blank" class="border border-[#B5733A] text-[#B5733A] bg-amber-50/30 px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-amber-50 transition-colors shadow-sm inline-flex items-center">
+        <i class="fa-solid fa-file-invoice mr-2"></i> Invoice
+    </a>
+    @if($order->status == 'pending')
+        <div class="flex items-center gap-3">
+            <span class="text-[11px] font-bold text-red-500 countdown-timer" data-expires="{{ $order->created_at->copy()->addDay()->toIso8601String() }}">
+                Menghitung...
+            </span>
+            <a href="{{ route('customer.payment', $order->id) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
+                Pay Now
+            </a>
+            <button class="border border-gray-200 text-gray-500 px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-gray-50 transition-colors shadow-sm">
+                Cancel
+            </button>
+        </div>
+    @elseif($order->status == 'shipped')
         <button class="bg-[#1a1a1a] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-black transition-colors shadow-sm">
             Track Live Location
         </button>
     @elseif($order->status == 'completed')
-        <!-- Jika sudah sampai, munculkan tombol Return -->
-        <a href="{{ route('customer.return-request', ['order_id' => $order->id]) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
-            Return Request
-        </a>
+        @if(!$order->productReturn)
+            <a href="{{ route('customer.return-request', ['order_id' => $order->id]) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
+                Return Request
+            </a>
+        @else
+            <a href="{{ route('customer.return-request') }}" class="border border-primary text-primary px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-primary hover:text-white transition-colors shadow-sm inline-block">
+                View Return Status
+            </a>
+        @endif
     @else
-        <!-- Opsional: Status pending/paid bisa dikasih tombol batal -->
         <button class="border border-gray-200 text-gray-500 px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-gray-50 transition-colors shadow-sm">
             Cancel Order
         </button>
@@ -257,6 +286,19 @@
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1">Material: Wood / Default</p>
                                         <p class="text-xs text-gray-500 mt-0.5">Qty: {{ $item->quantity }}</p>
+                                        
+                                        @if($order->status == 'completed')
+                                        <div class="mt-2 flex gap-2">
+                                            <a href="{{ route('customer.review', $item->product_id) }}" class="inline-block text-[10px] font-bold text-primary uppercase tracking-widest border border-primary px-3 py-1 rounded hover:bg-primary hover:text-white transition-colors">
+                                                Write a Review
+                                            </a>
+                                            @if(!$order->productReturn)
+                                                <a href="{{ route('customer.return-request', $order->id) }}" class="inline-block text-[10px] font-bold text-gray-500 uppercase tracking-widest border border-gray-300 px-3 py-1 rounded hover:bg-gray-100 transition-colors">
+                                                    Return Request
+                                                </a>
+                                            @endif
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                                 @endforeach
@@ -336,5 +378,33 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const countdownElements = document.querySelectorAll('.countdown-timer');
+            
+            setInterval(() => {
+                const now = new Date().getTime();
+                
+                countdownElements.forEach(el => {
+                    const expiresStr = el.getAttribute('data-expires');
+                    if (!expiresStr) return;
+                    
+                    const expires = new Date(expiresStr).getTime();
+                    const distance = expires - now;
+                    
+                    if (distance < 0) {
+                        el.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Expired';
+                        return;
+                    }
+                    
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    el.innerHTML = `<i class="fa-regular fa-clock mr-1"></i> ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                });
+            }, 1000);
+        });
+    </script>
 </body>
 </html>

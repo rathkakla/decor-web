@@ -18,7 +18,7 @@ class ProductController extends Controller
     // READ DETAIL (Mengambil 1 barang saja secara spesifik)
     public function show($id)
     {
-        $product = Product::with(['images', 'seller', 'category'])->find($id);
+        $product = Product::with(['images', 'seller', 'category', 'reviews.customer.user'])->find($id);
         
         if (!$product) {
             return $this->errorResponse('Produk tidak ditemukan', 404);
@@ -80,5 +80,63 @@ class ProductController extends Controller
         $product->delete();
 
         return $this->successResponse(null, 'Produk berhasil dihapus');
+    }
+    // SUBMIT REVIEW
+    public function storeReview(Request $request, $id)
+    {
+        $request->validate([
+            'rating'   => 'required|integer|min:1|max:5',
+            'comment'  => 'nullable|string',
+            'order_id' => 'nullable|exists:orders,id'
+        ]);
+
+        $user = $request->user();
+        $customer = \App\Models\Customer::where('user_id', $user->id)->first();
+
+        if (!$customer) {
+            return $this->errorResponse('Profil customer tidak ditemukan.', 404);
+        }
+
+        $review = \App\Models\Review::create([
+            'product_id'  => $id,
+            'customer_id' => $customer->id,
+            'rating'      => $request->rating,
+            'comment'     => $request->comment,
+        ]);
+
+        // Jika ada order_id, tandai order tersebut sudah diulas
+        if ($request->has('order_id')) {
+            \App\Models\Order::where('id', $request->order_id)
+                ->where('customer_id', $customer->id)
+                ->update(['has_reviewed' => true]);
+        }
+
+        return $this->successResponse($review, 'Ulasan berhasil dikirim.');
+    }
+
+    public function sellerStore($id)
+    {
+        $seller = \App\Models\Seller::with('user')->find($id);
+
+        if (!$seller) {
+            return $this->errorResponse('Seller tidak ditemukan', 404);
+        }
+
+        $products = \App\Models\Product::with('images')->where('seller_id', $id)->get();
+
+        $allReviews = \App\Models\Review::whereHas('product', function ($q) use ($id) {
+            $q->where('seller_id', $id);
+        })->get();
+
+        $averageRating = $allReviews->avg('rating') ?: 0;
+        $totalReviews = $allReviews->count();
+
+        return $this->successResponse([
+            'seller'         => $seller,
+            'products'       => $products,
+            'total_products' => $products->count(),
+            'average_rating' => round($averageRating, 1),
+            'total_reviews'  => $totalReviews
+        ], 'Data seller berhasil diambil');
     }
 }

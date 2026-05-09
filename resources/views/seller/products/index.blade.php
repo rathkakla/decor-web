@@ -89,7 +89,7 @@
             </div>
             <<div class="flex items-center space-x-6 text-white">
                 <p class="text-[10px] font-bold uppercase tracking-widest">{{ Auth::user()->full_name }}</p>
-                <img src="https://ui-avatars.com/api/?name={{ Auth::user()->full_name }}&background=fff&color=B5733A" class="w-9 h-9 rounded-lg border-2 border-white/20">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-9 h-9 rounded-lg border-2 border-white/20 object-cover">
             </div>
             </div>
         </header>

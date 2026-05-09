@@ -11,18 +11,23 @@ class Customer extends Model
 
     // Tambahkan baris ini untuk memberi izin pengisian data
     protected $fillable = [
-    'user_id',
-    'phone',
-    'profile_image',
-    'address', 
-    'city',    
-    'address_2', // <-- Tambahkan ini
-    'city_2',    // <-- Tambahkan ini
-];
+        'user_id',
+        'phone',
+        'profile_image',
+    ];
 
-    // Opsional: Relasi balik ke tabel User
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function mainAddress()
+    {
+        return $this->hasOne(Address::class)->where('is_main', true);
     }
 }

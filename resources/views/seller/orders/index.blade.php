@@ -173,6 +173,9 @@
                                 Update Status
                             </button>
                         @endif
+                        <a href="{{ route('invoice.download', $order->id) }}" target="_blank" class="px-5 py-2.5 border border-[#B5733A] text-[#B5733A] bg-amber-50/30 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all flex items-center">
+                            <i class="fa-solid fa-file-invoice mr-2"></i> Invoice
+                        </a>
                         <a href="{{ route('seller.orders.show', $order->id) }}" class="px-5 py-2.5 border border-gray-200 text-gray-800 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all">Detail</a>
                     </div>
                 </div>

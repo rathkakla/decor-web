@@ -9,25 +9,37 @@ class Seller extends Model
 {
     use HasFactory;
 
-    /**
-     * Properti fillable ini adalah 'gerbang' keamanan.
-     * Hanya kolom yang terdaftar di sini yang boleh diisi secara massal (Mass Assignment).
-     */
     protected $fillable = [
         'user_id',
         'store_name',
-        'phone_number',    // Ditangkap dari form identity/professional
-        'bank_name',       // Ditangkap dari form professional
-        'account_number',  // Ditangkap dari form professional
-        'store_address',   // Ditangkap dari form logistics
+        'phone_number',
+        'bank_name',
+        'account_number',
+        'store_address',
         'store_description',
         'rating',
         'store_image',
+        'store_banner',
     ];
 
-    /**
-     * Relasi ke User: Satu Seller dimiliki oleh satu User.
-     */
+    protected $appends = ['store_image_url', 'store_banner_url'];
+
+    public function getStoreImageUrlAttribute()
+    {
+        if ($this->store_image) {
+            return asset('storage/' . $this->store_image);
+        }
+        return $this->user->avatar_url;
+    }
+
+    public function getStoreBannerUrlAttribute()
+    {
+        if ($this->store_banner) {
+            return asset('storage/' . $this->store_banner);
+        }
+        return 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1400';
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

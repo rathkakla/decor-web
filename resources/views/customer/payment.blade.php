@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment — {{ env('APP_NAME', 'DECOR') }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#B5733A',
+                        secondary: '#E3DCD6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; }
+        .content-container { max-width: 1200px; margin: 0 auto; }
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col min-h-screen">
+
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
+            <div class="flex items-center space-x-8 flex-1">
+                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
+                    DECOR
+                </a>
+                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+                </div>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
+                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
+                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
+                <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
+            </nav>
+
+            <div class="flex items-center space-x-6 flex-1 justify-end">
+                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                </a>
+                <button class="text-primary hover:scale-110 transition-transform">
+                    <i class="fa-regular fa-bell text-lg"></i>
+                </button>
+                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
+                    <a href="{{ route('customer.profile') }}" class="block">
+                        <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->full_name ?? Auth::user()->name }}" class="w-full h-full bg-slate-100">
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-20 content-container px-6 flex-1 flex flex-col items-center">
+        <h1 class="text-4xl font-bold tracking-tighter mb-4">Complete Your Payment</h1>
+        <p class="text-gray-500 mb-8">Please review your payment details below.</p>
+
+        <div class="w-full max-w-2xl bg-gray-50 rounded-[2rem] p-10 border border-gray-100 mb-8">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-6 mb-6">
+                <div>
+                    <h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Order ID</h4>
+                    <p class="text-lg font-bold">#{{ $order->id }}</p>
+                </div>
+                <div class="text-right">
+                    <h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Total Amount</h4>
+                    <p class="text-2xl font-black text-primary">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                </div>
+            </div>
+
+            @if($order->payment_method === 'bank_transfer')
+                <div class="text-center py-6">
+                    <i class="fa-solid fa-building-columns text-4xl text-primary mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Bank Transfer</h3>
+                    <p class="text-sm text-gray-500 mb-6">Please transfer the exact amount to the following Virtual Account number:</p>
+                    
+                    <div class="bg-white border border-primary p-6 rounded-xl inline-block w-full max-w-sm mx-auto mb-6">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">BCA Virtual Account</p>
+                        <p class="text-3xl font-black tracking-widest text-gray-800">8077 1234 5678</p>
+                    </div>
+                </div>
+            @else
+                <div class="text-center py-6">
+                    <i class="fa-solid fa-wallet text-4xl text-primary mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Cash on Delivery</h3>
+                    <p class="text-sm text-gray-500 mb-6">Please prepare the exact amount in cash when the courier arrives at your address.</p>
+                </div>
+            @endif
+
+            <form action="{{ route('customer.payment.confirm', $order->id) }}" method="POST" class="text-center mt-8">
+                @csrf
+                <button type="submit" class="w-full md:w-auto px-12 bg-primary text-white py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30">
+                    Confirm Payment
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="bg-primary text-white py-12 px-6 mt-auto">
+        <div class="max-w-6xl mx-auto">
+            <div class="pt-8 text-[10px] text-white/60 font-medium tracking-widest text-center">
+                <p>©️ 2026 DECOR MARKETPLACE. ALL RIGHTS RESERVED.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

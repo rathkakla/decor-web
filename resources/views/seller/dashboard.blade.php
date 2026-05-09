@@ -19,63 +19,7 @@
 </head>
 <body class="text-gray-800">
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-    <div class="p-8">
-        <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-        <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
-    </div>
-    
-    <!-- MENU UTAMA (ATAS) -->
-    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-        <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-        </a>
-        <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.products.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
-        </a>
-        <a href="{{ route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.orders*') || Request::routeIs('orders*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
-        </a>
-        <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
-        </a>
-        <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.complaint.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
-        </a>
-         <!-- Review & Rating -->
-        <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*review*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-        </a>
-        
-        <!-- Laporan -->
-        <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*report*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-        </a>
-    </nav>
-    
-    <!-- MENU PENGATURAN (BAWAH) -->
-    <div class="p-4 border-t border-gray-100 space-y-1 bg-white">
-        <!-- Settings -->
-        <a href="{{ route('seller.settings') ?? '#' }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.settings*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
-        </a>
-        
-        <!-- Support -->
-        <a href="{{ route('seller.support') ?? '#' }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.support*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-headset mr-3 w-5 text-center"></i> Support
-        </a>
-        
-        <!-- Logout -->
-        <div class="pt-2 mt-2 border-t border-gray-50">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="flex items-center w-full px-4 py-3 text-xs font-bold text-red-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg">
-                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5 text-center"></i> Logout
-                </button>
-            </form>
-        </div>
-    </div>
-</aside>
+    @include('seller.partials.sidebar')
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
         <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
@@ -87,7 +31,7 @@
             </div>
             <div class="flex items-center space-x-6 text-white">
                 <p class="text-[10px] font-bold uppercase tracking-widest">{{ Auth::user()->full_name }}</p>
-                <img src="https://ui-avatars.com/api/?name={{ Auth::user()->full_name }}&background=fff&color=B5733A" class="w-9 h-9 rounded-lg border-2 border-white/20">
+                <img src="{{ Auth::user()->avatar_url }}" class="w-9 h-9 rounded-lg border-2 border-white/20 object-cover">
             </div>
         </header>
 
@@ -98,13 +42,13 @@
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-wallet"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimated Revenue</p>
-                    <h3 class="text-2xl font-bold mt-1">Rp 0</h3>
+                    <h3 class="text-2xl font-bold mt-1">Rp {{ number_format($estimatedRevenue, 0, ',', '.') }}</h3>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">New Orders</p>
-                    <h3 class="text-2xl font-bold mt-1">0</h3>
+                    <h3 class="text-2xl font-bold mt-1">{{ $newOrdersCount }}</h3>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
@@ -116,22 +60,116 @@
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-star"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Store Rating</p>
-                    <h3 class="text-2xl font-bold mt-1">{{ $seller->rating ?? '0.0' }}</h3>
+                    <h3 class="text-2xl font-bold mt-1">{{ number_format($averageRating, 1) }}</h3>
                 </div>
             </div>
 
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                <div class="flex justify-between items-center mb-10">
-                    <h3 class="text-lg font-bold">Monthly Revenue</h3>
-                    <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
-                </div>
-                <div class="h-48 flex items-end justify-between border-b border-gray-100 pb-2">
-                    @foreach(['JAN','FEB','MAR','APR','MAY','JUN'] as $month)
-                    <div class="flex flex-col items-center group">
-                        <div class="w-12 bg-primary/10 hover:bg-primary transition-all rounded-t-sm" style="height: {{ rand(20, 150) }}px"></div>
-                        <span class="text-[8px] font-bold text-gray-300 mt-2">{{ $month }}</span>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-10">
+                        <h3 class="text-lg font-bold">Monthly Revenue</h3>
+                        <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
                     </div>
-                    @endforeach
+                    <div class="h-64">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('revenueChart').getContext('2d');
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(181, 115, 58, 0.2)');
+                        gradient.addColorStop(1, 'rgba(181, 115, 58, 0)');
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: @json($months),
+                                datasets: [{
+                                    label: 'Revenue',
+                                    data: @json($revenueData),
+                                    borderColor: '#B5733A',
+                                    borderWidth: 3,
+                                    backgroundColor: gradient,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: '#B5733A',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#1f2937',
+                                        padding: 12,
+                                        titleFont: { size: 10, weight: 'bold' },
+                                        bodyFont: { size: 12 },
+                                        callbacks: {
+                                            label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                if (label) label += ': ';
+                                                if (context.parsed.y !== null) {
+                                                    label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(context.parsed.y);
+                                                }
+                                                return label;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: '#f3f4f6' },
+                                        ticks: {
+                                            font: { size: 10 },
+                                            callback: function(value) {
+                                                return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                            }
+                                        }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { font: { size: 10, weight: 'bold' } }
+                                    }
+                                }
+                            }
+                        });
+                    });
+                </script>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-bold mb-8">Recent Orders</h3>
+                    <div class="space-y-6">
+                        @forelse($recentOrders as $order)
+                        <div class="flex items-center justify-between group cursor-pointer">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                                    <i class="fa-solid fa-bag-shopping"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold">{{ $order->customer->user->full_name }}</p>
+                                    <p class="text-[9px] text-gray-400 uppercase tracking-widest">{{ $order->created_at->format('d M, H:i') }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-bold text-gray-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                                <span class="text-[8px] font-black uppercase px-2 py-0.5 rounded-full {{ $order->status == 'completed' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600' }}">
+                                    {{ $order->status }}
+                                </span>
+                            </div>
+                        </div>
+                        @empty
+                        <p class="text-xs text-gray-400 text-center py-10">No recent orders yet.</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
         </div>
