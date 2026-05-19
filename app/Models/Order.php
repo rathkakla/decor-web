@@ -19,6 +19,9 @@ class Order extends Model
         'payment_method',
         'status',
         'has_reviewed',
+        'payment_proof',
+        'voucher_id',
+        'discount_amount',
     ];
 
     // Relasi: Satu pesanan punya banyak barang (Order Items)

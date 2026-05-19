@@ -222,11 +222,30 @@
                                             <p class="text-sm font-bold">{{ $item->product->name }}</p>
                                             <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Qty: {{ $item->quantity }}x</p>
                                             <p class="text-xs font-bold mt-1 text-primary">Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}</p>
+                                            <input type="hidden" class="seller-id" value="{{ $item->product->seller_id }}">
                                         </div>
                                     </div>
                                     @endif
                                 @endforeach
                             @endif
+                        </div>
+
+                        <!-- Voucher Section -->
+                        <div class="mb-8 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Have a Voucher?</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="voucher-code" placeholder="Enter code" class="flex-1 bg-gray-50 border-none rounded-lg px-4 py-2 text-xs font-bold focus:ring-1 focus:ring-primary/20">
+                                <button type="button" id="apply-voucher" class="bg-primary/10 text-primary px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Apply</button>
+                            </div>
+                            <p id="voucher-message" class="text-[9px] font-bold mt-2 hidden"></p>
+                            <div id="applied-voucher" class="hidden mt-3 p-3 bg-orange-50 rounded-lg border border-primary/20 flex justify-between items-center">
+                                <div>
+                                    <p class="text-[9px] font-black text-primary uppercase tracking-widest" id="applied-code"></p>
+                                    <p class="text-[10px] font-bold text-gray-700" id="applied-discount"></p>
+                                </div>
+                                <button type="button" id="remove-voucher" class="text-red-400 hover:text-red-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                            </div>
+                            <input type="hidden" name="voucher_id" id="voucher-id-input">
                         </div>
 
                         <div class="space-y-3 mb-8">
@@ -242,11 +261,15 @@
                                 <span>Estimated VAT (11%)</span>
                                 <span class="text-gray-900">Rp {{ number_format($taxes, 0, ',', '.') }}</span>
                             </div>
+                            <div class="flex justify-between text-[10px] uppercase font-bold tracking-widest text-primary hidden" id="discount-row">
+                                <span>Voucher Discount</span>
+                                <span id="discount-amount">- Rp 0</span>
+                            </div>
                         </div>
 
                         <div class="flex justify-between items-end mb-8 pt-4 border-t border-gray-200">
                             <span class="text-lg font-bold">Total</span>
-                            <span class="text-2xl font-black text-primary italic">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
+                            <span class="text-2xl font-black text-primary italic" id="final-total">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
                         </div>
 
                         <button type="submit" class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30 {{ $subtotal == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $subtotal == 0 ? 'disabled' : '' }}>
@@ -257,6 +280,95 @@
                 </aside>
             </div>
         </form> </main>
+
+    <script>
+        document.getElementById('apply-voucher').addEventListener('click', function() {
+            const code = document.getElementById('voucher-code').value;
+            const sellerIds = Array.from(document.querySelectorAll('.seller-id')).map(el => el.value);
+            const msgEl = document.getElementById('voucher-message');
+
+            if (!code) return;
+
+            // Kita coba apply satu per satu seller id yang ada di cart
+            let voucherApplied = false;
+            
+            const uniqueSellers = [...new Set(sellerIds)];
+            
+            const tryApply = async () => {
+                for (let sellerId of uniqueSellers) {
+                    const response = await fetch("{{ route('customer.vouchers.apply') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ code: code, seller_id: sellerId })
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        applyDiscount(data);
+                        voucherApplied = true;
+                        break;
+                    }
+                }
+
+                if (!voucherApplied) {
+                    msgEl.textContent = "Voucher tidak valid atau seller tidak ditemukan di keranjang.";
+                    msgEl.classList.remove('hidden', 'text-green-500');
+                    msgEl.classList.add('text-red-500');
+                }
+            };
+
+            tryApply();
+        });
+
+        function applyDiscount(data) {
+            const subtotal = {{ $subtotal }};
+            const shipping = {{ $shipping }};
+            const taxes = {{ $taxes }};
+            let discount = 0;
+
+            if (data.discount_type === 'percentage') {
+                discount = subtotal * (data.discount_value / 100);
+                if (data.max_discount && discount > data.max_discount) {
+                    discount = data.max_discount;
+                }
+            } else {
+                discount = data.discount_value;
+            }
+
+            if (subtotal < data.min_purchase) {
+                const msgEl = document.getElementById('voucher-message');
+                msgEl.textContent = "Minimal belanja Rp " + new Intl.NumberFormat('id-ID').format(data.min_purchase) + " tidak terpenuhi.";
+                msgEl.classList.remove('hidden', 'text-green-500');
+                msgEl.classList.add('text-red-500');
+                return;
+            }
+
+            // UI Update
+            document.getElementById('discount-row').classList.remove('hidden');
+            document.getElementById('discount-amount').textContent = "- Rp " + new Intl.NumberFormat('id-ID').format(discount);
+            document.getElementById('voucher-id-input').value = data.voucher_id;
+            
+            const newTotal = subtotal + shipping + taxes - discount;
+            document.getElementById('final-total').textContent = "Rp " + new Intl.NumberFormat('id-ID').format(newTotal);
+
+            document.getElementById('applied-voucher').classList.remove('hidden');
+            document.getElementById('applied-code').textContent = document.getElementById('voucher-code').value.toUpperCase();
+            document.getElementById('applied-discount').textContent = data.discount_type === 'percentage' ? data.discount_value + "% OFF" : "Rp " + new Intl.NumberFormat('id-ID').format(data.discount_value) + " OFF";
+            
+            document.getElementById('voucher-code').value = '';
+            document.getElementById('voucher-message').classList.add('hidden');
+        }
+
+        document.getElementById('remove-voucher').addEventListener('click', function() {
+            document.getElementById('discount-row').classList.add('hidden');
+            document.getElementById('voucher-id-input').value = '';
+            document.getElementById('final-total').textContent = "Rp {{ number_format($total_amount, 0, ',', '.') }}";
+            document.getElementById('applied-voucher').classList.add('hidden');
+        });
+    </script>
 
     <footer class="bg-primary text-white py-12 px-6 mt-12">
         <div class="max-w-6xl mx-auto"> 

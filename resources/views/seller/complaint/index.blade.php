@@ -19,63 +19,14 @@
 </head>
 <body class="text-gray-800">
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-        <div class="p-8">
-            <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
-        </div>
-
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-            </a>
-            <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
-            </a>
-            <a href="{{ route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
-            </a>
-            <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
-            </a>
-            <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold active-link transition-all rounded-lg">
-                <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
-            </a>
-            <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-            </a>
-            <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-100 space-y-1">
-            <a href="{{ route('seller.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
-                <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
-            </a>
-            <a href="{{ route('seller.support') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.support') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Support
-            </a>
-        </div>
-    </aside>
+    @include('seller.partials.sidebar')
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
         
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-            <div class="flex items-center">
-                <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 transition-transform active:scale-95">
-                    <i class="fa-solid fa-bars-staggered text-xl"></i>
-                </button>
-                <div class="relative ml-4">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-xs"></i>
-                    <input type="text" placeholder="Search Case IDs..." class="bg-white/10 border border-white/20 rounded-full py-1.5 pl-9 pr-4 text-xs text-white placeholder-white/50 outline-none focus:bg-white/20 w-64 transition-all">
-                </div>
-            </div>
-            <div class="flex items-center space-x-6 text-white">
-                <i class="fa-regular fa-bell text-xl cursor-pointer"></i>
-                <img src="https://ui-avatars.com/api/?name=Audri&background=fff&color=B5733A" class="w-9 h-9 rounded-lg border-2 border-white/20">
-            </div>
-        </header>
+        @php
+            $extraAction = '<div class="relative ml-4"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-xs"></i><input type="text" placeholder="Search Case IDs..." class="bg-white/10 border border-white/20 rounded-full py-1.5 pl-9 pr-4 text-xs text-white placeholder-white/50 outline-none focus:bg-white/20 w-64 transition-all"></div>';
+        @endphp
+        @include('seller.partials.header', ['title' => 'Customer Complaints', 'extra_action' => $extraAction])
 
         <div class="p-10 space-y-10 flex-1">
             
@@ -177,7 +128,7 @@
         </div>
 
         <footer class="px-8 py-6 border-t border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">
-            © 2026 DECOR MERCHANT SERVICE CENTER. ALL RIGHTS RESERVED.
+            Â© 2026 DECOR MERCHANT SERVICE CENTER. ALL RIGHTS RESERVED.
         </footer>
     </main>
 

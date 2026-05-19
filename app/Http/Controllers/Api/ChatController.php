@@ -16,7 +16,7 @@ class ChatController extends Controller
 
         $conversations = Chat::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['sender', 'receiver'])
+            ->with(['sender.seller', 'sender.customer', 'sender.designer', 'receiver.seller', 'receiver.customer', 'receiver.designer'])
             ->latest()
             ->get()
             ->map(function ($chat) use ($userId) {

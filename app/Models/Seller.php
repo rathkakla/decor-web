@@ -20,6 +20,8 @@ class Seller extends Model
         'rating',
         'store_image',
         'store_banner',
+        'status',
+        'rejection_reason',
     ];
 
     protected $appends = ['store_image_url', 'store_banner_url'];
@@ -43,5 +45,10 @@ class Seller extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
     }
 }

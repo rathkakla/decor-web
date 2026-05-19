@@ -185,9 +185,17 @@
             </button>
         </div>
     @elseif($order->status == 'shipped')
-        <button class="bg-[#1a1a1a] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-black transition-colors shadow-sm">
-            Track Live Location
-        </button>
+        <div class="flex gap-2">
+            <button class="bg-[#1a1a1a] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-black transition-colors shadow-sm">
+                Track Live Location
+            </button>
+            <form action="{{ route('customer.orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin pesanan sudah diterima dengan baik?')">
+                @csrf
+                <button type="submit" class="bg-green-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-green-700 transition-colors shadow-sm">
+                    Pesanan Diterima
+                </button>
+            </form>
+        </div>
     @elseif($order->status == 'completed')
         @if(!$order->productReturn)
             <a href="{{ route('customer.return-request', ['order_id' => $order->id]) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">

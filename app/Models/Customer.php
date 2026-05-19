@@ -30,4 +30,9 @@ class Customer extends Model
     {
         return $this->hasOne(Address::class)->where('is_main', true);
     }
+
+    public function consultations()
+    {
+        return $this->hasMany(Consultation::class);
+    }
 }

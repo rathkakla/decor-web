@@ -10,6 +10,8 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Voucher;
+use App\Models\VoucherClaim;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -25,9 +27,9 @@ class OrderController extends Controller
         }
 
         $orders = Order::with(['orderItems.product.images', 'productReturn'])
-                        ->where('customer_id', $customer->id)
-                        ->latest()
-                        ->get();
+            ->where('customer_id', $customer->id)
+            ->latest()
+            ->get();
 
         return $this->successResponse($orders, 'Data riwayat pesanan berhasil diambil.');
     }
@@ -37,6 +39,10 @@ class OrderController extends Controller
     {
         $request->validate([
             'reason' => 'required|string',
+            'return_type' => 'required|in:refund,exchange',
+            'video_proof' => 'required|file|mimes:mp4,mov,avi,wmv|max:20480',
+            'photo_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'bank_account_number' => 'required_if:return_type,refund|nullable|string|max:50',
         ]);
 
         $user = $request->user();
@@ -52,11 +58,25 @@ class OrderController extends Controller
             return $this->errorResponse('Anda sudah mengajukan pengembalian untuk pesanan ini.', 400);
         }
 
+        $videoPath = null;
+        if ($request->hasFile('video_proof')) {
+            $videoPath = $request->file('video_proof')->store('return_proofs/videos', 'public');
+        }
+
+        $photoPath = null;
+        if ($request->hasFile('photo_proof')) {
+            $photoPath = $request->file('photo_proof')->store('return_proofs/photos', 'public');
+        }
+
         $return = \App\Models\ProductReturn::create([
             'order_id' => $order->id,
+            'return_type' => $request->return_type,
             'reason' => $request->reason,
             'status' => 'pending',
             'return_date' => now(),
+            'video_proof' => $videoPath,
+            'photo_proof' => $photoPath,
+            'bank_account_number' => $request->bank_account_number,
         ]);
 
         // Update status pesanan jadi returning
@@ -70,7 +90,7 @@ class OrderController extends Controller
     {
         $request->validate([
             'shipping_courier' => 'required|string',
-            'payment_method'   => 'required|string',
+            'payment_method' => 'required|string',
         ]);
 
         $user = $request->user();
@@ -90,8 +110,8 @@ class OrderController extends Controller
         // Ambil item yang terpilih (is_selected = true)
         // Kita asumsikan di mobile juga ada fitur pilih item, atau defaultnya semua true
         $selectedItems = CartItem::where('cart_id', $cart->id)
-                                ->where('is_selected', true)
-                                ->get();
+            ->where('is_selected', true)
+            ->get();
 
         if ($selectedItems->isEmpty()) {
             return $this->errorResponse('Tidak ada item yang dipilih untuk checkout.', 400);
@@ -100,7 +120,7 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $totalPrice = 0;
+            $subtotal = 0;
             $orderItemsData = [];
 
             foreach ($selectedItems as $item) {
@@ -112,25 +132,59 @@ class OrderController extends Controller
                 }
 
                 $price = $product->price * $item->quantity;
-                $totalPrice += $price;
+                $subtotal += $price;
 
                 $orderItemsData[] = [
                     'product_id' => $item->product_id,
-                    'quantity'   => $item->quantity,
-                    'price'      => $product->price,
+                    'quantity' => $item->quantity,
+                    'price' => $product->price,
                 ];
 
                 // Kurangi stok
                 $product->decrement('stock', $item->quantity);
             }
 
+            // Voucher logic
+            $discount = 0;
+            $voucherId = $request->voucher_id;
+            if ($voucherId) {
+                $voucher = Voucher::find($voucherId);
+                if ($voucher && $subtotal >= $voucher->min_purchase) {
+                    $claim = VoucherClaim::where('user_id', $user->id)
+                        ->where('voucher_id', $voucher->id)
+                        ->where('is_used', false)
+                        ->first();
+                    
+                    if ($claim) {
+                        if ($voucher->discount_type === 'percentage') {
+                            $discount = $subtotal * ($voucher->discount_value / 100);
+                            if ($voucher->max_discount && $discount > $voucher->max_discount) {
+                                $discount = $voucher->max_discount;
+                            }
+                        } else {
+                            $discount = $voucher->discount_value;
+                        }
+                        $claim->update(['is_used' => true, 'used_at' => now()]);
+                    } else {
+                        $voucherId = null; // Claim tidak valid/sudah digunakan
+                    }
+                } else {
+                    $voucherId = null; // Tidak memenuhi syarat
+                }
+            }
+
+            $totalPrice = $subtotal - $discount;
+            if ($totalPrice < 0) $totalPrice = 0;
+
             // Buat Order
             $order = Order::create([
-                'customer_id'      => $customer->id,
-                'total_price'      => $totalPrice,
+                'customer_id' => $customer->id,
+                'total_price' => $totalPrice,
+                'voucher_id' => $voucherId,
+                'discount_amount' => $discount,
                 'shipping_courier' => $request->shipping_courier,
-                'payment_method'   => $request->payment_method,
-                'status'           => 'pending',
+                'payment_method' => $request->payment_method,
+                'status' => 'pending',
             ]);
 
             // Buat Order Items
@@ -141,11 +195,21 @@ class OrderController extends Controller
 
             // Hapus item dari cart
             CartItem::where('cart_id', $cart->id)
-                    ->where('is_selected', true)
-                    ->delete();
+                ->where('is_selected', true)
+                ->delete();
 
             DB::commit();
+ 
+            // Notify sellers
+            $order->load('orderItems.product.seller.user');
+            $sellers = $order->orderItems->map(function($item) {
+                return $item->product->seller->user ?? null;
+            })->filter()->unique('id');
 
+            foreach ($sellers as $sellerUser) {
+                $sellerUser->notify(new \App\Notifications\NewOrderNotification($order));
+            }
+ 
             return $this->successResponse($order->load('orderItems.product.images'), 'Checkout berhasil dilakukan.', 201);
 
         } catch (\Exception $e) {
@@ -161,8 +225,8 @@ class OrderController extends Controller
         $customer = Customer::where('user_id', $user->id)->first();
 
         $order = Order::with(['orderItems.product.images'])
-                      ->where('customer_id', $customer->id)
-                      ->find($id);
+            ->where('customer_id', $customer->id)
+            ->find($id);
 
         if (!$order) {
             return $this->errorResponse('Pesanan tidak ditemukan.', 404);
@@ -171,8 +235,8 @@ class OrderController extends Controller
         return $this->successResponse($order, 'Detail pesanan berhasil diambil.');
     }
 
-    // 4. BAYAR PESANAN
-    public function payOrder(Request $request, $id)
+    // 4. BAYAR PESANAN (Upload Bukti)
+    public function confirmPayment(Request $request, $id)
     {
         $user = $request->user();
         $customer = Customer::where('user_id', $user->id)->first();
@@ -188,11 +252,113 @@ class OrderController extends Controller
         }
 
         if ($order->status !== 'pending') {
-            return $this->errorResponse('Pesanan ini sudah dibayar atau tidak valid untuk dibayar.', 400);
+            return $this->errorResponse('Pesanan ini sudah dibayar atau sedang dalam verifikasi.', 400);
         }
 
-        $order->update(['status' => 'paid']);
+        $request->validate([
+            'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
-        return $this->successResponse($order->load('orderItems.product.images'), 'Pembayaran berhasil dikonfirmasi.');
+        if ($request->hasFile('payment_proof')) {
+            $file = $request->file('payment_proof');
+            $path = $file->store('payment_proofs', 'public');
+            $order->update([
+                'payment_proof' => $path,
+                'status' => 'waiting_verification'
+            ]);
+        }
+
+        return $this->successResponse($order->load('orderItems.product.images'), 'Bukti pembayaran berhasil diupload, mohon tunggu verifikasi admin.');
+    }
+
+    public function submitReview(Request $request, $id = null)
+    {
+        // Jika product_id tidak ada di body tapi ada di URL, masukkan ke request
+        if (!$request->has('product_id') && $id) {
+            $request->merge(['product_id' => $id]);
+        }
+
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string',
+            'order_id' => 'nullable|exists:orders,id',
+        ]);
+
+        $user = $request->user();
+        $customer = Customer::where('user_id', $user->id)->first();
+
+        if (!$customer) {
+            return $this->errorResponse('Customer profile not found.', 404);
+        }
+
+        // Verifikasi apakah ini review untuk order tertentu
+        $orderId = $request->order_id;
+        
+        // Jika URL ID bukan product_id tapi order_id (dari rute /orders/{id}/reviews)
+        // Kita cek apakah $id yang dikirim di URL adalah order_id yang valid
+        if (!$orderId && $id && Order::where('id', $id)->where('customer_id', $customer->id)->exists()) {
+            $orderId = $id;
+        }
+
+        $review = \App\Models\Review::create([
+            'product_id' => $request->product_id,
+            'customer_id' => $customer->id,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            // Jika ada order_id, kita bisa simpan atau update status order_items 
+            // Namun di model Review kita belum punya field order_id. 
+            // Kita biarkan saja dulu atau tambahkan nanti jika perlu.
+        ]);
+
+        // Opsional: Tandai order ini sudah di-review jika ada orderId
+        if ($orderId) {
+            Order::where('id', $orderId)->update(['has_reviewed' => true]);
+        }
+
+        return $this->successResponse($review, 'Review berhasil dikirim.');
+    }
+
+    // 5. KONFIRMASI BARANG DITERIMA (CUSTOMER)
+    public function receivedOrder(Request $request, $id)
+    {
+        $user = $request->user();
+        $customer = Customer::where('user_id', $user->id)->first();
+
+        if (!$customer) {
+            return $this->errorResponse('Profil customer tidak ditemukan.', 404);
+        }
+
+        $order = Order::where('customer_id', $customer->id)->find($id);
+
+        if (!$order) {
+            return $this->errorResponse('Pesanan tidak ditemukan.', 404);
+        }
+
+        if ($order->status !== 'shipped') {
+            return $this->errorResponse('Pesanan hanya bisa dikonfirmasi jika statusnya sudah dikirim.', 400);
+        }
+
+        $order->update(['status' => 'completed']);
+
+        return $this->successResponse($order->load('orderItems.product.images'), 'Terima kasih! Pesanan Anda telah selesai.');
+    }
+
+    // Helper responses
+    protected function successResponse($data, $message = null, $code = 200)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data
+        ], $code);
+    }
+
+    protected function errorResponse($message, $code)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message
+        ], $code);
     }
 }

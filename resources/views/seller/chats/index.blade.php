@@ -29,18 +29,7 @@
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition h-screen relative">
         
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm shrink-0">
-            <div class="flex items-center">
-                <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 transition-transform active:scale-95">
-                    <i class="fa-solid fa-bars-staggered text-xl"></i>
-                </button>
-                <h2 class="font-bold text-xs uppercase tracking-widest text-white leading-none">Customer Messages</h2>
-            </div>
-            <div class="flex items-center space-x-6 text-white font-bold text-[10px] tracking-widest uppercase">
-                <span>{{ Auth::user()->full_name }}</span>
-                <img src="{{ Auth::user()->avatar_url }}" class="w-8 h-8 rounded-lg border border-white/20">
-            </div>
-        </header>
+        @include('seller.partials.header', ['title' => 'Customer Messages'])
 
         <div class="flex-1 flex overflow-hidden">
             <!-- CONVERSATION LIST -->
@@ -109,7 +98,28 @@
                                         </div>
                                     @endif
                                     <div class="p-4 text-[11px] font-semibold leading-relaxed shadow-sm {{ $msg->sender_id == Auth::id() ? 'bg-primary text-white chat-bubble-me' : 'bg-white text-gray-600 chat-bubble-them border border-gray-50' }}">
-                                        {{ $msg->message }}
+                                        @if($msg->attachment)
+                                            @php
+                                                $ext = pathinfo($msg->attachment, PATHINFO_EXTENSION);
+                                                $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']);
+                                            @endphp
+                                            <div class="mb-2">
+                                                @if($isImage)
+                                                    <a href="{{ asset('storage/' . $msg->attachment) }}" target="_blank">
+                                                        <img src="{{ asset('storage/' . $msg->attachment) }}" class="rounded-xl max-w-full h-auto border border-white/20 shadow-sm">
+                                                    </a>
+                                                @else
+                                                    <a href="{{ asset('storage/' . $msg->attachment) }}" target="_blank" class="flex items-center gap-2 p-3 {{ $msg->sender_id == Auth::id() ? 'bg-white/10' : 'bg-gray-50' }} rounded-xl border border-white/20 hover:scale-[1.02] transition-all">
+                                                        <i class="fa-solid fa-file-lines"></i>
+                                                        <span class="truncate">{{ basename($msg->attachment) }}</span>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        
+                                        @if($msg->message)
+                                            {{ $msg->message }}
+                                        @endif
                                     </div>
                                     <p class="text-[8px] font-bold text-gray-300 uppercase {{ $msg->sender_id == Auth::id() ? 'text-right' : 'text-left' }}">
                                         {{ $msg->created_at->format('H:i') }}
@@ -121,12 +131,25 @@
 
                     <!-- INPUT AREA -->
                     <div class="p-8 bg-white border-t border-gray-100 shrink-0">
-                        <form action="{{ route('seller.chats.send') }}" method="POST" class="flex items-center space-x-6">
+                        <form action="{{ route('seller.chats.send') }}" method="POST" enctype="multipart/form-data" class="flex items-center space-x-6">
                             @csrf
                             <input type="hidden" name="receiver_id" value="{{ $activeChat->id }}">
-                            <button type="button" class="text-gray-300 hover:text-primary transition-all"><i class="fa-solid fa-paperclip text-xl"></i></button>
+                            
+                            <input type="file" name="attachment" id="chat-attachment" class="hidden" onchange="document.getElementById('attachment-preview').classList.remove('hidden'); document.getElementById('file-name').textContent = this.files[0].name;">
+                            
+                            <button type="button" onclick="document.getElementById('chat-attachment').click()" class="text-gray-300 hover:text-primary transition-all">
+                                <i class="fa-solid fa-paperclip text-xl"></i>
+                            </button>
+
+                            <div id="attachment-preview" class="hidden flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                                <span id="file-name" class="text-[9px] text-primary font-black truncate max-w-[120px]"></span>
+                                <button type="button" onclick="document.getElementById('chat-attachment').value=''; document.getElementById('attachment-preview').classList.add('hidden');" class="text-primary hover:text-red-500">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
+                            </div>
+
                             <div class="flex-1 relative">
-                                <input type="text" name="message" required placeholder="Type your message here..." class="w-full bg-gray-50 rounded-2xl py-4 px-6 text-[11px] font-bold outline-none border-2 border-transparent focus:border-primary/10 focus:bg-white transition-all">
+                                <input type="text" name="message" placeholder="Type your message here..." class="w-full bg-gray-50 rounded-2xl py-4 px-6 text-[11px] font-bold outline-none border-2 border-transparent focus:border-primary/10 focus:bg-white transition-all" autocomplete="off">
                                 <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 transition-all">
                                     <i class="fa-solid fa-paper-plane text-sm"></i>
                                 </button>

@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\Voucher;
+use App\Models\Support;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SellerController extends Controller
@@ -20,125 +22,140 @@ class SellerController extends Controller
     // ==========================================
     // 1. DASHBOARD & MENU LAINNYA
     // ==========================================
-    
-    public function dashboard() {
+
+    public function dashboard(Request $request)
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+        $selectedYear = $request->get('year', date('Y'));
+
         // 1. Total Produk Aktif
         $totalProducts = Product::where('seller_id', $seller->id)->count();
-        
-        // 2. Pesanan Baru (Status 'pending' atau 'unpaid')
-        $newOrdersCount = Order::whereHas('orderItems.product', function($q) use ($seller) {
+
+        // 2. Pesanan Pending (Status 'pending' atau 'unpaid')
+        $newOrdersCount = Order::whereHas('orderItems.product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
         })->whereIn('status', ['pending', 'unpaid'])->count();
-        
+
         // 3. Estimasi Pendapatan (Hanya yang sudah diproses ke atas)
-        $estimatedRevenue = OrderItem::whereHas('product', function($q) use ($seller) {
+        $estimatedRevenue = OrderItem::whereHas('product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
-        })->whereHas('order', function($q) {
+        })->whereHas('order', function ($q) {
             $q->whereIn('status', ['processing', 'shipped', 'delivered', 'completed']);
         })->sum(DB::raw('price * quantity'));
-        
+
         // 4. Rating Toko (Rata-rata review produk)
-        $averageRating = Review::whereHas('product', function($q) use ($seller) {
+        $averageRating = Review::whereHas('product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
         })->avg('rating') ?: 0;
-        
-        // 5. Data Chart (6 bulan terakhir)
-        $months = [];
-        $revenueData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $date = now()->subMonths($i);
-            $monthName = $date->format('M');
-            $months[] = strtoupper($monthName);
-            
-            $start = $date->copy()->startOfMonth()->toDateTimeString();
-            $end = $date->copy()->endOfMonth()->toDateTimeString();
 
-            $rev = OrderItem::whereHas('product', function($q) use ($seller) {
+        // 5. Data Chart (Januari sampai Desember pada tahun terpilih)
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        $revenueData = [];
+        
+        for ($m = 1; $m <= 12; $m++) {
+            $start = "$selectedYear-" . str_pad($m, 2, '0', STR_PAD_LEFT) . "-01 00:00:00";
+            $end = date("Y-m-t 23:59:59", strtotime($start));
+
+            $rev = OrderItem::whereHas('product', function ($q) use ($seller) {
                 $q->where('seller_id', $seller->id);
-            })->whereHas('order', function($q) use ($start, $end) {
+            })->whereHas('order', function ($q) use ($start, $end) {
                 $q->whereIn('status', ['processing', 'shipped', 'delivered', 'completed'])
-                  ->whereBetween('created_at', [$start, $end]);
+                    ->whereBetween('created_at', [$start, $end]);
             })->sum(DB::raw('price * quantity'));
-            
+
             $revenueData[] = (float) $rev;
         }
 
+        // Ambil daftar tahun dari order (untuk filter) + Tambahkan minimal 3 tahun terakhir
+        $dbYears = Order::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->pluck('year')
+            ->toArray();
+            
+        $currentYear = (int)date('Y');
+        $defaultYears = [$currentYear, $currentYear - 1, $currentYear - 2];
+        
+        $availableYears = array_unique(array_merge($dbYears, $defaultYears));
+        rsort($availableYears); // Urutkan dari yang terbaru
+
         // 6. Pesanan Terbaru
-        $recentOrders = Order::whereHas('orderItems.product', function($q) use ($seller) {
+        $recentOrders = Order::whereHas('orderItems.product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
         })->with(['customer.user'])
-          ->latest()
-          ->take(5)
-          ->get();
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('seller.dashboard', compact(
-            'seller', 
-            'totalProducts', 
-            'newOrdersCount', 
-            'estimatedRevenue', 
+            'seller',
+            'totalProducts',
+            'newOrdersCount',
+            'estimatedRevenue',
             'averageRating',
             'months',
             'revenueData',
-            'recentOrders'
+            'recentOrders',
+            'selectedYear',
+            'availableYears'
         ));
     }
 
-    public function reportIndex(Request $request) {
+    public function reportIndex(Request $request)
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', now()->endOfMonth()->toDateString());
 
-        $transactions = OrderItem::whereHas('product', function($q) use ($seller) {
+        $transactions = OrderItem::whereHas('product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
-        })->whereHas('order', function($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        })->whereHas('order', function ($q) use ($startDate, $endDate) {
+            $q->where('status', 'completed')
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         })->with(['order', 'product.category'])
-          ->latest()
-          ->get();
+            ->latest()
+            ->get();
 
-        $totalRevenue = $transactions->whereIn('order.status', ['processing', 'shipped', 'delivered', 'completed'])
-                                     ->sum(fn($item) => $item->price * $item->quantity);
-        
-        $newOrdersCount = $transactions->whereIn('order.status', ['pending', 'unpaid'])->count();
-        
+        $totalRevenue = $transactions->sum(fn($item) => $item->price * $item->quantity);
+
+        $newOrdersCount = 0; // Transactions are now filtered to completed only
+
         $orderCount = $transactions->groupBy('order_id')->count();
         $averageOrder = $orderCount > 0 ? $totalRevenue / $orderCount : 0;
 
         return view('seller.reports', compact(
-            'transactions', 
-            'totalRevenue', 
-            'newOrdersCount', 
+            'transactions',
+            'totalRevenue',
+            'newOrdersCount',
             'averageOrder',
             'startDate',
             'endDate'
         ));
     }
 
-    public function downloadReport(Request $request) {
+    public function downloadReport(Request $request)
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', now()->endOfMonth()->toDateString());
 
-        $transactions = OrderItem::whereHas('product', function($q) use ($seller) {
+        $transactions = OrderItem::whereHas('product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
-        })->whereHas('order', function($q) use ($startDate, $endDate) {
-            $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        })->whereHas('order', function ($q) use ($startDate, $endDate) {
+            $q->where('status', 'completed')
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         })->with(['order', 'product.category'])
-          ->latest()
-          ->get();
+            ->latest()
+            ->get();
 
-        $totalRevenue = $transactions->whereIn('order.status', ['processing', 'shipped', 'delivered', 'completed'])
-                                     ->sum(fn($item) => $item->price * $item->quantity);
+        $totalRevenue = $transactions->sum(fn($item) => $item->price * $item->quantity);
 
         $pdf = Pdf::loadView('seller.pdf_report', compact(
-            'transactions', 
-            'totalRevenue', 
-            'startDate', 
-            'endDate', 
+            'transactions',
+            'totalRevenue',
+            'startDate',
+            'endDate',
             'seller'
         ));
 
@@ -146,11 +163,30 @@ class SellerController extends Controller
     }
 
     // Fungsi Support/Komplain agar tidak error 'Route not defined'
-    public function support() {
-        return view('seller.Support.support'); 
+    public function support()
+    {
+        return view('seller.Support.support');
     }
 
-    public function supportChat() {
+    public function submitSupport(Request $request)
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        Support::create([
+            'user_id' => Auth::id(),
+            'subject' => $request->subject,
+            'message' => $request->message,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Komplain Anda telah dikirim ke Admin. Mohon tunggu respon kami.');
+    }
+
+    public function supportChat()
+    {
         return view('seller.Support.chat');
     }
 
@@ -176,8 +212,8 @@ class SellerController extends Controller
         if ($userId) {
             $activeChat = \App\Models\User::findOrFail($userId);
             $messages = \App\Models\Chat::where(function ($q) use ($sellerId, $userId) {
-                    $q->where('sender_id', $sellerId)->where('receiver_id', $userId);
-                })
+                $q->where('sender_id', $sellerId)->where('receiver_id', $userId);
+            })
                 ->orWhere(function ($q) use ($sellerId, $userId) {
                     $q->where('sender_id', $userId)->where('receiver_id', $sellerId);
                 })
@@ -199,13 +235,24 @@ class SellerController extends Controller
     {
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
-            'message' => 'required|string',
+            'message' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx,zip|max:5120'
         ]);
+
+        if (!$request->message && !$request->hasFile('attachment')) {
+            return back()->with('error', 'Pesan atau lampiran harus diisi.');
+        }
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
+        }
 
         \App\Models\Chat::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $request->receiver_id,
-            'message' => $request->message,
+            'message' => $request->message ?? '',
+            'attachment' => $attachmentPath,
         ]);
 
         return redirect()->back();
@@ -216,87 +263,90 @@ class SellerController extends Controller
     // ==========================================
 
     // READ: Daftar Produk
-    public function productIndex() {
+    public function productIndex()
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
         $products = Product::with(['images', 'category'])
-                           ->where('seller_id', $seller->id)
-                           ->latest()
-                           ->get();
+            ->where('seller_id', $seller->id)
+            ->latest()
+            ->get();
         return view('seller.products.index', compact('products'));
     }
 
     // CREATE: Form Tambah
-    public function createProduct() {
+    public function createProduct()
+    {
         $categories = Category::all();
         $styles = ['Minimalist', 'Modern', 'Industrial', 'Japandi', 'Classic', 'Bohemian'];
         return view('seller.products.create', compact('categories', 'styles'));
     }
 
     // STORE: Simpan Tambah
-    public function storeProduct(Request $request) {
-    $seller = Seller::where('user_id', Auth::id())->first();
+    public function storeProduct(Request $request)
+    {
+        $seller = Seller::where('user_id', Auth::id())->first();
 
-    // 1. Simpan data produk utama
-    $product = Product::create([
-        'seller_id'   => $seller->id,
-        'category_id' => $request->category_id,
-        'style'       => $request->style,
-        'name'        => $request->name,
-        'description' => $request->description,
-        'price'       => $request->price,
-        'stock'       => $request->stock,
-    ]);
-
-    // 2. Simpan gambar ke database (BAGIAN INI YANG KRUSIAL)
-    if ($request->hasFile('image')) {
-        // Simpan file fisik
-        $path = $request->file('image')->store('products', 'public');
-        
-        // Simpan record ke tabel product_images
-        // Pastikan nama model dan kolomnya tepat
-        ProductImage::create([
-            'product_id' => $product->id,
-            'img_url'    => '/storage/' . $path
+        // 1. Simpan data produk utama
+        $product = Product::create([
+            'seller_id' => $seller->id,
+            'category_id' => $request->category_id,
+            'style' => $request->style,
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'stock' => $request->stock,
         ]);
+
+        // 2. Simpan gambar ke database (BAGIAN INI YANG KRUSIAL)
+        if ($request->hasFile('image')) {
+            // Simpan file fisik
+            $path = $request->file('image')->store('products', 'public');
+
+            // Simpan record ke tabel product_images
+            // Pastikan nama model dan kolomnya tepat
+            ProductImage::create([
+                'product_id' => $product->id,
+                'img_url' => '/storage/' . $path
+            ]);
+        }
+
+        return redirect()->route('seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    return redirect()->route('seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
-}
-
     // EDIT: Form Ubah
-    public function editProduct($id) 
+    public function editProduct($id)
     {
         $product = Product::with('images')->findOrFail($id);
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+
         // Keamanan: Cek apakah ini produk milik dia sendiri
-        if($product->seller_id !== $seller->id) {
+        if ($product->seller_id !== $seller->id) {
             return redirect()->route('seller.products.index')->with('error', 'Akses ditolak!');
         }
 
         $categories = Category::all();
         $styles = ['Minimalist', 'Modern', 'Industrial', 'Japandi', 'Classic', 'Bohemian'];
-        
+
         return view('seller.products.edit', compact('product', 'categories', 'styles'));
     }
 
     // UPDATE: Simpan Ubah
-    public function updateProduct(Request $request, $id) 
+    public function updateProduct(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $seller = Seller::where('user_id', Auth::id())->first();
 
-        if($product->seller_id !== $seller->id) {
+        if ($product->seller_id !== $seller->id) {
             return redirect()->route('seller.products.index')->with('error', 'Akses ditolak!');
         }
 
         $product->update([
             'category_id' => $request->category_id,
-            'style'       => $request->style,
-            'name'        => $request->name,
+            'style' => $request->style,
+            'name' => $request->name,
             'description' => $request->description,
-            'price'       => $request->price,
-            'stock'       => $request->stock,
+            'price' => $request->price,
+            'stock' => $request->stock,
         ]);
 
         // Proses jika Seller mengupload gambar baru saat edit
@@ -313,7 +363,7 @@ class SellerController extends Controller
             $path = $request->file('image')->store('products', 'public');
             ProductImage::create([
                 'product_id' => $product->id,
-                'img_url'    => '/storage/' . $path
+                'img_url' => '/storage/' . $path
             ]);
         }
 
@@ -321,18 +371,18 @@ class SellerController extends Controller
     }
 
     // DELETE: Hapus Produk
-    public function deleteProduct($id) 
+    public function deleteProduct($id)
     {
         $product = Product::findOrFail($id);
         $seller = Seller::where('user_id', Auth::id())->first();
 
-        if($product->seller_id !== $seller->id) {
+        if ($product->seller_id !== $seller->id) {
             return redirect()->route('seller.products.index')->with('error', 'Akses ditolak!');
         }
 
         // Hapus gambar fisik dari storage sebelum menghapus data
         $images = ProductImage::where('product_id', $product->id)->get();
-        foreach($images as $img) {
+        foreach ($images as $img) {
             $path = str_replace('/storage/', '', $img->img_url);
             Storage::disk('public')->delete($path);
         }
@@ -347,26 +397,44 @@ class SellerController extends Controller
     // 3. KELOLA PESANAN
     // ==========================================
 
-    public function orderIndex() {
-    $seller = Seller::where('user_id', Auth::id())->first();
+    public function orderIndex()
+    {
+        $seller = Seller::where('user_id', Auth::id())->first();
 
 
-    $orders = Order::whereHas('orderItems.product', function($query) use ($seller) {
-    $query->where('seller_id', $seller->id);
+        $orders = Order::whereHas('orderItems.product', function ($query) use ($seller) {
+            $query->where('seller_id', $seller->id);
         })->with(['customer.user', 'orderItems.product.images'])->latest()->get();
 
-    return view('seller.orders.index', compact('orders'));
+        return view('seller.orders.index', compact('orders'));
     }
 
     public function updateOrderStatus(Request $request, $id)
-{
-    $order = Order::findOrFail($id);
-    $order->update([
-        'status' => $request->status
-    ]);
+    {
+        $order = Order::findOrFail($id);
+        $order->update([
+            'status' => $request->status
+        ]);
 
-    return back()->with('success', 'Status pesanan #' . $id . ' berhasil diperbarui!');
-}
+        return back()->with('success', 'Status pesanan #' . $id . ' berhasil diperbarui!');
+    }
+
+    public function validatePayment(Request $request, $id)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+        ]);
+
+        $order = Order::findOrFail($id);
+
+        if ($request->action === 'approve') {
+            $order->update(['status' => 'paid']);
+            return back()->with('success', 'Pembayaran untuk pesanan #' . $id . ' berhasil dikonfirmasi!');
+        } else {
+            $order->update(['status' => 'pending', 'payment_proof' => null]);
+            return back()->with('error', 'Pembayaran untuk pesanan #' . $id . ' ditolak. Customer diminta mengupload ulang.');
+        }
+    }
 
     // READ: Detail Pesanan (show.blade.php)
     public function showOrder($id)
@@ -400,9 +468,10 @@ class SellerController extends Controller
     // 4. KELOLA KOMPLAIN / PENGEMBALIAN (RETURNS)
     // ==========================================
 
-    public function complaintIndex(Request $request) {
+    public function complaintIndex(Request $request)
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+
         $allReturns = \App\Models\ProductReturn::with(['order.customer.user', 'order.orderItems.product'])
             ->whereHas('order.orderItems.product', function ($query) use ($seller) {
                 $query->where('seller_id', $seller->id);
@@ -431,7 +500,8 @@ class SellerController extends Controller
         ]);
     }
 
-    public function complaintDetail($id) {
+    public function complaintDetail($id)
+    {
         $seller = Seller::where('user_id', Auth::id())->first();
         $return = \App\Models\ProductReturn::with(['order.customer.user', 'order.orderItems.product.images'])
             ->findOrFail($id);
@@ -439,24 +509,64 @@ class SellerController extends Controller
         return view('seller.complaint.detail', compact('return'));
     }
 
-    public function approveReturn($id) {
-        $return = \App\Models\ProductReturn::findOrFail($id);
-        $return->update(['status' => 'approved']);
+    public function approveReturn($id)
+    {
+        $return = \App\Models\ProductReturn::with('order.orderItems')->findOrFail($id);
         
+        DB::transaction(function () use ($return) {
+            $return->update(['status' => 'approved']);
+            
+            $originalOrder = $return->order;
+            $originalOrder->update(['status' => 'return approved']);
+
+            if ($return->return_type === 'exchange') {
+                // Create new order
+                $newOrder = Order::create([
+                    'customer_id' => $originalOrder->customer_id,
+                    'total_price' => $originalOrder->total_price,
+                    'voucher_id' => $originalOrder->voucher_id,
+                    'discount_amount' => $originalOrder->discount_amount,
+                    'shipping_courier' => $originalOrder->shipping_courier,
+                    'shipping_recipient' => $originalOrder->shipping_recipient,
+                    'shipping_phone' => $originalOrder->shipping_phone,
+                    'shipping_city' => $originalOrder->shipping_city,
+                    'shipping_province' => $originalOrder->shipping_province,
+                    'shipping_postal_code' => $originalOrder->shipping_postal_code,
+                    'shipping_address' => $originalOrder->shipping_address,
+                    'payment_method' => $originalOrder->payment_method,
+                    'status' => 'paid', // Automatically paid as it's an exchange
+                    'payment_proof' => $originalOrder->payment_proof,
+                ]);
+
+                foreach ($originalOrder->orderItems as $item) {
+                    OrderItem::create([
+                        'order_id' => $newOrder->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                    ]);
+                    
+                    // Decrement stock for the new order
+                    $item->product->decrement('stock', $item->quantity);
+                }
+            }
+        });
+
         return redirect()->route('seller.complaint.index')->with('success', 'Return request has been approved.');
     }
 
-    public function rejectReturn($id) {
+    public function rejectReturn($id)
+    {
         $return = \App\Models\ProductReturn::findOrFail($id);
         $return->update(['status' => 'rejected']);
-        
+
         return redirect()->route('seller.complaint.index')->with('success', 'Return request has been rejected.');
     }
 
     public function reviewIndex()
     {
         $seller = Seller::where('user_id', Auth::id())->first();
-        
+
         // Ambil semua review dari produk milik seller ini
         $reviews = \App\Models\Review::with(['product.images', 'customer.user'])
             ->whereHas('product', function ($q) use ($seller) {
@@ -480,11 +590,16 @@ class SellerController extends Controller
 
         // Sentiment Score Logic
         $sentimentScore = 'Neutral';
-        if ($averageRating >= 4.5) $sentimentScore = 'Excellent';
-        elseif ($averageRating >= 4.0) $sentimentScore = 'Very Good';
-        elseif ($averageRating >= 3.0) $sentimentScore = 'Good';
-        elseif ($averageRating >= 2.0) $sentimentScore = 'Fair';
-        else $sentimentScore = 'Poor';
+        if ($averageRating >= 4.5)
+            $sentimentScore = 'Excellent';
+        elseif ($averageRating >= 4.0)
+            $sentimentScore = 'Very Good';
+        elseif ($averageRating >= 3.0)
+            $sentimentScore = 'Good';
+        elseif ($averageRating >= 2.0)
+            $sentimentScore = 'Fair';
+        else
+            $sentimentScore = 'Poor';
 
         // Response Rate Logic
         $repliedReviews = $reviews->whereNotNull('reply')->count();
@@ -546,5 +661,114 @@ class SellerController extends Controller
         $seller->update($data);
 
         return back()->with('success', 'Pengaturan toko berhasil diperbarui!');
+    }
+
+    // ==========================================
+    // 5. KELOLA VOUCHER
+    // ==========================================
+
+    public function voucherIndex()
+    {
+        $seller = Seller::where('user_id', Auth::id())->first();
+        $vouchers = Voucher::where('seller_id', $seller->id)->latest()->get();
+        return view('seller.vouchers.index', compact('vouchers'));
+    }
+
+    public function createVoucher()
+    {
+        return view('seller.vouchers.create');
+    }
+
+    public function storeVoucher(Request $request)
+    {
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        $request->validate([
+            'code' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'discount_type' => 'required|in:fixed,percentage',
+            'discount_value' => 'required|numeric|min:0',
+            'min_purchase' => 'nullable|numeric|min:0',
+            'max_discount' => 'nullable|numeric|min:0',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'quota' => 'required|integer|min:1',
+        ]);
+
+        Voucher::create([
+            'seller_id' => $seller->id,
+            'code' => strtoupper($request->code),
+            'name' => $request->name,
+            'discount_type' => $request->discount_type,
+            'discount_value' => $request->discount_value,
+            'min_purchase' => $request->min_purchase ?? 0,
+            'max_discount' => $request->max_discount,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'quota' => $request->quota,
+        ]);
+
+        return redirect()->route('seller.vouchers.index')->with('success', 'Voucher berhasil dibuat!');
+    }
+
+    public function editVoucher($id)
+    {
+        $voucher = Voucher::findOrFail($id);
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        if ($voucher->seller_id !== $seller->id) {
+            return redirect()->route('seller.vouchers.index')->with('error', 'Akses ditolak!');
+        }
+
+        return view('seller.vouchers.edit', compact('voucher'));
+    }
+
+    public function updateVoucher(Request $request, $id)
+    {
+        $voucher = Voucher::findOrFail($id);
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        if ($voucher->seller_id !== $seller->id) {
+            return redirect()->route('seller.vouchers.index')->with('error', 'Akses ditolak!');
+        }
+
+        $request->validate([
+            'code' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'discount_type' => 'required|in:fixed,percentage',
+            'discount_value' => 'required|numeric|min:0',
+            'min_purchase' => 'nullable|numeric|min:0',
+            'max_discount' => 'nullable|numeric|min:0',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'quota' => 'required|integer|min:1',
+        ]);
+
+        $voucher->update([
+            'code' => strtoupper($request->code),
+            'name' => $request->name,
+            'discount_type' => $request->discount_type,
+            'discount_value' => $request->discount_value,
+            'min_purchase' => $request->min_purchase ?? 0,
+            'max_discount' => $request->max_discount,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'quota' => $request->quota,
+        ]);
+
+        return redirect()->route('seller.vouchers.index')->with('success', 'Voucher berhasil diperbarui!');
+    }
+
+    public function deleteVoucher($id)
+    {
+        $voucher = Voucher::findOrFail($id);
+        $seller = Seller::where('user_id', Auth::id())->first();
+
+        if ($voucher->seller_id !== $seller->id) {
+            return redirect()->route('seller.vouchers.index')->with('error', 'Akses ditolak!');
+        }
+
+        $voucher->delete();
+        return redirect()->route('seller.vouchers.index')->with('success', 'Voucher berhasil dihapus.');
     }
 }

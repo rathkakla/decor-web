@@ -114,8 +114,29 @@
                     <p class="text-[11px] text-gray-400 uppercase tracking-[0.2em] font-bold">Manage your product returns and refunds.</p>
                 </header>
 
+                @if(session('success'))
+                <div class="mb-8 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-4 text-green-600 animate-pulse">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <p class="text-xs font-bold uppercase tracking-widest">{{ session('success') }}</p>
+                </div>
+                @endif
+
+                @if($errors->any())
+                <div class="mb-8 p-6 bg-red-50 border border-red-100 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-4 text-red-600 mb-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p class="text-xs font-black uppercase tracking-widest">Submission Error</p>
+                    </div>
+                    <ul class="list-disc list-inside text-[10px] text-red-500 font-bold space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
                 @if($order)
-                <form action="{{ route('customer.return-request.submit', $order->id) }}" method="POST">
+                <form action="{{ route('customer.return-request.submit', $order->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <section class="mb-12">
                         <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2 mb-6">Select Order</h3>
@@ -140,6 +161,43 @@
                             
                             <div class="grid grid-cols-1 gap-6">
                                 <div class="space-y-2">
+                                    <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Jenis Return</label>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <label class="relative flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50/50 cursor-pointer hover:bg-white hover:border-primary transition-all group">
+                                            <input type="radio" name="return_type" value="refund" class="opacity-0 absolute peer" required onchange="toggleBankInput(this.value)">
+                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
+                                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                            </div>
+                                            <span class="ml-3 text-xs font-bold text-gray-600 group-hover:text-primary">Refund</span>
+                                        </label>
+                                        <label class="relative flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50/50 cursor-pointer hover:bg-white hover:border-primary transition-all group">
+                                            <input type="radio" name="return_type" value="exchange" class="opacity-0 absolute peer" onchange="toggleBankInput(this.value)">
+                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
+                                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                            </div>
+                                            <span class="ml-3 text-xs font-bold text-gray-600 group-hover:text-primary">Ganti Barang Baru</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div id="bank_account_wrapper" class="hidden space-y-2">
+                                    <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Nomor Rekening</label>
+                                    <input type="text" name="bank_account_number" placeholder="Masukkan nomor rekening Anda..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
+                                    <p class="text-[9px] text-gray-400 italic mt-1">*Refund akan diproses dalam 3-5 hari kerja setelah return disetujui.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Bukti Video (Wajib)</label>
+                                        <input type="file" name="video_proof" accept="video/*" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Bukti Foto (Wajib)</label>
+                                        <input type="file" name="photo_proof" accept="image/*" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Reason for Return</label>
                                     <select name="reason" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
                                         <option value="">Select a reason...</option>
@@ -163,6 +221,20 @@
                         </div>
                     </section>
                 </form>
+
+                <script>
+                    function toggleBankInput(value) {
+                        const wrapper = document.getElementById('bank_account_wrapper');
+                        const input = wrapper.querySelector('input');
+                        if (value === 'refund') {
+                            wrapper.classList.remove('hidden');
+                            input.setAttribute('required', 'required');
+                        } else {
+                            wrapper.classList.add('hidden');
+                            input.removeAttribute('required');
+                        }
+                    }
+                </script>
                 @else
                 <section class="space-y-6">
                     <h3 class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/10 pb-2 mb-6">My Return History</h3>

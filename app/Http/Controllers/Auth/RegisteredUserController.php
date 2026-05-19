@@ -26,7 +26,8 @@ class RegisteredUserController extends Controller
 
         // Arahkan ke view yang benar berdasarkan role
         if ($role === 'designer') {
-            return view('register-designer');
+            // Pastikan menggunakan view di folder designer/register
+            return view('designer.register.index');
         }
         
         return view('register-customer');
@@ -37,12 +38,30 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $role = session('selected_role', 'customer');
+
+        $rules = [
             'username' => ['required', 'string', 'max:100', 'unique:users'],
             'name'     => ['required', 'string', 'max:150'],
             'email'    => ['required', 'string', 'lowercase', 'email', 'max:100', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        ];
+
+        // Add role-specific validation
+        if ($role === 'seller') {
+            $rules['phone'] = ['nullable', 'string', 'max:20'];
+        } elseif ($role === 'designer') {
+            $rules['specialty'] = ['required', 'string', 'max:100'];
+            $rules['bio'] = ['nullable', 'string'];
+            $rules['experience_years'] = ['nullable', 'integer', 'min:0'];
+        }
+
+        if ($role === 'seller') {
+            $rules['bank_name'] = ['nullable', 'string', 'max:50'];
+            $rules['account_number'] = ['nullable', 'string', 'max:50'];
+        }
+
+        $request->validate($rules);
 
         // 1. Simpan ke tabel USERS
         $user = User::create([
@@ -57,7 +76,14 @@ class RegisteredUserController extends Controller
         if ($user->role === 'customer') {
             Customer::create(['user_id' => $user->id]);
         } elseif ($user->role === 'designer') {
-            Designer::create(['user_id' => $user->id, 'specialty' => 'Generalist']);
+            Designer::create([
+                'user_id'          => $user->id,
+                'studio_name'      => $request->username,
+                'specialty'        => $request->specialty,
+                'bio'              => $request->bio,
+                'experience_years' => $request->experience_years ?? 0,
+                'instagram_url'    => $request->portfolio_link,
+            ]);
         } elseif ($user->role === 'seller') {
             Seller::create([
                 'user_id'        => $user->id,
@@ -72,7 +98,15 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // Redirect ke login dengan pesan sukses
-        return redirect()->route('login')->with('status', 'Registration successful! Please login to continue.');
+        Auth::login($user);
+
+        // Redirect ke dashboard sesuai role
+        if ($user->role === 'seller') {
+            return redirect()->route('seller.dashboard')->with('status', 'Registration successful! Your account is pending approval.');
+        } elseif ($user->role === 'designer') {
+            return redirect()->route('designer.dashboard')->with('status', 'Registration successful! Your account is pending approval.');
+        }
+
+        return redirect()->route('customer.homepage')->with('status', 'Registration successful!');
     }
 }

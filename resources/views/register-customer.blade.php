@@ -21,6 +21,22 @@
             }
         }
     </script>
+    <style>
+        .terms-container {
+            height: 300px;
+            overflow-y: scroll;
+            padding: 20px;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+        .terms-container::-webkit-scrollbar { width: 6px; }
+        .terms-container::-webkit-scrollbar-track { background: #F1F1F1; }
+        .terms-container::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
+    </style>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -98,10 +114,118 @@
         <input type="password" name="password_confirmation" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
     </div>
 
-    <button type="submit" class="w-full bg-primary text-white py-4 rounded font-bold text-sm shadow-xl shadow-primary/20">
+    <div class="flex items-start space-x-3 mb-8">
+        <input type="checkbox" id="terms-checkbox" disabled class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-not-allowed">
+        <label for="terms-checkbox" class="text-[10px] text-gray-400 leading-relaxed uppercase font-bold tracking-wider">
+            Saya menyetujui <button type="button" onclick="openTerms()" class="text-primary underline">Syarat & Ketentuan</button> yang berlaku pada platform DECOR.
+        </label>
+    </div>
+
+    <button type="submit" id="submit-reg" disabled class="w-full bg-primary text-white py-4 rounded font-bold text-sm shadow-xl shadow-primary/20 opacity-50 cursor-not-allowed transition-all">
         Create Account
     </button>
 </form>
+
+<!-- Terms Modal -->
+<div id="terms-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Syarat & Ketentuan Customer</h3>
+                <button type="button" onclick="closeTerms()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="modal-terms-box" class="terms-container h-[400px] custom-scrollbar">
+                <p class="mb-4">Dengan membuat akun dan menggunakan platform marketplace, pengguna dianggap telah membaca, memahami, dan menyetujui seluruh syarat dan ketentuan yang berlaku.</p>
+                
+                <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Ketentuan Penggunaan Akun</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li>Customer wajib menjaga keamanan akun, termasuk menjaga kerahasiaan password dan data akun yang dimiliki. Segala aktivitas yang terjadi pada akun menjadi tanggung jawab pemilik akun.</li>
+                    <li>Customer wajib memberikan data pribadi yang benar, lengkap, dan sesuai dengan identitas asli saat melakukan pendaftaran maupun transaksi pada platform.</li>
+                    <li>Customer dilarang menggunakan platform untuk aktivitas yang melanggar hukum, merugikan pengguna lain, maupun mengganggu kenyamanan dan keamanan platform.</li>
+                </ul>
+
+                <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Ketentuan Transaksi</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li>Customer wajib melakukan transaksi dengan itikad baik dan mengikuti seluruh prosedur transaksi, pembayaran, pengiriman, serta pengembalian barang yang berlaku pada platform.</li>
+                    <li>Customer dilarang melakukan tindakan penipuan, manipulasi transaksi, penyalahgunaan voucher, spam pesanan, maupun aktivitas lain yang dapat merugikan seller, designer, maupun platform.</li>
+                    <li>Customer wajib memberikan komplain, ulasan, maupun penilaian secara jujur, sopan, dan bertanggung jawab.</li>
+                </ul>
+
+                <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Etika Penggunaan Platform</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li>Customer dilarang menggunakan kata-kata kasar, ujaran kebencian, penghinaan, ancaman, maupun tindakan yang mengandung unsur SARA, diskriminasi, pelecehan, atau perilaku tidak pantas terhadap pengguna lain maupun pihak platform.</li>
+                    <li>Customer wajib menjaga etika dan kenyamanan bersama selama menggunakan fitur komunikasi, ulasan, maupun interaksi lainnya di dalam platform.</li>
+                </ul>
+
+                <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Hak Platform</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li>Platform berhak memberikan peringatan, membatasi akses, melakukan suspend sementara, maupun menonaktifkan akun customer yang terbukti melanggar syarat dan ketentuan yang berlaku.</li>
+                    <li>Platform berhak menghapus konten, komentar, ulasan, maupun aktivitas pengguna yang dianggap tidak pantas, merugikan pihak lain, atau melanggar ketentuan platform.</li>
+                </ul>
+                
+                <div class="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                    <p class="text-primary font-bold text-center italic text-xs">Silakan scroll hingga akhir untuk mengaktifkan persetujuan.</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button type="button" id="btn-modal-close" disabled onclick="acceptTerms()" class="bg-gray-200 text-gray-500 px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-widest cursor-not-allowed transition-all duration-300">Close & Accept</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTerms() {
+        document.getElementById('terms-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeTerms() {
+        document.getElementById('terms-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function acceptTerms() {
+        termsCheckbox.checked = true;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        closeTerms();
+    }
+
+    const modalTermsBox = document.getElementById('modal-terms-box');
+    const modalCloseBtn = document.getElementById('btn-modal-close');
+    const termsCheckbox = document.getElementById('terms-checkbox');
+    const submitBtn = document.getElementById('submit-reg');
+
+    if (modalTermsBox) {
+        modalTermsBox.addEventListener('scroll', function() {
+            const isAtBottom = modalTermsBox.scrollHeight - modalTermsBox.scrollTop <= modalTermsBox.clientHeight + 10;
+            if (isAtBottom) {
+                if (modalCloseBtn) {
+                    modalCloseBtn.disabled = false;
+                    modalCloseBtn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+                    modalCloseBtn.classList.add('bg-primary', 'text-white');
+                }
+                if (termsCheckbox) {
+                    termsCheckbox.disabled = false;
+                    termsCheckbox.classList.remove('cursor-not-allowed');
+                }
+            }
+        });
+    }
+
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+</script>
 
             <div class="mt-10">
                 <div class="relative flex items-center justify-center mb-8">

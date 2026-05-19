@@ -97,6 +97,58 @@
                     Forgot Password
                 </a>
             </div>
+
+            <!-- Demo Access Section -->
+            <div class="mt-10 p-6 bg-gray-50/50 rounded-xl border border-gray-100 shadow-inner">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="h-[1px] w-8 bg-gray-200"></div>
+                    <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Demo Credentials</h3>
+                    <div class="h-[1px] w-8 bg-gray-200"></div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[9px] font-black text-primary/70 uppercase tracking-wider ml-1">Administrator</span>
+                        <div class="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-gray-100 shadow-sm group hover:border-primary/30 transition-all cursor-pointer">
+                            <code class="text-[11px] font-mono text-gray-600">admin@decor.com</code>
+                            <span class="text-[10px] font-bold text-gray-300 group-hover:text-primary transition-colors">admin123</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3 pt-2 border-t border-gray-100">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">Customer Access</span>
+                            <div class="flex items-center justify-between bg-white/60 px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
+                                <code class="text-[11px] font-mono text-gray-500">customer@decor.com</code>
+                                <span class="text-[10px] font-bold text-gray-300">password</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">Seller Partner</span>
+                            <div class="flex items-center justify-between bg-white/60 px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
+                                <code class="text-[11px] font-mono text-gray-500">seller@decor.com</code>
+                                <span class="text-[10px] font-bold text-gray-300">password</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider ml-1">Interior Designer</span>
+                            <div class="flex items-center justify-between bg-white/60 px-3 py-2 rounded-lg border border-gray-100 shadow-sm">
+                                <code class="text-[11px] font-mono text-gray-500">designer@decor.com</code>
+                                <span class="text-[10px] font-bold text-gray-300">password</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-10 border-t border-gray-100 pt-8">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-3">New to Decor?</p>
+                <a href="{{ route('role.selection') }}" class="text-[10px] text-primary hover:scale-105 inline-block uppercase tracking-[0.2em] font-black transition-all">
+                    Register Account <i class="fa-solid fa-arrow-right ml-1"></i>
+                </a>
+            </div>
         </div>
     </main>
 

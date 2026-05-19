@@ -126,19 +126,70 @@
                 </div>
 
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-                    <div>
-                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Issue Summary</p>
-                        <h4 class="text-2xl font-black text-gray-800 leading-tight">Return Reason</h4>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Issue Summary</p>
+                            <h4 class="text-2xl font-black text-gray-800 leading-tight">Return Reason</h4>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Return Type</p>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
+                                {{ $return->return_type == 'refund' ? 'Refund' : 'Ganti Barang Baru' }}
+                            </span>
+                        </div>
                     </div>
                     <div class="border-l-4 border-primary pl-6 py-2">
                         <p class="text-sm font-bold text-gray-500 leading-relaxed italic">
                             "{{ $return->reason }}"
                         </p>
                     </div>
+
+                    @if($return->return_type == 'refund')
+                    <div class="mt-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Bank Account for Refund</p>
+                        <p class="text-sm font-black text-gray-800">{{ $return->bank_account_number }}</p>
+                        <p class="text-[9px] text-gray-400 mt-1 italic">Note: Refund harus diproses manual oleh seller ke rekening tersebut.</p>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="space-y-4">
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Product Evidence</p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Customer Evidence</p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest">Video Proof</p>
+                            <div class="aspect-video rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-black">
+                                @if($return->video_proof)
+                                    <video controls class="w-full h-full">
+                                        <source src="{{ asset('storage/' . $return->video_proof) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fa-solid fa-video-slash text-gray-500"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest">Photo Proof</p>
+                            <div class="aspect-video rounded-2xl overflow-hidden shadow-sm border border-gray-200 bg-gray-50">
+                                @if($return->photo_proof)
+                                    <a href="{{ asset('storage/' . $return->photo_proof) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $return->photo_proof) }}" class="w-full h-full object-cover hover:scale-105 transition-transform">
+                                    </a>
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fa-solid fa-image text-gray-500"></i>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Original Product Images</p>
                     <div class="grid grid-cols-4 gap-4">
                         @if($return->order->orderItems->first() && $return->order->orderItems->first()->product->images->isNotEmpty())
                             @foreach($return->order->orderItems->first()->product->images as $img)

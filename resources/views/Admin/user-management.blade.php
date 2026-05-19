@@ -1,40 +1,28 @@
-<?php
-$current_page = basename($_SERVER['PHP_SELF']);
-$current_path = str_replace('.php', '', $current_page);
-if ($current_path == "" || $current_path == "index") {
-    $current_path = "user-management";
-}
-
-$admin_name = "Alex Rivera";
-$admin_role = "SUPER ADMIN";
+@php
+$admin_name = Auth::user()->full_name;
+$admin_role = "ADMIN";
+$current_path = 'user-management';
 
 $menu_items = [
-    ["label" => "Dashboard",          "path" => "dashboard",         "icon" => "grid"],
-    ["label" => "User Management",     "path" => "user-management",   "icon" => "users"],
-    ["label" => "Seller Monitor",      "path" => "seller-monitor",    "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",    "path" => "designer-monitor",  "icon" => "pen-tool"],
-    ["label" => "Seller Support",      "path" => "seller-support",    "icon" => "headphones"],
-    ["label" => "Designer Support",    "path" => "designer-support",  "icon" => "pen-tool"],
-    ["label" => "Customer Support",    "path" => "customer-support",  "icon" => "message-circle"],
-    ["label" => "Product Validation",  "path" => "product-validation","icon" => "check-circle"],
-    ["label" => "Portofolio Validation", "path" => "portofolio-validation","icon" => "image"],
-];
-$stats = [
-    ["label" => "Total Users",      "value" => "12,482", "trend" => "+5.2%", "icon" => "users",      "color" => "primary"],
-    ["label" => "Active Designers", "value" => "842",    "trend" => "+12%",  "icon" => "pen-tool",   "color" => "info"],
-    ["label" => "Platform Sellers", "value" => "3,120",  "trend" => "+2.4%", "icon" => "shopping-bag","color" => "warning"],
-    ["label" => "Customers",        "value" => "5,678",  "trend" => "+3.1%", "icon" => "user-check", "color" => "success"],
+    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
+    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
+    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
+    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
+    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
+    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones"],
+    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool"],
+    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle"],
+    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
+    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
 ];
 
-$users = [
-    ["name" => "Julian Voss",     "email" => "voss.creative@studio.com",    "role" => "DESIGNER",  "date" => "Oct 12, 2023", "status" => "Active",    "img" => "https://i.pravatar.cc/150?u=julian"],
-    ["name" => "Elena Rodriguez", "email" => "elena.rodriguez@gmail.com",   "role" => "CUSTOMER",  "date" => "Jan 05, 2024", "status" => "Active",    "img" => "https://i.pravatar.cc/150?u=elena"],
-    ["name" => "Marcus Chen",     "email" => "m.chen@decor-partners.com",   "role" => "SELLER",    "date" => "Nov 28, 2023", "status" => "Suspended", "img" => "https://i.pravatar.cc/150?u=marcus"],
-    ["name" => "Sophia Laurent",  "email" => "sophia.l@interior-vibe.fr",  "role" => "DESIGNER",  "date" => "Feb 02, 2024", "status" => "Active",    "img" => "https://i.pravatar.cc/150?u=sophia"],
-    ["name" => "Reza Mahendra",   "email" => "reza.m@woodcraft.id",         "role" => "SELLER",    "date" => "Mar 15, 2024", "status" => "Active",    "img" => "https://i.pravatar.cc/150?u=reza"],
-    ["name" => "Anisa Rahma",     "email" => "anisa.r@mail.com",            "role" => "CUSTOMER",  "date" => "Apr 01, 2024", "status" => "Active",    "img" => "https://i.pravatar.cc/150?u=anisa"],
+$stats_view = [
+    ["label" => "Total Users",      "value" => number_format($stats['total']), "trend" => "+5.2%", "icon" => "users",      "color" => "primary"],
+    ["label" => "Active Designers", "value" => number_format($stats['designers']),    "trend" => "+12%",  "icon" => "pen-tool",   "color" => "info"],
+    ["label" => "Platform Sellers", "value" => number_format($stats['sellers']),  "trend" => "+2.4%", "icon" => "shopping-bag","color" => "warning"],
+    ["label" => "Customers",        "value" => number_format($stats['customers']),  "trend" => "+3.1%", "icon" => "user-check", "color" => "success"],
 ];
-?>
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -192,25 +180,34 @@ $users = [
     </div>
     <div class="nav-section">
         <span class="nav-label">Navigation</span>
-        <?php foreach ($menu_items as $item):
-            $active = ($item['path'] === $current_path) ? 'active' : '';
-        ?>
-        <a href="<?= $item['path'] ?>" class="menu-link <?= $active ?>">
+        @foreach ($menu_items as $item)
+        @php
+            $active = (request()->url() === $item['path']) ? 'active' : '';
+        @endphp
+        <a href="{{ $item['path'] }}" class="menu-link {{ $active }}">
             <div class="menu-item">
-                <i data-feather="<?= $item['icon'] ?>"></i>
-                <span><?= $item['label'] ?></span>
+                <i data-feather="{{ $item['icon'] }}"></i>
+                <span>{{ $item['label'] }}</span>
             </div>
         </a>
-        <?php endforeach; ?>
+        @endforeach
         <span class="nav-label" style="margin-top:20px;">System</span>
         <a href="settings" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
-        <a href="logout"   class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
+        <form method="POST" action="{{ route('logout') }}" id="logout-form">
+            @csrf
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="menu-link">
+                <div class="menu-item">
+                    <i data-feather="log-out"></i>
+                    <span>Logout</span>
+                </div>
+            </a>
+        </form>
     </div>
     <div class="sidebar-footer">
-        <img src="https://ui-avatars.com/api/?name=Alex+Rivera&background=B5733A&color=fff&size=80" class="s-avatar">
+        <img src="https://ui-avatars.com/api/?name={{ urlencode($admin_name) }}&background=B5733A&color=fff&size=80" class="s-avatar">
         <div>
-            <div class="s-name"><?= $admin_name ?></div>
-            <div class="s-role"><?= $admin_role ?></div>
+            <div class="s-name">{{ $admin_name }}</div>
+            <div class="s-role">{{ $admin_role }}</div>
         </div>
         <span class="s-dot"></span>
     </div>
@@ -229,31 +226,32 @@ $users = [
         
     </div>
 
-    <!-- Stats -->
     <div class="stats-row">
-        <?php foreach ($stats as $s): ?>
+        @foreach ($stats_view as $s)
         <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="<?= $s['icon'] ?>"></i></div>
+            <div class="stat-icon"><i data-feather="{{ $s['icon'] }}"></i></div>
             <div>
-                <div class="stat-val"><?= $s['value'] ?></div>
-                <div class="stat-lbl"><?= $s['label'] ?></div>
-                <div class="stat-trend"><?= $s['trend'] ?> bulan ini</div>
+                <div class="stat-val">{{ $s['value'] }}</div>
+                <div class="stat-lbl">{{ $s['label'] }}</div>
+                <div class="stat-trend">{{ $s['trend'] }} bulan ini</div>
             </div>
         </div>
-        <?php endforeach; ?>
+        @endforeach
     </div>
 
-    <!-- Toolbar -->
     <div class="toolbar">
-        <div class="search-wrap">
-            <i data-feather="search"></i>
-            <input class="search-input" type="text" placeholder="Cari nama, email, atau role…">
-        </div>
+        <form action="{{ route('admin.user-management') }}" method="GET" class="search-wrap" style="display: flex; gap: 10px; flex: 1;">
+            <div style="position: relative; flex: 1;">
+                <i data-feather="search"></i>
+                <input name="search" class="search-input" type="text" placeholder="Cari nama, email, atau role…" value="{{ request('search') }}">
+            </div>
+            <input type="hidden" name="role" value="{{ request('role', 'semua') }}">
+        </form>
         <div class="filter-tabs">
-            <button class="ftab active">Semua</button>
-            <button class="ftab">Designer</button>
-            <button class="ftab">Seller</button>
-            <button class="ftab">Customer</button>
+            <a href="{{ route('admin.user-management', ['role' => 'semua']) }}" class="ftab {{ !request('role') || request('role') == 'semua' ? 'active' : '' }}">Semua</a>
+            <a href="{{ route('admin.user-management', ['role' => 'designer']) }}" class="ftab {{ request('role') == 'designer' ? 'active' : '' }}">Designer</a>
+            <a href="{{ route('admin.user-management', ['role' => 'seller']) }}" class="ftab {{ request('role') == 'seller' ? 'active' : '' }}">Seller</a>
+            <a href="{{ route('admin.user-management', ['role' => 'customer']) }}" class="ftab {{ request('role') == 'customer' ? 'active' : '' }}">Customer</a>
         </div>
     </div>
 
@@ -270,41 +268,50 @@ $users = [
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($users as $u):
-                    $role_cls   = 'role-' . strtolower($u['role']);
-                    $status_cls = 'st-' . strtolower($u['status']);
-                ?>
+                @foreach ($users as $u)
+                @php
+                    $role_cls   = 'role-' . strtolower($u->role);
+                    $status_cls = 'st-active'; // Default active
+                @endphp
                 <tr>
                     <td>
                         <div class="user-cell">
-                            <img src="<?= $u['img'] ?>" class="user-avatar">
+                            <img src="{{ $u->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($u->full_name).'&background=B5733A&color=fff' }}" class="user-avatar">
                             <div>
-                                <span class="u-name"><?= $u['name'] ?></span>
-                                <span class="u-email"><?= $u['email'] ?></span>
+                                <span class="u-name">{{ $u->full_name }}</span>
+                                <span class="u-email">{{ $u->email }}</span>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <span class="role-badge <?= $role_cls ?>"><?= $u['role'] ?></span>
+                        <span class="role-badge {{ $role_cls }}">{{ strtoupper($u->role) }}</span>
                     </td>
                     <td>
-                        <span class="join-date"><?= $u['date'] ?></span>
+                        <span class="join-date">{{ $u->created_at->format('M d, Y') }}</span>
                     </td>
                     <td>
-                        <span class="status-pill <?= $status_cls ?>">
+                        <span class="status-pill {{ $status_cls }}">
                             <span class="status-dot"></span>
-                            <?= $u['status'] ?>
+                            Active
                         </span>
                     </td>
                     <td>
                         <div class="actions">
-                          
-                            
-                            <button class="btn-icon danger" title="Suspend"><i data-feather="slash"></i></button>
+                            <form action="{{ route('admin.user.warn', $u->id) }}" method="POST" onsubmit="return confirm('Kirim peringatan pelanggaran ke user ini?')">
+                                @csrf
+                                <button type="submit" class="btn-icon" title="Kirim Peringatan" style="border-color: #FCD34D; color: #B45309; background: #FFFBEB;">
+                                    <i data-feather="alert-triangle"></i>
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.user.delete', $u->id) }}" method="POST" onsubmit="return confirm('BANNED: Anda yakin ingin menghapus user ini secara permanen?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-icon danger" title="Suspend & Delete"><i data-feather="slash"></i></button>
+                            </form>
                         </div>
                     </td>
                 </tr>
-                <?php endforeach; ?>
+                @endforeach
             </tbody>
         </table>
     </div>

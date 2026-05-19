@@ -1,12 +1,16 @@
-<?php $site_name = "DECOR"; ?>
+@php 
+    $site_name = "DECOR"; 
+    $status = $activeConsultation ? $activeConsultation->status : 0; 
+    $consultation_id = $activeConsultation ? "DEC-" . str_pad($activeConsultation->id, 5, '0', STR_PAD_LEFT) : ''; 
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultation Workspace — <?= $site_name ?></title>
+    <title>Workspace — {{ $site_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -17,174 +21,286 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
-        .chat-scroll::-webkit-scrollbar { width: 4px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background: #f1f1f1; border-radius: 10px; }
-        .unlock-animation { transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { background-color: #F8F6F4; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
     </style>
 </head>
-<body class="text-gray-800 flex flex-col h-screen bg-white">
+<body class="text-gray-800 flex flex-col min-h-screen">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    <?= $site_name ?>
-                </a>
-                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-                </div>
+    @if(!$activeConsultation)
+        <div class="flex-grow flex flex-col items-center justify-center bg-gray-50/30 min-h-screen">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 mb-6">
+                <i class="fa-solid fa-comment-slash text-2xl"></i>
             </div>
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-               
-            </nav>
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <button class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-regular fa-bell text-lg"></i>
-                </button>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-<a href="{{ route('customer.profile') }}" class="block">
-    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full bg-slate-100">
-    </div>
-</a>
-                </div>
+            <h3 class="text-sm font-black uppercase tracking-[0.2em] text-gray-400">Consultation Not Found</h3>
+            <a href="{{ route('customer.my-consultations') }}" class="mt-8 bg-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20">Back to My Consultations</a>
+        </div>
+    @else
+
+    <!-- HEADER: ADAPTIVE PROGRESS STEPS -->
+    <header class="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm flex-shrink-0">
+        <div class="flex items-center">
+            <a href="{{ route('customer.my-consultations') }}" class="flex items-center space-x-3 group mr-8 border-r border-gray-100 pr-8 py-2 text-gray-500 hover:text-primary transition-colors">
+                <i class="fa-solid fa-arrow-left text-lg group-hover:-translate-x-1 transition-transform"></i>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em]">Back</span>
+            </a>
+            <h2 class="font-bold text-[10px] uppercase tracking-widest leading-none text-gray-900">Workspace <span class="text-gray-400 ml-4 font-black">#{{ $consultation_id }}</span></h2>
+        </div>
+        
+        <!-- STEPS LOGIC -->
+        <div class="flex items-center space-x-10 text-gray-400">
+            <div class="flex items-center space-x-3 {{ in_array($status, [0, 5, 7]) ? 'text-primary' : ( $status > 0 ? 'text-green-500' : 'opacity-50') }}">
+                <span class="w-6 h-6 rounded-full {{ in_array($status, [0, 5, 7]) ? 'bg-primary text-white' : ( $status > 0 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
+                    @if($status > 0 && !in_array($status, [5,7])) <i class="fa-solid fa-check"></i> @else 1 @endif
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Setup</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
+            <div class="flex items-center space-x-3 {{ $status == 1 ? 'text-primary' : ( $status > 1 ? 'text-green-500' : 'opacity-50') }}">
+                <span class="w-6 h-6 rounded-full {{ $status == 1 ? 'bg-primary text-white' : ( $status > 1 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
+                    @if($status > 1) <i class="fa-solid fa-check"></i> @else 2 @endif
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Active</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
+            <div class="flex items-center space-x-3 {{ in_array($status, [2, 3]) ? 'text-primary' : ( $status == 4 ? 'text-green-500' : 'opacity-50') }}">
+                <span class="w-6 h-6 rounded-full {{ in_array($status, [2, 3]) ? 'bg-primary text-white' : ( $status == 4 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
+                    @if($status == 4) <i class="fa-solid fa-check"></i> @else 3 @endif
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Review</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
+            <div class="flex items-center space-x-3 {{ $status == 4 ? 'text-green-500' : 'opacity-50' }}">
+                <span class="w-6 h-6 rounded-full {{ $status == 4 ? 'bg-green-500 text-white' : 'border border-gray-300' }} flex items-center justify-center text-[10px] font-black">4</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Done</span>
+            </div>
+            
+            <div class="h-8 w-px bg-gray-200 mx-2"></div>
+            <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">{{ Auth::user()->full_name }}</span>
+                <img src="{{ Auth::user()->avatar_url }}" class="w-8 h-8 rounded-lg object-cover">
             </div>
         </div>
     </header>
-    <main class="flex-grow flex overflow-hidden">
-        <aside class="w-1/4 border-r border-gray-100 flex flex-col bg-white">
-            <div class="p-6 border-b border-gray-50">
-                <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 italic">Workspace</h3>
-                <input type="text" placeholder="Search..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-xs outline-none">
-            </div>
-            <div class="flex-grow overflow-y-auto chat-scroll">
-                <div class="p-6 flex items-center gap-4 bg-gray-50/50 border-r-4 border-primary cursor-pointer transition-all">
-                    <div class="relative w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-primary font-bold text-sm shadow-sm">JT</div>
-                    <div class="flex-grow min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <h4 class="text-xs font-bold truncate italic">Julian Thorne</h4>
-                            <span class="text-[9px] text-gray-400 uppercase font-bold">Active</span>
-                        </div>
-                        <p id="sidebar-status" class="text-[11px] text-primary font-bold mt-1 tracking-tight italic">Menunggu Pembayaran...</p>
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- LEFT PANEL: PROJECT INFO -->
+        <aside class="w-80 bg-white border-r border-gray-100 p-8 space-y-10 overflow-y-auto flex-shrink-0 custom-scroll">
+            <div class="space-y-4">
+                <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Designer Profile</h3>
+                <div class="bg-gray-50 rounded-[32px] p-6 border border-gray-100 shadow-inner flex items-center gap-4">
+                    <img src="{{ $activeConsultation->designer->designer_image ? asset('storage/'.$activeConsultation->designer->designer_image) : 'https://ui-avatars.com/api/?name='.urlencode($activeConsultation->designer->user->full_name) }}" class="w-12 h-12 rounded-2xl object-cover border border-gray-200">
+                    <div>
+                        <p class="text-[11px] font-black text-gray-900 uppercase leading-none mb-1">{{ $activeConsultation->designer->user->full_name }}</p>
+                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">{{ $activeConsultation->designer->specialty ?? 'Interior Designer' }}</p>
                     </div>
                 </div>
             </div>
+
+            <div class="space-y-4">
+                <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Project Info</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Type</p>
+                        <p class="text-[11px] font-black text-gray-800">
+                            {{ $activeConsultation->consultation_type == 'chat_consultation' ? 'Chat Consultation' : 'Request Proposal' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Budget</p>
+                        <p class="text-[11px] font-black text-gray-800">{{ $activeConsultation->budget_range }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Status</p>
+                        <p class="text-[11px] font-black text-primary">{{ \App\Models\Consultation::getStatusLabel($status) }}</p>
+                    </div>
+                </div>
+            </div>
+
         </aside>
 
-        <section class="flex-grow flex flex-col bg-white relative">
-            <div class="px-8 py-5 border-b border-gray-50 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-primary font-bold text-xs">JT</div>
-                    <div>
-                        <h3 class="text-sm font-black uppercase tracking-tighter italic">Julian Thorne</h3>
-                        <p id="online-status" class="text-[10px] font-bold text-gray-300 uppercase tracking-widest italic">Locked Mode</p>
+        <!-- CANVAS AREA: PROJECT WORKSPACE -->
+        <section class="flex-1 bg-[#FDFCFB] flex flex-col overflow-hidden relative">
+            <!-- Project Details Header -->
+            <div class="p-8 border-b border-gray-100 bg-white/80 backdrop-blur-sm z-10 flex justify-between items-center">
+                <div class="max-w-2xl">
+                    <h3 class="text-2xl font-black text-gray-900 uppercase tracking-tight">{{ $activeConsultation->title }}</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed mt-2 line-clamp-2">{{ $activeConsultation->description ?? 'No brief description provided.' }}</p>
+                </div>
+                
+                @if($status == \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE)
+                    @php $fee = $activeConsultation->consultation_type == 'request_proposal' ? 250000 : 50000; @endphp
+                    <form action="{{ route('customer.consultation.pay-fee', $activeConsultation->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="bg-primary text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all flex items-center gap-3">
+                            <span>Bayar Fee: Rp {{ number_format($fee, 0, ',', '.') }}</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            <!-- Overlays -->
+            @if($status == \App\Models\Consultation::STATUS_WAITING_APPROVAL)
+            <div class="absolute inset-0 z-20 bg-white/60 backdrop-blur-md flex items-center justify-center p-6">
+                <div class="max-w-sm w-full bg-white border border-gray-100 rounded-[3rem] p-12 shadow-2xl text-center">
+                    <div class="w-20 h-20 bg-orange-50 rounded-[2rem] flex items-center justify-center text-orange-400 mx-auto mb-8 animate-pulse">
+                        <i class="fa-solid fa-hourglass-half text-3xl"></i>
                     </div>
+                    <h3 class="text-2xl font-bold italic mb-3">Menunggu Approval</h3>
+                    <p class="text-[11px] text-gray-400 leading-relaxed italic">Desainer sedang meninjau permintaan konsultasi Anda. Mohon tunggu sebentar.</p>
+                </div>
+            </div>
+            @endif
+
+            @if($status == \App\Models\Consultation::STATUS_WAITING_BRIEF)
+            <div class="absolute inset-0 z-20 bg-white/80 backdrop-blur-lg flex items-center justify-center p-6">
+                <div class="max-w-md w-full bg-white border border-gray-100 rounded-[3rem] p-12 shadow-2xl">
+                    <h3 class="text-2xl font-bold italic mb-3 text-center">Isi Brief Proyek</h3>
+                    <p class="text-[11px] text-gray-400 leading-relaxed mb-8 text-center italic">Berikan detail ruangan agar desainer bisa memberikan penawaran harga yang sesuai.</p>
+                    <form action="{{ route('customer.consultation.submit-brief', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                        @csrf
+                        <div>
+                            <textarea name="description" rows="4" placeholder="Detail ruangan, ukuran, preferensi warna..." required class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-medium focus:border-primary/30 outline-none transition-all"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all">Submit Brief</button>
+                    </form>
+                </div>
+            </div>
+            @endif
+
+            <!-- Chat Area -->
+            <div class="flex-1 overflow-y-auto p-8 custom-scroll bg-gray-50/30 {{ in_array($status, [0, 5, 6, 7]) ? 'blur-md opacity-20 pointer-events-none' : '' }}">
+                <div class="max-w-4xl mx-auto space-y-8">
+                    
+                    @php
+                        $chatItems = collect();
+                        foreach($activeConsultation->messages as $m) {
+                            $chatItems->push((object)['type' => 'message', 'data' => $m, 'time' => $m->created_at]);
+                        }
+                        foreach($activeConsultation->attachments as $a) {
+                            $chatItems->push((object)['type' => 'attachment', 'data' => $a, 'time' => $a->created_at]);
+                        }
+                        $chatItems = $chatItems->sortBy('time');
+                    @endphp
+
+                    @forelse($chatItems as $item)
+                        @if($item->type == 'message')
+                            <div class="flex {{ $item->data->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
+                                <div class="max-w-[70%] {{ $item->data->sender_id == Auth::id() ? 'bg-primary text-white rounded-t-[24px] rounded-bl-[24px] shadow-lg shadow-primary/10' : 'bg-white border border-gray-100 text-gray-800 rounded-t-[24px] rounded-br-[24px] shadow-sm' }} px-6 py-4 text-[13px] leading-relaxed break-words">
+                                    {{ $item->data->message }}
+                                    <span class="block text-[8px] font-black uppercase tracking-widest mt-2 {{ $item->data->sender_id == Auth::id() ? 'text-white/60' : 'text-gray-400' }}">{{ $item->data->created_at->format('H:i') }}</span>
+                                </div>
+                            </div>
+                        @elseif($item->type == 'attachment')
+                            <div class="flex {{ $item->data->uploaded_by == Auth::id() ? 'justify-end' : 'justify-start' }}">
+                                <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->data->uploaded_by == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col items-center gap-2">
+                                    @if($item->data->file_type == 'image')
+                                        <a href="{{ $item->data->file_url }}" target="_blank">
+                                            <img src="{{ $item->data->file_url }}" class="max-w-xs max-h-60 rounded-xl object-cover">
+                                        </a>
+                                    @else
+                                        <div class="flex items-center gap-3 px-4 py-2">
+                                            <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
+                                            <a href="{{ $item->data->file_url }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
+                                        </div>
+                                    @endif
+                                    <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->data->created_at->format('H:i') }}</span>
+                                </div>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="flex flex-col items-center justify-center h-full opacity-30 mt-20">
+                            <i class="fa-solid fa-comments text-4xl mb-4"></i>
+                            <p class="text-xs font-bold uppercase tracking-widest">No messages yet</p>
+                        </div>
+                    @endforelse
+
+                    {{-- Handle Offers --}}
+                    @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW || $status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT)
+                        @php $quote = $activeConsultation->quotes->first(); @endphp
+                        @if($quote && $quote->status !== 'revision')
+                        <div class="flex justify-center my-10">
+                            <div class="max-w-2xl w-full bg-white border-2 border-primary/20 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+                                <div class="absolute top-0 right-0 p-4"><span class="text-[8px] font-black uppercase tracking-widest bg-primary text-white px-3 py-1 rounded-full">New RAB / Agreement</span></div>
+                                <h4 class="text-[12px] font-black uppercase tracking-[0.3em] text-primary mb-6 text-center">Project Agreement & RAB</h4>
+                                
+                                @if($quote->items)
+                                    <div class="mb-6 flex justify-center">
+                                        <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-amber-50 text-amber-700 px-6 py-3 rounded-xl border border-amber-200 hover:bg-amber-100 transition-colors">
+                                            <i class="fa-solid fa-file-arrow-down text-xl"></i>
+                                            <span class="text-[11px] font-black uppercase tracking-widest">Download RAB File</span>
+                                        </a>
+                                    </div>
+                                @endif
+
+                                <div class="text-center mb-6 border-t border-gray-100 pt-6">
+                                    <h4 class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Total Design Fee</h4>
+                                    <h3 class="text-3xl font-black italic text-primary mt-2">Rp {{ number_format($quote->amount, 0, ',', '.') }}</h3>
+                                </div>
+
+                                @if($quote->notes)
+                                    <div class="bg-gray-50 p-4 rounded-xl mb-8">
+                                        <p class="text-[11px] text-gray-600 leading-relaxed italic">"{{ $quote->notes }}"</p>
+                                    </div>
+                                @endif
+
+                                @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW)
+                                <div class="flex gap-4 mb-4">
+                                    <form action="{{ route('customer.consultation.reject-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <button type="submit" class="w-full py-4 rounded-xl border border-gray-100 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all">Reject Project</button>
+                                    </form>
+                                    <form action="{{ route('customer.consultation.accept-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Accept Project</button>
+                                    </form>
+                                </div>
+                                <div class="mt-4 border-t border-gray-100 pt-4">
+                                    <button type="button" onclick="document.getElementById('revision-form-container').classList.toggle('hidden')" class="w-full py-3 rounded-xl border border-dashed border-gray-300 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-all">
+                                        <i class="fa-solid fa-pen-to-square mr-2"></i> Request Revision
+                                    </button>
+                                    <div id="revision-form-container" class="hidden mt-4 bg-gray-50 p-4 rounded-xl">
+                                        <form action="{{ route('customer.consultation.request-revision', $activeConsultation->id) }}" method="POST">
+                                            @csrf
+                                            <textarea name="revision_notes" rows="3" required placeholder="Tuliskan bagian mana yang perlu direvisi..." class="w-full bg-white border border-gray-200 rounded-lg p-3 text-xs font-medium outline-none focus:border-primary mb-3"></textarea>
+                                            <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded-lg text-[10px] font-black uppercase tracking-widest">Kirim Revisi</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @else
+                                <form action="{{ route('customer.consultation.pay-final', $activeConsultation->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full bg-green-500 text-white py-5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/20">Pay Now</button>
+                                </form>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 
-            <div class="relative flex-grow flex flex-col overflow-hidden">
-                <div id="paywall-overlay" class="absolute inset-0 z-40 bg-white/40 backdrop-blur-md flex items-center justify-center p-6 unlock-animation">
-                    <div class="max-w-sm w-full bg-white border border-gray-100 rounded-[3rem] p-12 shadow-[0_20px_50px_rgba(181,115,58,0.15)] text-center">
-                        <div class="w-20 h-20 bg-secondary/30 rounded-[2rem] flex items-center justify-center text-primary mx-auto mb-8">
-                            <i class="fa-solid fa-lock text-3xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold italic mb-3 italic">Buka Konsultasi</h3>
-                        <p class="text-[11px] text-gray-400 leading-relaxed mb-10 px-4 italic">Bayar jasa konsultasi untuk mulai merancang ruang impian Anda.</p>
-                        <button onclick="openModal()" class="w-full bg-primary text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all">
-                            Bayar Rp 50.000
-                        </button>
-                    </div>
-                </div>
-
-                <div id="chat-content" class="flex-grow p-10 space-y-10 overflow-y-auto blur-[10px] opacity-20 pointer-events-none unlock-animation">
-                    <div class="flex justify-start">
-                        <div class="max-w-[70%] bg-gray-50 px-8 py-5 rounded-[2.5rem] rounded-tl-none text-[13px] leading-relaxed">
-                            Halo Anisa! Saya Julian. Senang bisa membantu proyek interior Anda. Apa konsep utama yang Anda inginkan?
-                        </div>
-                    </div>
-                    <div class="flex justify-end">
-                        <div class="max-w-[70%] bg-primary text-white px-8 py-5 rounded-[2.5rem] rounded-tr-none text-[13px] leading-relaxed shadow-lg shadow-primary/10">
-                            Saya ingin gaya Mid-Century Modern tapi tetap terasa hangat dengan banyak material kayu Walnut.
-                        </div>
-                    </div>
-                </div>
-
-                <div id="input-area" class="p-8 bg-white opacity-20 pointer-events-none unlock-animation">
-                    <div class="bg-gray-50 rounded-full flex items-center px-6 py-3 border border-gray-100 gap-4">
-                        <button class="text-gray-400 hover:text-primary transition-colors text-lg">
+            <!-- Action Footer -->
+            <div class="p-6 bg-white border-t border-gray-100 {{ in_array($status, [0, 5, 6, 7]) ? 'opacity-20 pointer-events-none' : '' }}">
+                <div class="max-w-4xl mx-auto">
+                    <form action="{{ route('customer.consultation.messages.send', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="bg-gray-50 rounded-[2rem] flex items-center px-4 py-2 border border-gray-100 focus-within:border-primary/30 focus-within:bg-white transition-all shadow-sm">
+                        @csrf
+                        <label for="chat-attachment" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-gray-100">
                             <i class="fa-solid fa-paperclip"></i>
+                        </label>
+                        <input type="file" id="chat-attachment" name="attachment" class="hidden" onchange="this.form.submit()">
+                        <input type="text" name="message" placeholder="Tulis pesan atau instruksi untuk desainer..." class="flex-grow bg-transparent border-none outline-none px-4 py-3 text-xs font-medium">
+                        <button type="submit" class="bg-primary text-white px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
+                            Kirim
                         </button>
-                        <input type="text" placeholder="Tulis pesan..." class="flex-grow bg-transparent border-none outline-none text-sm">
-                        <button class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-md">
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                        </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </section>
-    </main>
-
-    <div id="payment-modal" class="hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl scale-95 opacity-0 transition-all duration-300" id="modal-content">
-            <h4 class="text-center text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-8 italic italic">Payment Method</h4>
-            <div class="space-y-4 mb-10">
-                <div class="flex items-center justify-between p-5 border-2 border-primary rounded-2xl bg-primary/5 cursor-pointer">
-                    <div class="flex items-center gap-4"><span class="text-xl">🏦</span><b class="text-xs italic">Bank Transfer (BCA)</b></div>
-                    <i class="fa-solid fa-circle-check text-primary"></i>
-                </div>
-                <div class="flex items-center justify-between p-5 border border-gray-100 rounded-2xl hover:bg-gray-50 cursor-pointer">
-                    <div class="flex items-center gap-4 text-gray-400"><span class="text-xl opacity-50">📱</span><b class="text-xs italic">E-Wallet (GoPay/Dana)</b></div>
-                </div>
-            </div>
-            <button onclick="finishPayment()" class="w-full bg-gray-900 text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] hover:bg-black transition-all">
-                Selesai Melakukan Pembayaran
-            </button>
-        </div>
     </div>
-
-    <script>
-        function openModal() {
-            const modal = document.getElementById('payment-modal');
-            const content = document.getElementById('modal-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function finishPayment() {
-            const modal = document.getElementById('payment-modal');
-            modal.classList.add('hidden');
-
-            const overlay = document.getElementById('paywall-overlay');
-            const chatContent = document.getElementById('chat-content');
-            const inputArea = document.getElementById('input-area');
-            const sidebarStatus = document.getElementById('sidebar-status');
-            const onlineStatus = document.getElementById('online-status');
-
-            overlay.style.opacity = '0';
-            overlay.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                chatContent.classList.remove('blur-[10px]', 'opacity-20', 'pointer-events-none');
-                inputArea.classList.remove('opacity-20', 'pointer-events-none');
-                sidebarStatus.innerText = "Mari kita mulai...";
-                sidebarStatus.classList.replace('text-primary', 'text-gray-400');
-                onlineStatus.innerText = "Online Now";
-                onlineStatus.classList.replace('text-gray-300', 'text-green-500');
-            }, 500);
-        }
-    </script>
+    @endif
 </body>
 </html>

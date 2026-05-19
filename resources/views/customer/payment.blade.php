@@ -88,21 +88,58 @@
                         <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">BCA Virtual Account</p>
                         <p class="text-3xl font-black tracking-widest text-gray-800">8077 1234 5678</p>
                     </div>
+
+                    @if($order->status === 'waiting_verification')
+                        <div class="bg-orange-50 border border-orange-200 p-6 rounded-xl text-orange-700">
+                            <i class="fa-solid fa-clock-rotate-left mb-2 text-2xl"></i>
+                            <p class="text-sm font-bold">Waiting for Verification</p>
+                            <p class="text-[10px] mt-1 opacity-80">Your payment proof is being reviewed by the seller. We will notify you once it is approved.</p>
+                        </div>
+                    @else
+                        <form action="{{ route('customer.payment.confirm', $order->id) }}" method="POST" enctype="multipart/form-data" class="mt-8 space-y-6">
+                            @csrf
+                            <div class="max-w-md mx-auto">
+                                <label class="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 text-left">Upload Payment Proof</label>
+                                <div class="relative group">
+                                    <input type="file" name="payment_proof" id="payment_proof" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-8 group-hover:border-primary group-hover:bg-primary/5 transition-all flex flex-col items-center justify-center">
+                                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-primary mb-3 transition-colors"></i>
+                                        <p id="file-name" class="text-[10px] font-bold text-gray-400 group-hover:text-primary tracking-widest uppercase text-center">Click to browse or drag & drop</p>
+                                        <p class="text-[9px] text-gray-300 mt-1 uppercase tracking-widest">Max size 2MB (JPG, PNG)</p>
+                                    </div>
+                                </div>
+                                @error('payment_proof')
+                                    <p class="text-red-500 text-[10px] mt-2 font-bold">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="w-full md:w-auto px-12 bg-primary text-white py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30 mt-8">
+                                Confirm & Upload Proof
+                            </button>
+                        </form>
+                        <script>
+                            document.getElementById('payment_proof').addEventListener('change', function(e) {
+                                const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to browse or drag & drop';
+                                document.getElementById('file-name').textContent = fileName;
+                                document.getElementById('file-name').classList.add('text-primary');
+                            });
+                        </script>
+                    @endif
                 </div>
             @else
                 <div class="text-center py-6">
                     <i class="fa-solid fa-wallet text-4xl text-primary mb-4"></i>
                     <h3 class="text-xl font-bold mb-2">Cash on Delivery</h3>
                     <p class="text-sm text-gray-500 mb-6">Please prepare the exact amount in cash when the courier arrives at your address.</p>
+                    
+                    <form action="{{ route('customer.payment.confirm', $order->id) }}" method="POST" class="text-center mt-8">
+                        @csrf
+                        <button type="submit" class="w-full md:w-auto px-12 bg-primary text-white py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30">
+                            Confirm Order
+                        </button>
+                    </form>
                 </div>
             @endif
-
-            <form action="{{ route('customer.payment.confirm', $order->id) }}" method="POST" class="text-center mt-8">
-                @csrf
-                <button type="submit" class="w-full md:w-auto px-12 bg-primary text-white py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30">
-                    Confirm Payment
-                </button>
-            </form>
         </div>
     </main>
 

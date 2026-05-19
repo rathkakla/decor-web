@@ -28,28 +28,42 @@
         </div>
         
         <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
+            <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
             </a>
-            <a href="{{ route('designer.portfolio.index') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
+            <a href="{{ route('designer.portfolio.index') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.portfolio.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio
             </a>
-            <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg active-link">
+            <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.consultations.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i>Konsultasi
             </a>
-            <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
+            <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i>Chat
             </a>
-            <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
+            <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.reviews') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
             </a>
-            <a href="{{ route('designer.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg">
+            <a href="{{ route('designer.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.reports') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
                 <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
+            </a>
+            <a href="{{ route('notifications') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('notifications') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
+                <i class="fa-solid fa-bell mr-3 w-5 text-center"></i> Notifikasi
+                @if(Auth::user()->unreadNotifications->count() > 0)
+                    <span class="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                        {{ Auth::user()->unreadNotifications->count() }}
+                    </span>
+                @endif
             </a>
         </nav>
         <div class="p-4 border-t border-gray-100 space-y-1">
             <a href="{{ route('designer.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings</a>
             <a href="{{ route('designer.support') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-circle-question mr-3 w-5 text-center"></i> Support</a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center px-4 py-3 text-xs font-bold text-red-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg">
+                    <i class="fa-solid fa-right-from-bracket mr-3 w-5 text-center"></i> Logout
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -62,8 +76,10 @@
             <div class="flex items-center space-x-6">
                 <i class="fa-regular fa-bell text-xl"></i>
                 <div class="flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                    <span class="text-[10px] font-black uppercase tracking-widest">Elena Vance</span>
-                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold font-sans">EV</div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ Auth::user()->full_name }}</span>
+                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold font-sans">
+                        {{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}
+                    </div>
                 </div>
             </div>
         </header>
@@ -80,43 +96,79 @@
                 </div>
             </div>
 
+            @php
+                $tab = request('tab', 'needs_action');
+                
+                $filteredConsultations = $consultations->filter(function($item) use ($tab) {
+                    if ($tab == 'needs_action') return in_array($item->status, [0, 3, 5]);
+                    if ($tab == 'on_progress') return in_array($item->status, [1, 2, 7]);
+                    if ($tab == 'completed') return $item->status == 4;
+                    return true;
+                });
+            @endphp
+
             <div class="flex items-center space-x-4 border-b border-gray-100 pb-4">
-                <button class="relative px-6 py-3 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Needs Action</button>
-                <button class="px-6 py-3 bg-white text-gray-400 border border-gray-50 rounded-2xl text-[10px] font-black uppercase tracking-widest">On-Progress</button>
-                <button class="px-6 py-3 bg-white text-gray-400 border border-gray-50 rounded-2xl text-[10px] font-black uppercase tracking-widest">Completed</button>
+                <a href="{{ route('designer.consultations.index', ['tab' => 'needs_action']) }}" 
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'needs_action' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                    Needs Action
+                </a>
+                <a href="{{ route('designer.consultations.index', ['tab' => 'on_progress']) }}" 
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'on_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                    On-Progress
+                </a>
+                <a href="{{ route('designer.consultations.index', ['tab' => 'completed']) }}" 
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                    Completed
+                </a>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-20">
-                @php
-                    $projects = [
-                        ['name' => 'Elena Rodriguez', 'title' => 'Mid-Century Loft Revamp', 'price' => '$1,250.00', 'tag' => 'Residential', 'img' => 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200', 'status_label' => 'WAITING FOR BRIEF', 'status_color' => 'bg-yellow-50 text-yellow-600'],
-                        ['name' => 'Marcus Thorne', 'title' => 'Penthouse Living Room', 'price' => '$2,400.00', 'tag' => 'Residential', 'img' => 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=1200', 'status_label' => 'IN DESIGN PHASE', 'status_color' => 'bg-blue-50 text-blue-600'],
-                        ['name' => 'Julian Thorne', 'title' => 'Kitchen & Dining Revitalize', 'price' => '$950.00', 'tag' => 'Residential', 'img' => 'https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?q=80&w=1200', 'status_label' => 'REVISION REQUESTED', 'status_color' => 'bg-red-50 text-red-600'],
-                        ['name' => 'Luminary Studios', 'title' => 'Modern Office Concept', 'price' => '$3,100.00', 'tag' => 'Commercial', 'img' => 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200', 'status_label' => 'READY TO SUBMIT', 'status_color' => 'bg-green-50 text-green-600']
-                    ];
-                @endphp
-
-                @foreach($projects as $project)
+                @forelse($filteredConsultations as $consultation)
                 <div class="bg-white rounded-[48px] border border-gray-100 overflow-hidden shadow-sm group hover:shadow-2xl transition-all duration-700 flex flex-col">
                     <div class="h-64 relative overflow-hidden">
-                        <img src="{{ $project['img'] }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
+                        <img src="{{ $consultation->cover_image ?? 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1200' }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000">
                         <div class="absolute top-6 left-6 flex space-x-2">
-                            <span class="bg-white/90 backdrop-blur-md text-gray-900 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">{{ $project['tag'] }}</span>
-                            <span class="{{ $project['status_color'] }} px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">{{ $project['status_label'] }}</span>
+                            <span class="bg-white/90 backdrop-blur-md text-gray-900 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">Consultation</span>
+                            @php
+                                $statusColors = [
+                                    0 => 'bg-yellow-50 text-yellow-600', // Waiting for Brief
+                                    1 => 'bg-blue-50 text-blue-600',   // Drafting
+                                    2 => 'bg-purple-50 text-purple-600', // Under Review
+                                    3 => 'bg-red-50 text-red-600',    // Revision Requested
+                                    4 => 'bg-green-50 text-green-600',  // Completed
+                                    5 => 'bg-gray-100 text-gray-600',   // Pending Approval
+                                    6 => 'bg-red-100 text-red-700',     // Rejected
+                                    7 => 'bg-amber-100 text-amber-700',  // Waiting Payment
+                                ];
+                                $color = $statusColors[$consultation->status] ?? 'bg-gray-50 text-gray-600';
+                            @endphp
+                            <span class="{{ $color }} px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm">
+                                {{ strtoupper(App\Models\Consultation::getStatusLabel($consultation->status)) }}
+                            </span>
                         </div>
                     </div>
                     <div class="p-10 flex flex-col flex-1 justify-between">
                         <div class="flex justify-between items-start">
-                            <div><h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">{{ $project['name'] }}</h3><p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-2">{{ $project['title'] }}</p></div>
-                            <div class="text-right"><p class="text-sm font-black text-primary">{{ $project['price'] }}</p></div>
+                            <div>
+                                <h3 class="text-2xl font-black text-gray-900 tracking-tight leading-none">{{ $consultation->customer->user->full_name }}</h3>
+                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-2">{{ $consultation->title }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-primary">{{ $consultation->budget_range }}</p>
+                            </div>
                         </div>
                         <div class="flex justify-between items-center pt-8 mt-8 border-t border-gray-50">
-                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest italic">Order ID: #DEC-88219</p>
-                            <a href="{{ route('designer.consultations.show') }}" class="text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:mr-2 transition-all flex items-center">View Project Details <i class="fa-solid fa-arrow-right ml-2"></i></a>
+                            <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest italic">Order ID: #DEC-{{ str_pad($consultation->id, 5, '0', STR_PAD_LEFT) }}</p>
+                            <a href="{{ route('designer.consultations.show', $consultation->id) }}" class="text-[10px] font-black uppercase tracking-[0.2em] text-primary hover:mr-2 transition-all flex items-center">View Project Details <i class="fa-solid fa-arrow-right ml-2"></i></a>
                         </div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="col-span-full py-20 text-center">
+                    <i class="fa-solid fa-folder-open text-6xl text-gray-100 mb-4"></i>
+                    <p class="text-xs font-black text-gray-300 uppercase tracking-widest">No consultations found in this category.</p>
+                </div>
+                @endforelse
             </div>
         </div>
 

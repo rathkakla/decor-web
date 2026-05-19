@@ -11,17 +11,19 @@ class ProductController extends Controller
     // READ ALL (Sudah kita buat sebelumnya)
     public function index()
     {
-        $products = Product::with(['images', 'seller'])->get();
+        $products = Product::with(['images', 'seller'])->where('status', 'approved')->get();
         return $this->successResponse($products, 'Data produk berhasil diambil');
     }
 
     // READ DETAIL (Mengambil 1 barang saja secara spesifik)
     public function show($id)
     {
-        $product = Product::with(['images', 'seller', 'category', 'reviews.customer.user'])->find($id);
+        $product = Product::with(['images', 'seller', 'category', 'reviews.customer.user'])
+            ->where('status', 'approved')
+            ->find($id);
         
         if (!$product) {
-            return $this->errorResponse('Produk tidak ditemukan', 404);
+            return $this->errorResponse('Produk tidak ditemukan atau belum disetujui.', 404);
         }
 
         return $this->successResponse($product, 'Detail produk berhasil diambil');
@@ -122,7 +124,10 @@ class ProductController extends Controller
             return $this->errorResponse('Seller tidak ditemukan', 404);
         }
 
-        $products = \App\Models\Product::with('images')->where('seller_id', $id)->get();
+        $products = \App\Models\Product::with('images')
+            ->where('seller_id', $id)
+            ->where('status', 'approved')
+            ->get();
 
         $allReviews = \App\Models\Review::whereHas('product', function ($q) use ($id) {
             $q->where('seller_id', $id);

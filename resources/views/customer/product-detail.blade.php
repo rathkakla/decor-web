@@ -376,7 +376,7 @@
                     </a>
 
                     <!-- Tombol Chat tetap dipertahankan -->
-                    <a href="#"
+                    <a href="{{ route('customer.chat-seller.with', $product->seller_id) }}"
                         class="w-full flex items-center justify-center gap-2.5 border border-primary text-primary py-3 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-200 active:scale-[0.98]">
                         <i class="fa-regular fa-message"></i> Chat with Seller
                     </a>

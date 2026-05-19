@@ -23,18 +23,7 @@
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen relative">
         
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-            <div class="flex items-center">
-                <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
-                    <i class="fa-solid fa-bars-staggered text-xl"></i>
-                </button>
-                <h2 class="font-bold text-xs uppercase tracking-widest text-white leading-none">Reviews Management</h2>
-            </div>
-            <div class="flex items-center space-x-6 text-white">
-                <i class="fa-regular fa-bell text-xl cursor-pointer"></i>
-                <img src="{{ Auth::user()->avatar_url }}" class="w-9 h-9 rounded-lg border-2 border-white/20 object-cover">
-            </div>
-        </header>
+        @include('seller.partials.header', ['title' => 'Reviews Management'])
 
         <div class="p-10 space-y-8 flex-1">
             

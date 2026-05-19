@@ -1,67 +1,20 @@
-<?php
-$current_page = basename($_SERVER['PHP_SELF']);
-$current_path = str_replace('.php', '', $current_page);
-if ($current_path == "" || $current_path == "index") {
-    $current_path = "designer-monitor"; 
-}
-
-$admin_name = "Alex Rivera";
-$admin_role = "SUPER ADMIN";
+@php
+$admin_name = Auth::user()->full_name;
+$admin_role = "ADMIN";
 
 $menu_items = [
-    ["label" => "Dashboard",          "path" => "dashboard",         "icon" => "grid"],
-    ["label" => "User Management",     "path" => "user-management",   "icon" => "users"],
-    ["label" => "Seller Monitor",      "path" => "seller-monitor",    "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",    "path" => "designer-monitor",  "icon" => "pen-tool"],
-    ["label" => "Seller Support",      "path" => "seller-support",    "icon" => "headphones"],
-    ["label" => "Designer Support",    "path" => "designer-support",  "icon" => "pen-tool"],
-    ["label" => "Customer Support",    "path" => "customer-support",  "icon" => "message-circle"],
-    ["label" => "Product Validation",  "path" => "product-validation","icon" => "check-circle"],
-    ["label" => "Portofolio Validation", "path" => "portofolio-validation","icon" => "image"],
+    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
+    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
+    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
+    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
+    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
+    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones"],
+    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool"],
+    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle"],
+    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
+    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
 ];
-$designers = [
-    [
-        "id"       => "DES-001",
-        "name"     => "Julian Thorne",
-        "spec"     => "Mid-Century Modern",
-        "projects" => 12,
-        "rate"     => "94",
-        "rating"   => 4.9,
-        "status"   => "Verified",
-        "revenue"  => "Rp 18.4M",
-        "joined"   => "Mar 2023",
-    ],
-    [
-        "id"       => "DES-002",
-        "name"     => "Marcus Webb",
-        "spec"     => "Industrial Loft",
-        "projects" => 2,
-        "rate"     => "40",
-        "rating"   => 2.5,
-        "status"   => "Suspended",
-        "revenue"  => "Rp 2.1M",
-        "joined"   => "Aug 2023",
-    ],
-    [
-        "id"       => "DES-003",
-        "name"     => "Ahmad Zaki",
-        "spec"     => "Scandinavian",
-        "projects" => 0,
-        "rate"     => "0",
-        "rating"   => 1.2,
-        "status"   => "Banned",
-        "revenue"  => "Rp 0",
-        "joined"   => "Jan 2024",
-    ],
-];
-
-$stats = [
-    ["label" => "Total Designers", "value" => count($designers), "icon" => "pen-tool",    "note" => "registered"],
-    ["label" => "Verified",        "value" => 1,                 "icon" => "check-circle","note" => "active partners"],
-    ["label" => "Suspended",       "value" => 1,                 "icon" => "pause-circle","note" => "under review"],
-    ["label" => "Banned",          "value" => 1,                 "icon" => "x-circle",    "note" => "removed"],
-];
-?>
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -329,7 +282,7 @@ $stats = [
     <div class="nav-section">
         <span class="nav-label">Navigation</span>
         <?php foreach ($menu_items as $item):
-            $active = ($item['path'] === $current_path) ? 'active' : '';
+            $active = (request()->url() === $item['path']) ? 'active' : '';
         ?>
         <a href="<?= $item['path'] ?>" class="menu-link <?= $active ?>">
             <div class="menu-item">
@@ -340,8 +293,9 @@ $stats = [
         <?php endforeach; ?>
 
         <span class="nav-label" style="margin-top:20px;">System</span>
-        <a href="settings" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
-        <a href="logout"   class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
+        <a href="{{ route('admin.settings') }}" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
+        <form action="{{ route('logout') }}" method="POST" id="logout-form" style="display:none;">@csrf</form>
+        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
     </div>
 
     <div class="sidebar-footer">
@@ -399,42 +353,42 @@ $stats = [
     <!-- Cards Grid -->
     <div class="cards-grid">
         <?php foreach ($designers as $d):
-            $sl = strtolower($d['status']);
-            $isBanned     = $d['status'] === 'Banned';
-            $isSuspended  = $d['status'] === 'Suspended';
-            $starFull  = floor($d['rating']);
+            $sl = strtolower($d->status);
+            $isBanned     = $d->status === 'Banned';
+            $isSuspended  = $d->status === 'Suspended';
+            $starFull  = floor($d->rating);
             $starEmpty = 5 - $starFull;
-            $rateWidth = $d['rate'] . '%';
+            $rateWidth = $d->rate . '%';
         ?>
         <div class="designer-card <?= $isBanned ? 'is-banned' : '' ?>">
             <div class="card-bar bar-<?= $sl ?>"></div>
             <div class="card-body">
 
                 <div class="card-head">
-                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($d['name']) ?>&background=random&size=104"
+                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($d->name) ?>&background=random&size=104"
                          class="designer-avatar <?= ($isBanned || $isSuspended) ? 'grayed' : '' ?>">
                     <span class="pill pill-<?= $sl ?>">
                         <i data-feather="<?= $sl === 'verified' ? 'check' : ($sl === 'suspended' ? 'pause' : 'x') ?>"></i>
-                        <?= $d['status'] ?>
+                        <?= $d->status ?>
                     </span>
                 </div>
 
-                <div class="card-name <?= $isBanned ? 'name-banned' : '' ?>"><?= $d['name'] ?></div>
-                <div class="card-spec"><i data-feather="tag"></i><?= $d['spec'] ?></div>
-                <div class="designer-id"><?= $d['id'] ?></div>
+                <div class="card-name <?= $isBanned ? 'name-banned' : '' ?>"><?= $d->name ?></div>
+                <div class="card-spec"><i data-feather="tag"></i><?= $d->spec ?></div>
+                <div class="designer-id"><?= $d->id ?></div>
 
                 <!-- Metrics -->
                 <div class="card-metrics">
                     <div class="metric">
-                        <div class="metric-val"><?= $d['projects'] ?></div>
+                        <div class="metric-val"><?= $d->projects ?></div>
                         <div class="metric-lbl">Projects</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-val"><?= $d['rate'] ?>%</div>
+                        <div class="metric-val"><?= $d->rate ?>%</div>
                         <div class="metric-lbl">Conv. Rate</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-val"><?= $d['rating'] ?></div>
+                        <div class="metric-val"><?= $d->rating ?></div>
                         <div class="metric-lbl">Rating</div>
                     </div>
                 </div>
@@ -449,21 +403,21 @@ $stats = [
                         <svg class="star" viewBox="0 0 16 16" fill="#E8E2DB"><path d="M8 1l1.85 3.75L14 5.5l-3 2.92.71 4.13L8 10.4l-3.71 2.15.71-4.13L2 5.5l4.15-.75z"/></svg>
                         <?php endfor; ?>
                     </div>
-                    <span class="rating-num"><?= $d['rating'] ?></span>
+                    <span class="rating-num"><?= $d->rating ?></span>
                     <div class="rate-bar-wrap">
                         <div class="rate-bar-bg"><div class="rate-bar-fill" style="width:<?= $rateWidth ?>"></div></div>
                     </div>
-                    <span class="rating-count"><?= $d['rate'] ?>%</span>
+                    <span class="rating-count"><?= $d->rate ?>%</span>
                 </div>
 
             </div><!-- /card-body -->
 
             <div class="card-footer">
                 <div>
-                    <div class="joined-txt"><i data-feather="calendar"></i> Joined <?= $d['joined'] ?></div>
-                    <div class="revenue-txt"><?= $d['revenue'] ?> earned</div>
+                    <div class="joined-txt"><i data-feather="calendar"></i> Joined <?= $d->joined ?></div>
+                    <div class="revenue-txt"><?= $d->revenue ?> earned</div>
                 </div>
-                <a href="designer-detail?id=<?= $d['id'] ?>" class="btn-view">
+                <a href="{{ route('admin.designer-detail', ['id' => $d->db_id]) }}" class="btn-view">
                     View Profile <i data-feather="arrow-right"></i>
                 </a>
             </div>

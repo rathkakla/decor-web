@@ -12,34 +12,47 @@ use App\Models\Category;
 use App\Models\Favorite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Voucher;
+use App\Models\VoucherClaim;
+use App\Models\Support;
 use Illuminate\Http\Request;
+
 class CustomerController extends Controller
 {
     // --- NAVIGATION ---
     public function index()
     {
-        return view('customer.homepage');
+        $featuredDesigners = \App\Models\Designer::with('user')
+            ->where('status', 'approved')
+            ->take(3)
+            ->get();
+        return view('customer.homepage', compact('featuredDesigners'));
     }
 
     public function designers()
     {
-        return view('customer.designers');
+        $designers = \App\Models\Designer::with(['user', 'consultations'])
+            ->where('status', 'approved')
+            ->get();
+        return view('customer.designers', compact('designers'));
     }
 
-
+    public function designerProfile($id)
+    {
+        $designer = \App\Models\Designer::with(['user', 'portfolios'])
+            ->where('status', 'approved')
+            ->findOrFail($id);
+        return view('customer.designer-profile', compact('designer'));
+    }
 
     public function orders()
     {
         $user = Auth::user();
 
-        // Ambil data customer (termasuk alamatnya untuk ditampilkan di UI)
         $customer = \App\Models\Customer::firstOrCreate(
             ['user_id' => $user->id]
         );
 
-        // Ambil semua pesanan milik customer ini, urutkan dari yang terbaru
-        // Kita panggil juga relasi orderItems, product, dan images agar tidak error di looping Blade
-        // Kecualikan pesanan yang sudah memiliki pengajuan return (pindah ke tab Return)
         $orders = \App\Models\Order::with(['orderItems.product.images', 'productReturn'])
             ->where('customer_id', $customer->id)
             ->whereDoesntHave('productReturn')
@@ -49,14 +62,18 @@ class CustomerController extends Controller
         return view('customer.order-tracking', compact('user', 'customer', 'orders'));
     }
 
-
     public function productDetail($id)
     {
-        $product = Product::with(['images', 'category', 'seller', 'reviews.customer.user'])->findOrFail($id);
+        $product = Product::with(['images', 'category', 'seller', 'reviews.customer.user'])
+            ->where('status', 'approved')
+            ->whereHas('seller', function($q) {
+                $q->where('status', 'approved');
+            })
+            ->findOrFail($id);
 
-        // Mengambil produk serupa untuk bagian "Curated Pairings"
         $relatedProducts = Product::with('images')
             ->where('category_id', $product->category_id)
+            ->where('status', 'approved')
             ->where('id', '!=', $id)
             ->inRandomOrder()
             ->limit(3)
@@ -81,9 +98,12 @@ class CustomerController extends Controller
         $materials = ['Wood', 'Metal', 'Leather', 'Fabric', 'Marble'];
         $styles = ['Minimalist', 'Modern', 'Industrial', 'Classic', 'Scandinavian'];
 
-        $query = Product::with(['images', 'category']);
+        $query = Product::with(['images', 'category'])
+            ->where('status', 'approved')
+            ->whereHas('seller', function($q) {
+                $q->where('status', 'approved');
+            });
 
-        // 1. Filter Search & Category
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
@@ -93,7 +113,6 @@ class CustomerController extends Controller
             });
         }
 
-        // 2. Filter Material & Style
         if ($request->filled('material')) {
             $query->whereIn('material', (array) $request->material);
         }
@@ -101,7 +120,6 @@ class CustomerController extends Controller
             $query->whereIn('style', (array) $request->style);
         }
 
-        // 3. Logika Sorting (Hanya menyusun query, belum mengambil data)
         if ($request->filled('sort')) {
             if ($request->sort === 'price_low') {
                 $query->orderBy('price', 'asc');
@@ -114,7 +132,6 @@ class CustomerController extends Controller
             $query->latest();
         }
 
-        // 4. EKSEKUSI DATA (Hanya panggil ini SEKALI di akhir)
         $products = $query->get();
 
         return view('customer.catalog', compact('products', 'categories', 'materials', 'styles'));
@@ -126,7 +143,6 @@ class CustomerController extends Controller
     {
         $customer = Customer::where('user_id', Auth::id())->first();
 
-        // Load keranjang beserta item dan detail produknya
         $cart = Cart::with(['cartItems.product.images', 'cartItems.product.category'])
             ->where('customer_id', $customer->id)
             ->first();
@@ -134,35 +150,29 @@ class CustomerController extends Controller
         return view('customer.cart', compact('cart'));
     }
 
-    public function addToCart(Request $request) // Mengubah parameter agar bisa membaca form
+    public function addToCart(Request $request)
     {
         $customer = Customer::where('user_id', Auth::id())->first();
 
-        // Ambil ID dan Quantity dari Request (form)
         $productId = $request->input('product_id');
-        $quantity = $request->input('quantity', 1); // Default 1 jika tidak ada
+        $quantity = $request->input('quantity', 1);
 
-        // Pastikan produknya ada dan stok mencukupi
         $product = Product::findOrFail($productId);
         if ($quantity > $product->stock) {
             return back()->with('error', 'Stok tidak mencukupi.');
         }
 
-        // Cek atau Buat Cart untuk customer ini
         $cart = Cart::firstOrCreate([
             'customer_id' => $customer->id
         ]);
 
-        // Cek apakah barang sudah ada di keranjang
         $cartItem = CartItem::where('cart_id', $cart->id)
             ->where('product_id', $productId)
             ->first();
 
         if ($cartItem) {
-            // Jika sudah ada, tambahkan quantity-nya
             $cartItem->increment('quantity', $quantity);
         } else {
-            // Jika belum, buat baru
             CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $productId,
@@ -174,17 +184,11 @@ class CustomerController extends Controller
         return redirect()->route('customer.cart')->with('success', 'Item ditambahkan ke keranjang!');
     }
 
-    // Fungsi untuk Toggle Checkbox Keranjang
     public function toggleCartItem(Request $request, $id)
     {
-        // Cari item keranjangnya
         $cartItem = \App\Models\CartItem::findOrFail($id);
-
-        // Update status is_selected sesuai nilai dari checkbox (1 atau 0)
         $cartItem->is_selected = $request->is_selected;
         $cartItem->save();
-
-        // Kembalikan ke halaman keranjang (halaman akan otomatis memuat ulang hitungan total)
         return back();
     }
 
@@ -214,7 +218,6 @@ class CustomerController extends Controller
 
     // --- CHECKOUT & ORDER LOGIC ---
 
-    // 1. FUNGSI INI TETAP ADA (JANGAN DIHAPUS YAA)
     public function checkout()
     {
         $user = Auth::user();
@@ -228,10 +231,8 @@ class CustomerController extends Controller
         return view('customer.checkout', compact('cart', 'customer', 'user'));
     }
 
-    // 2. FUNGSI INI YANG BARU (GANTIKAN YANG LAMA DENGAN INI)
     public function placeOrder(Request $request)
     {
-        // Validasi data input form
         $request->validate([
             'payment_method' => 'required|in:bank_transfer,cod',
             'address_id' => 'required|exists:addresses,id'
@@ -240,12 +241,10 @@ class CustomerController extends Controller
         $customer = Customer::where('user_id', Auth::id())->first();
         $cart = Cart::with('cartItems.product')->where('customer_id', $customer->id)->first();
         
-        // Ambil alamat yang dipilih
         $address = \App\Models\Address::where('id', $request->address_id)
                                     ->where('customer_id', $customer->id)
                                     ->firstOrFail();
 
-        // Pastikan ada barang yang dipilih
         if (!$cart || $cart->cartItems->where('is_selected', true)->count() == 0) {
             return back()->with('error', 'Belum ada barang yang dipilih untuk dicheckout.');
         }
@@ -253,20 +252,48 @@ class CustomerController extends Controller
         $createdOrderId = null;
 
         DB::transaction(function () use ($customer, $cart, $request, $address, &$createdOrderId) {
-
             $selectedItems = $cart->cartItems->where('is_selected', true);
-
             $subtotal = $selectedItems->sum(function ($item) {
                 return $item->quantity * $item->product->price;
             });
 
             $shipping = 150000;
             $tax = $subtotal * 0.11;
-            $totalPrice = $subtotal + $shipping + $tax;
+            
+            // Voucher logic
+            $discount = 0;
+            $voucherId = null;
+            if ($request->filled('voucher_id')) {
+                $voucher = Voucher::find($request->voucher_id);
+                if ($voucher && $subtotal >= $voucher->min_purchase) {
+                    $claim = VoucherClaim::where('user_id', Auth::id())
+                        ->where('voucher_id', $voucher->id)
+                        ->where('is_used', false)
+                        ->first();
+                    
+                    if ($claim) {
+                        if ($voucher->discount_type === 'percentage') {
+                            $discount = $subtotal * ($voucher->discount_value / 100);
+                            if ($voucher->max_discount && $discount > $voucher->max_discount) {
+                                $discount = $voucher->max_discount;
+                            }
+                        } else {
+                            $discount = $voucher->discount_value;
+                        }
+                        
+                        $voucherId = $voucher->id;
+                        $claim->update(['is_used' => true, 'used_at' => now()]);
+                    }
+                }
+            }
+
+            $totalPrice = $subtotal + $shipping + $tax - $discount;
 
             $order = Order::create([
                 'customer_id' => $customer->id,
                 'total_price' => $totalPrice,
+                'voucher_id' => $voucherId,
+                'discount_amount' => $discount,
                 'shipping_courier' => 'Curated White-Glove Delivery',
                 'shipping_recipient' => $address->recipient_name,
                 'shipping_phone' => $address->phone_number,
@@ -292,8 +319,17 @@ class CustomerController extends Controller
                 $item->delete();
             }
         });
+ 
+        // Notify sellers
+        $order = Order::with('orderItems.product.seller.user')->find($createdOrderId);
+        $sellers = $order->orderItems->map(function($item) {
+            return $item->product->seller->user ?? null;
+        })->filter()->unique('id');
 
-        // Redirect ke halaman Payment
+        foreach ($sellers as $sellerUser) {
+            $sellerUser->notify(new \App\Notifications\NewOrderNotification($order));
+        }
+
         return redirect()->route('customer.payment', ['id' => $createdOrderId]);
     }
 
@@ -303,7 +339,7 @@ class CustomerController extends Controller
         $customer = Customer::where('user_id', $user->id)->first();
         $order = Order::with('orderItems.product')->where('customer_id', $customer->id)->findOrFail($id);
 
-        if ($order->status !== 'pending') {
+        if ($order->status !== 'pending' && $order->status !== 'waiting_verification') {
             return redirect()->route('customer.success', ['id' => $order->id]);
         }
 
@@ -317,10 +353,28 @@ class CustomerController extends Controller
         $order = Order::where('customer_id', $customer->id)->findOrFail($id);
 
         if ($order->status === 'pending') {
-            $order->update(['status' => 'paid']);
+            if ($order->payment_method === 'bank_transfer') {
+                $request->validate([
+                    'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                ]);
+
+                if ($request->hasFile('payment_proof')) {
+                    $file = $request->file('payment_proof');
+                    $path = $file->store('payment_proofs', 'public');
+                    $order->update([
+                        'payment_proof' => $path,
+                        'status' => 'waiting_verification'
+                    ]);
+                    return redirect()->route('customer.payment', $order->id)->with('success', 'Bukti pembayaran berhasil diupload, mohon tunggu verifikasi seller.');
+                }
+            } else {
+                // COD Flow
+                $order->update(['status' => 'paid']);
+                return redirect()->route('customer.success', ['id' => $order->id]);
+            }
         }
 
-        return redirect()->route('customer.success', ['id' => $order->id]);
+        return redirect()->route('customer.payment', $order->id);
     }
 
     public function returnRequest($order_id = null)
@@ -336,7 +390,6 @@ class CustomerController extends Controller
                 ->first();
         }
 
-        // Ambil riwayat return customer ini
         $returns = \App\Models\ProductReturn::with('order.orderItems.product')
             ->whereHas('order', function ($q) use ($customer) {
                 $q->where('customer_id', $customer->id ?? 0);
@@ -349,11 +402,15 @@ class CustomerController extends Controller
 
     public function storeProfile($id)
     {
-        $seller = \App\Models\Seller::with('user')->findOrFail($id);
-        $products = \App\Models\Product::with('images')->where('seller_id', $id)->get();
+        $seller = \App\Models\Seller::with('user')
+            ->where('status', 'approved')
+            ->findOrFail($id);
+        $products = \App\Models\Product::with('images')
+            ->where('seller_id', $id)
+            ->where('status', 'approved')
+            ->get();
         $totalProducts = $products->count();
 
-        // Ambil semua review dari produk-produk milik seller ini
         $allReviews = \App\Models\Review::whereHas('product', function ($q) use ($id) {
             $q->where('seller_id', $id);
         })->get();
@@ -361,17 +418,31 @@ class CustomerController extends Controller
         $averageRating = $allReviews->avg('rating') ?: 0;
         $totalReviews = $allReviews->count();
 
-        return view('customer.seller-store', compact('seller', 'products', 'totalProducts', 'averageRating', 'totalReviews'));
+        // Ambil voucher aktif milik seller ini
+        $vouchers = Voucher::where('seller_id', $id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->where('quota', '>', 0)
+            ->get();
+
+        // Cek mana saja yang sudah di-claim user
+        $claimedVoucherIds = [];
+        if (Auth::check()) {
+            $claimedVoucherIds = VoucherClaim::where('user_id', Auth::id())
+                ->whereIn('voucher_id', $vouchers->pluck('id'))
+                ->pluck('voucher_id')
+                ->toArray();
+        }
+
+        return view('customer.seller-store', compact('seller', 'products', 'totalProducts', 'averageRating', 'totalReviews', 'vouchers', 'claimedVoucherIds'));
     }
 
     public function profile()
     {
         $user = Auth::user();
-
         $customer = \App\Models\Customer::with('addresses')->firstOrCreate(
             ['user_id' => $user->id]
         );
-
         return view('customer.profile', compact('user', 'customer'));
     }
 
@@ -387,9 +458,7 @@ class CustomerController extends Controller
         ]);
 
         $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
-        $isMain = $request->has('is_main');
-
-        if ($isMain) {
+        if ($request->has('is_main')) {
             \App\Models\Address::where('customer_id', $customer->id)->update(['is_main' => false]);
         }
 
@@ -400,7 +469,7 @@ class CustomerController extends Controller
             'phone_number' => $request->phone_number,
             'city' => $request->city,
             'full_address' => $request->full_address,
-            'is_main' => $isMain
+            'is_main' => $request->has('is_main')
         ]);
 
         return back()->with('success', 'Alamat baru berhasil ditambahkan!');
@@ -419,9 +488,8 @@ class CustomerController extends Controller
 
         $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
         $address = \App\Models\Address::where('id', $id)->where('customer_id', $customer->id)->firstOrFail();
-        $isMain = $request->has('is_main');
 
-        if ($isMain) {
+        if ($request->has('is_main')) {
             \App\Models\Address::where('customer_id', $customer->id)->update(['is_main' => false]);
         }
 
@@ -431,7 +499,7 @@ class CustomerController extends Controller
             'phone_number' => $request->phone_number,
             'city' => $request->city,
             'full_address' => $request->full_address,
-            'is_main' => $isMain
+            'is_main' => $request->has('is_main')
         ]);
 
         return back()->with('success', 'Alamat berhasil diperbarui!');
@@ -441,33 +509,26 @@ class CustomerController extends Controller
     {
         $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
         $address = \App\Models\Address::where('id', $id)->where('customer_id', $customer->id)->firstOrFail();
-
         $address->delete();
-
         return back()->with('success', 'Alamat berhasil dihapus!');
     }
 
     public function updateInfo(Request $request)
     {
         $user = Auth::user();
-
-        // Update nama di tabel Users
         $user->update(['full_name' => $request->full_name]);
-
-        // Update atau Buat data di tabel Customers
-        Customer::updateOrCreate(
+        
+        \App\Models\Customer::updateOrCreate(
             ['user_id' => $user->id],
             ['phone' => $request->phone]
         );
-
+        
         return back()->with('success', 'Informasi pribadi berhasil diperbarui.');
     }
 
-    // --- FAVORITE LOGIC ---
     public function toggleFavorite(Request $request, $productId)
     {
         $customer = Customer::where('user_id', Auth::id())->first();
-
         if (!$customer) {
             return back()->with('error', 'Silakan lengkapi profil Anda terlebih dahulu.');
         }
@@ -477,11 +538,9 @@ class CustomerController extends Controller
             ->first();
 
         if ($favorite) {
-            // Remove from favorite
             $favorite->delete();
             return back()->with('success', 'Produk dihapus dari wishlist.');
         } else {
-            // Add to favorite
             Favorite::create([
                 'customer_id' => $customer->id,
                 'product_id' => $productId
@@ -494,21 +553,17 @@ class CustomerController extends Controller
     {
         $user = Auth::user();
         $customer = Customer::firstOrCreate(['user_id' => $user->id]);
-
         $favorites = Favorite::with('product.images', 'product.category')
             ->where('customer_id', $customer->id)
             ->latest()
             ->get();
-
         return view('customer.product-favorite', compact('user', 'customer', 'favorites'));
     }
 
-    // --- REVIEWS & RETURNS ---
     public function reviewProduct($id)
     {
         $user = Auth::user();
         $product = Product::with('images')->findOrFail($id);
-
         return view('customer.review', compact('user', 'product'));
     }
 
@@ -518,16 +573,13 @@ class CustomerController extends Controller
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000'
         ]);
-
         $customer = Customer::where('user_id', Auth::id())->first();
-
         \App\Models\Review::create([
             'product_id' => $id,
             'customer_id' => $customer->id,
             'rating' => $request->rating,
             'comment' => $request->comment
         ]);
-
         return redirect()->route('customer.product-detail', $id)->with('success', 'Thank you for your review!');
     }
 
@@ -535,34 +587,61 @@ class CustomerController extends Controller
     {
         $request->validate([
             'reason' => 'required|string',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'return_type' => 'required|in:refund,exchange',
+            'video_proof' => 'required|file|mimes:mp4,mov,avi,wmv|max:20480', // max 20MB
+            'photo_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'bank_account_number' => 'required_if:return_type,refund|nullable|string|max:50',
         ]);
 
         $order = Order::findOrFail($order_id);
 
-        \App\Models\ProductReturn::create([
-            'order_id' => $order->id,
-            'reason' => $request->reason . ($request->notes ? ' - ' . $request->notes : ''),
-            'status' => 'pending',
-            'return_date' => now()
-        ]);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('customer.return-request')->with('success', 'Return request submitted successfully. Waiting for seller approval.');
+            $videoPath = null;
+            if ($request->hasFile('video_proof')) {
+                $videoPath = $request->file('video_proof')->store('return_proofs/videos', 'public');
+            }
+
+            $photoPath = null;
+            if ($request->hasFile('photo_proof')) {
+                $photoPath = $request->file('photo_proof')->store('return_proofs/photos', 'public');
+            }
+
+            \App\Models\ProductReturn::create([
+                'order_id' => $order->id,
+                'return_type' => $request->return_type,
+                'reason' => $request->reason . ($request->notes ? ' - ' . $request->notes : ''),
+                'status' => 'pending',
+                'return_date' => now(),
+                'video_proof' => $videoPath,
+                'photo_proof' => $photoPath,
+                'bank_account_number' => $request->bank_account_number,
+            ]);
+
+            // Update order status to returning
+            $order->update(['status' => 'returning']);
+
+            DB::commit();
+            return redirect()->route('customer.return-request')->with('success', 'Return request submitted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('Return Request Submission Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'An error occurred while submitting your request: ' . $e->getMessage()])->withInput();
+        }
     }
 
     public function returnDetail($id)
     {
         $user = Auth::user();
         $customer = \App\Models\Customer::where('user_id', $user->id)->first();
-
         $return = \App\Models\ProductReturn::with(['order.orderItems.product.images', 'order.customer.user'])
             ->findOrFail($id);
-
-        // Check if return belongs to customer
         if ($return->order->customer_id !== $customer->id) {
             abort(403);
         }
-
         return view('customer.return-detail', compact('user', 'customer', 'return'));
     }
 
@@ -571,23 +650,496 @@ class CustomerController extends Controller
         $request->validate([
             'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
+        
         $user = Auth::user();
-        $customer = Customer::where('user_id', $user->id)->first();
-
+        $customer = \App\Models\Customer::firstOrCreate(['user_id' => $user->id]);
+        
         if ($request->hasFile('profile_image')) {
-            // Hapus foto lama jika ada (dan bukan dummy)
-            if ($customer->profile_image) {
+            if ($customer->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($customer->profile_image)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($customer->profile_image);
             }
-
             $path = $request->file('profile_image')->store('profiles', 'public');
+            $customer->update(['profile_image' => $path]);
+        }
+        return back()->with('success', 'Profile image updated successfully!');
+    }
 
-            $customer->update([
-                'profile_image' => $path
+    public function submitSupport(Request $request)
+    {
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        Support::create([
+            'user_id' => Auth::id(),
+            'subject' => $request->subject,
+            'message' => $request->message,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Komplain Anda telah dikirim ke Admin. Mohon tunggu respon kami.');
+    }
+
+    public function freeChat($id)
+    {
+        $designer = \App\Models\Designer::with('user')->findOrFail($id);
+        $customer = \App\Models\Customer::where('user_id', \Illuminate\Support\Facades\Auth::id())->first();
+        
+        $freeConsultation = \App\Models\FreeConsultation::where('customer_id', $customer->id)
+            ->where('designer_id', $id)
+            ->first();
+            
+        if (!$freeConsultation) {
+            $freeConsultation = \App\Models\FreeConsultation::create([
+                'customer_id' => $customer->id,
+                'designer_id' => $id,
+                'expires_at' => now()->addMinutes(10),
+            ]);
+        }
+        
+        if ($freeConsultation->is_completed || $freeConsultation->expires_at->isPast()) {
+            if (!$freeConsultation->is_completed) {
+                $freeConsultation->update(['is_completed' => true]);
+            }
+            return redirect()->route('customer.designers.book', $id);
+        }
+        
+        $timeLeft = (int) now()->diffInSeconds($freeConsultation->expires_at);
+
+        $messages = \App\Models\Chat::where(function ($q) use ($designer) {
+                $q->where('sender_id', \Illuminate\Support\Facades\Auth::id())->where('receiver_id', $designer->user_id);
+            })
+            ->orWhere(function ($q) use ($designer) {
+                $q->where('sender_id', $designer->user_id)->where('receiver_id', \Illuminate\Support\Facades\Auth::id());
+            })
+            ->oldest()
+            ->get();
+
+        return view('customer.free-chat', compact('designer', 'timeLeft', 'messages'));
+    }
+
+    public function bookConsultation($id)
+    {
+        $designer = \App\Models\Designer::with('user')->findOrFail($id);
+        return view('customer.book-consultation', compact('designer'));
+    }
+
+    public function storeConsultation(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:150',
+            'consultation_type' => 'required|string',
+            'description' => 'nullable|string',
+            'budget_range' => 'required|string',
+            'cover_image' => 'nullable|image|max:2048'
+        ]);
+
+        $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
+        
+        $path = null;
+        if ($request->hasFile('cover_image')) {
+            $path = $request->file('cover_image')->store('consultations', 'public');
+        }
+
+        $typeLabel = $request->consultation_type === 'chat_consultation' ? 'Chat Consultation' : 'Request Proposal';
+        $finalDescription = "Jenis Konsultasi: " . $typeLabel . "\n\n" . ($request->description ?? 'Tidak ada brief tambahan.');
+
+        // Awal request statusnya WAITING_APPROVAL
+        \App\Models\Consultation::create([
+            'customer_id' => $customer->id,
+            'designer_id' => $id,
+            'title' => $request->title,
+            'description' => $finalDescription,
+            'budget_range' => $request->budget_range,
+            'cover_image' => $path,
+            'consultation_type' => $request->consultation_type,
+            'status' => \App\Models\Consultation::STATUS_WAITING_APPROVAL
+        ]);
+
+        // Mark any free consultation as completed
+        \App\Models\FreeConsultation::where('customer_id', $customer->id)
+            ->where('designer_id', $id)
+            ->update(['is_completed' => true]);
+
+        return redirect()->route('customer.my-consultations')->with('success', 'Request konsultasi telah dikirim! Menunggu approval desainer.');
+    }
+
+    public function myConsultations()
+    {
+        $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
+        $consultations = \App\Models\Consultation::with('designer.user')
+            ->where('customer_id', $customer->id)
+            ->latest()
+            ->get();
+        return view('customer.my-consultations', compact('consultations'));
+    }
+
+    public function designerWorkspace($consultation_id = null)
+    {
+        $user = Auth::user();
+        $customer = \App\Models\Customer::where('user_id', $user->id)->first();
+        
+        $consultations = \App\Models\Consultation::with('designer.user')
+            ->where('customer_id', $customer->id)
+            ->latest()
+            ->get();
+
+        $activeConsultation = null;
+        if ($consultation_id) {
+            $activeConsultation = \App\Models\Consultation::with(['designer.user', 'messages', 'quotes', 'attachments'])
+                ->where('id', $consultation_id)
+                ->where('customer_id', $customer->id)
+                ->firstOrFail();
+        } elseif ($consultations->isNotEmpty()) {
+            $activeConsultation = $consultations->first();
+        }
+
+        return view('customer.chat', compact('user', 'customer', 'consultations', 'activeConsultation'));
+    }
+
+    public function downloadRab($quote_id)
+    {
+        $quote = \App\Models\ConsultationQuote::findOrFail($quote_id);
+        
+        $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items;
+        if ($items && isset($items['file_path'])) {
+            $filePath = $items['file_path'];
+            $fileName = $items['file_name'] ?? 'RAB-Project-' . $quote->consultation_id;
+            
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($filePath)) {
+                return \Illuminate\Support\Facades\Storage::disk('public')->download($filePath, $fileName);
+            }
+        }
+        
+        return back()->with('error', 'File RAB tidak ditemukan.');
+    }
+
+    // Alur Baru: Bayar Consultation Fee
+    public function payConsultationFee($id)
+    {
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        
+        // Cek apakah brief sudah ada
+        if (empty($consultation->description)) {
+            $consultation->status = \App\Models\Consultation::STATUS_WAITING_BRIEF;
+        } else {
+            $consultation->status = \App\Models\Consultation::STATUS_ACTIVE;
+        }
+        
+        $consultation->save();
+
+        return back()->with('success', 'Fee berhasil dibayar! Workspace dibuka.');
+    }
+
+    // Alur Baru: Submit Brief (jika di awal kosong)
+    public function submitConsultationBrief(Request $request, $id)
+    {
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        $consultation->description = $request->description;
+        
+        if ($request->hasFile('cover_image')) {
+            $consultation->cover_image = $request->file('cover_image')->store('consultations', 'public');
+        }
+        
+        $consultation->status = \App\Models\Consultation::STATUS_ACTIVE;
+        $consultation->save();
+
+        return back()->with('success', 'Brief berhasil dikirim! Silakan mulai chat dengan desainer.');
+    }
+
+    public function sendConsultationMessage(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'nullable|string',
+            'attachment' => 'nullable|file|max:5120'
+        ]);
+
+        if (!$request->message && !$request->hasFile('attachment')) {
+            return back();
+        }
+
+        $consultation = \App\Models\Consultation::findOrFail($id);
+
+        if ($request->message) {
+            \App\Models\ConsultationMessage::create([
+                'consultation_id' => $consultation->id,
+                'sender_id' => Auth::id(),
+                'message' => $request->message
             ]);
         }
 
-        return back()->with('success', 'Profile image updated successfully!');
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('consultations/attachments', 'public');
+            $extension = $request->file('attachment')->getClientOriginalExtension();
+            
+            $fileType = 'document';
+            if (in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                $fileType = 'image';
+            }
+
+            \App\Models\ConsultationAttachment::create([
+                'consultation_id' => $consultation->id,
+                'uploaded_by' => Auth::id(),
+                'file_url' => $path,
+                'file_type' => $fileType
+            ]);
+        }
+
+        return back();
+    }
+
+    // Alur Baru: Accept Offer
+    public function acceptConsultationOffer($id)
+    {
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        $consultation->status = \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT;
+        $consultation->save();
+        
+        $quote = $consultation->quotes()->latest()->first();
+        if ($quote) {
+            $quote->update(['status' => 'accepted']);
+            
+            // Post RAB file to chat history as a message & attachment from the designer
+            $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items;
+            if ($items && isset($items['file_path'])) {
+                $filePath = $items['file_path'];
+                
+                // 1. Create text message from designer
+                \App\Models\ConsultationMessage::create([
+                    'consultation_id' => $consultation->id,
+                    'sender_id' => $consultation->designer->user_id,
+                    'message' => "Halo! Project Agreement & RAB telah disetujui. Berikut adalah file RAB resmi untuk proyek kita.",
+                ]);
+                
+                // 2. Create attachment message from designer
+                \App\Models\ConsultationAttachment::create([
+                    'consultation_id' => $consultation->id,
+                    'uploaded_by' => $consultation->designer->user_id,
+                    'file_url' => $filePath,
+                    'file_type' => 'document',
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Project Agreement diterima! Silakan lakukan pembayaran akhir.');
+    }
+
+    // Alur Baru: Reject Offer
+    public function rejectConsultationOffer($id)
+    {
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        $consultation->status = \App\Models\Consultation::STATUS_REJECTED; // Workspace locked
+        $consultation->save();
+
+        $quote = $consultation->quotes()->latest()->first();
+        if ($quote) {
+            $quote->update(['status' => 'rejected']);
+        }
+
+        return back()->with('info', 'Project ditolak dan workspace ditutup.');
+    }
+
+    // Alur Baru: Request Revision
+    public function requestRevision(Request $request, $id)
+    {
+        $request->validate([
+            'revision_notes' => 'required|string',
+        ]);
+
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        $consultation->status = \App\Models\Consultation::STATUS_ACTIVE;
+        $consultation->save();
+
+        $quote = $consultation->quotes()->latest()->first();
+        if ($quote) {
+            $quote->update([
+                'status' => 'revision',
+                'revision_notes' => $request->revision_notes,
+            ]);
+
+            // Post revision request to chat history as a message from the customer
+            \App\Models\ConsultationMessage::create([
+                'consultation_id' => $consultation->id,
+                'sender_id' => Auth::id(),
+                'message' => "🔄 Permintaan Revisi RAB:\n\"" . $request->revision_notes . "\"",
+            ]);
+        }
+
+        return back()->with('success', 'Permintaan revisi telah dikirim ke desainer.');
+    }
+
+    // Alur Baru: Final Project Payment
+    public function payFinalProject($id)
+    {
+        $consultation = \App\Models\Consultation::findOrFail($id);
+        $consultation->status = \App\Models\Consultation::STATUS_COMPLETED;
+        $consultation->save();
+
+        return back()->with('success', 'Pembayaran proyek berhasil! Proyek selesai.');
+    }
+
+    public function chatWithSeller($seller_id = null)
+    {
+        $user = Auth::user();
+        $customer = \App\Models\Customer::where('user_id', $user->id)->first();
+        
+        // Get all sellers this customer has ordered from
+        $orderedSellers = \App\Models\Order::with('orderItems.product.seller.user')
+            ->where('customer_id', $customer->id)
+            ->get()
+            ->flatMap(function($order) {
+                return $order->orderItems->map(fn($item) => $item->product->seller);
+            })
+            ->filter()
+            ->unique('id');
+
+        // Also get sellers they have chatted with
+        $chattedSellers = \App\Models\Chat::where('sender_id', $user->id)
+            ->orWhere('receiver_id', $user->id)
+            ->get()
+            ->map(function($chat) use ($user) {
+                $otherUserId = ($chat->sender_id == $user->id) ? $chat->receiver_id : $chat->sender_id;
+                return \App\Models\Seller::where('user_id', $otherUserId)->first();
+            })
+            ->filter()
+            ->unique('id');
+            
+        $conversations = $orderedSellers->merge($chattedSellers)->unique('id');
+
+        $activeSeller = null;
+        $messages = [];
+        
+        if ($seller_id) {
+            $activeSeller = \App\Models\Seller::with('user')->findOrFail($seller_id);
+            
+            $messages = \App\Models\Chat::where(function($q) use ($user, $activeSeller) {
+                $q->where('sender_id', $user->id)->where('receiver_id', $activeSeller->user_id);
+            })->orWhere(function($q) use ($user, $activeSeller) {
+                $q->where('sender_id', $activeSeller->user_id)->where('receiver_id', $user->id);
+            })->orderBy('created_at', 'asc')->get();
+            
+            // Mark as read
+            \App\Models\Chat::where('sender_id', $activeSeller->user_id)
+                ->where('receiver_id', $user->id)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
+
+        return view('customer.chat-seller', compact('user', 'customer', 'conversations', 'activeSeller', 'messages'));
+    }
+
+    public function sendChatMessage(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'nullable|string',
+            'product_id' => 'nullable|exists:products,id',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx,zip|max:5120'
+        ]);
+
+        if (!$request->message && !$request->hasFile('attachment')) {
+            return back()->with('error', 'Pesan atau lampiran harus diisi.');
+        }
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
+        }
+
+        \App\Models\Chat::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message ?? '',
+            'product_id' => $request->product_id,
+            'attachment' => $attachmentPath,
+        ]);
+
+        return back();
+    }
+
+    // ==========================================
+    // 🎫 VOUCHER SYSTEM
+    // ==========================================
+
+    public function claimVoucher($id)
+    {
+        $voucher = Voucher::findOrFail($id);
+        $user = Auth::user();
+
+        // 1. Cek apakah sudah pernah claim
+        $alreadyClaimed = VoucherClaim::where('user_id', $user->id)
+            ->where('voucher_id', $voucher->id)
+            ->exists();
+
+        if ($alreadyClaimed) {
+            return back()->with('error', 'Voucher sudah Anda claim sebelumnya.');
+        }
+
+        // 2. Cek kuota
+        $usedCount = VoucherClaim::where('voucher_id', $voucher->id)->count();
+        if ($usedCount >= $voucher->quota) {
+            return back()->with('error', 'Maaf, kuota voucher ini sudah habis.');
+        }
+
+        // 3. Simpan claim
+        VoucherClaim::create([
+            'user_id' => $user->id,
+            'voucher_id' => $voucher->id,
+            'is_used' => false
+        ]);
+
+        return back()->with('success', 'Voucher berhasil diclaim! Gunakan saat checkout.');
+    }
+
+    public function applyVoucher(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string',
+            'seller_id' => 'required|exists:sellers,id'
+        ]);
+
+        $voucher = Voucher::where('code', strtoupper($request->code))
+            ->where('seller_id', $request->seller_id)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Voucher tidak valid atau sudah kadaluarsa.']);
+        }
+
+        $user = Auth::user();
+        $claim = VoucherClaim::where('user_id', $user->id)
+            ->where('voucher_id', $voucher->id)
+            ->where('is_used', false)
+            ->first();
+
+        if (!$claim) {
+            return response()->json(['success' => false, 'message' => 'Anda belum mengclaim voucher ini atau voucher sudah digunakan.']);
+        }
+
+        // Return data voucher untuk dihitung di frontend/backend checkout
+        return response()->json([
+            'success' => true,
+            'voucher_id' => $voucher->id,
+            'discount_type' => $voucher->discount_type,
+            'discount_value' => $voucher->discount_value,
+            'min_purchase' => $voucher->min_purchase,
+            'max_discount' => $voucher->max_discount,
+            'message' => 'Voucher berhasil dipasang!'
+        ]);
+    }
+    public function completeOrder($id)
+    {
+        $user = Auth::user();
+        $customer = Customer::where('user_id', $user->id)->first();
+        $order = Order::where('customer_id', $customer->id)
+            ->where('status', 'shipped')
+            ->findOrFail($id);
+
+        $order->update(['status' => 'completed']);
+
+        return back()->with('success', 'Pesanan telah diterima! Terima kasih telah berbelanja.');
     }
 }

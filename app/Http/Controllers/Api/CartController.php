@@ -15,11 +15,7 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $customer = Customer::where('user_id', $user->id)->first();
-
-        if (!$customer) {
-            return $this->errorResponse('Profil customer tidak ditemukan.', 404);
-        }
+        $customer = Customer::firstOrCreate(['user_id' => $user->id]);
 
         // Ambil keranjang beserta item, detail produk, dan gambarnya
         $cart = Cart::with(['cartItems.product.images'])
@@ -35,7 +31,7 @@ class CartController extends Controller
     }
 
     // 2. TAMBAH BARANG KE KERANJANG
-    public function add(Request $request)
+    public function addToCart(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -43,7 +39,7 @@ class CartController extends Controller
         ]);
 
         $user = $request->user();
-        $customer = Customer::where('user_id', $user->id)->first();
+        $customer = Customer::firstOrCreate(['user_id' => $user->id]);
 
         $productId = $request->product_id;
         $quantity = $request->quantity ?? 1; // Default beli 1 kalau Flutter tidak ngirim quantity
@@ -80,8 +76,20 @@ class CartController extends Controller
         return $this->successResponse(null, 'Barang berhasil ditambahkan ke keranjang.', 201);
     }
 
-    // 3. HAPUS BARANG DARI KERANJANG
-    public function remove($id)
+    // 3. UPDATE JUMLAH BARANG
+    public function updateCartItem(Request $request, $id)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+        
+        $cartItem = CartItem::find($id);
+        if (!$cartItem) return $this->errorResponse('Barang tidak ditemukan.', 404);
+
+        $cartItem->update(['quantity' => $request->quantity]);
+        return $this->successResponse($cartItem, 'Jumlah barang diperbarui.');
+    }
+
+    // 4. HAPUS BARANG DARI KERANJANG
+    public function removeCartItem($id)
     {
         $cartItem = CartItem::find($id);
 
@@ -90,7 +98,20 @@ class CartController extends Controller
         }
 
         $cartItem->delete();
-
         return $this->successResponse(null, 'Barang berhasil dihapus dari keranjang.');
+    }
+
+    // 5. TOGGLE SELECTION
+    public function toggleSelection(Request $request)
+    {
+        $request->validate([
+            'cart_item_id' => 'required|exists:cart_items,id',
+            'is_selected' => 'required|boolean'
+        ]);
+
+        $cartItem = CartItem::find($request->cart_item_id);
+        $cartItem->update(['is_selected' => $request->is_selected]);
+
+        return $this->successResponse($cartItem, 'Status seleksi diperbarui.');
     }
 }

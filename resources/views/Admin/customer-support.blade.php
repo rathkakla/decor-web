@@ -1,59 +1,22 @@
 <?php
-$current_page = basename($_SERVER['PHP_SELF']);
-$current_path = str_replace('.php', '', $current_page);
-if ($current_path == "" || $current_path == "index") {
-    $current_path = "customer-support";
-}
+$admin_name = Auth::user()->full_name;
+$admin_role = "ADMIN";
 
-$admin_name = "Alex Rivera";
-$admin_role = "SUPER ADMIN";
+$customerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'customer'))->where('status', 'pending')->count();
+$sellerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count();
+$designerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count();
 
 $menu_items = [
-    ["label" => "Dashboard",          "path" => "dashboard",         "icon" => "grid"],
-    ["label" => "User Management",     "path" => "user-management",   "icon" => "users"],
-    ["label" => "Seller Monitor",      "path" => "seller-monitor",    "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",    "path" => "designer-monitor",  "icon" => "pen-tool"],
-    ["label" => "Seller Support",      "path" => "seller-support",    "icon" => "headphones"],
-    ["label" => "Designer Support",    "path" => "designer-support",  "icon" => "pen-tool"],
-    ["label" => "Customer Support",    "path" => "customer-support",  "icon" => "message-circle"],
-    ["label" => "Product Validation",  "path" => "product-validation","icon" => "check-circle"],
-    ["label" => "Portofolio Validation", "path" => "portofolio-validation","icon" => "image"],
-];
-$tickets = [
-    [
-        "id"       => "CST-102",
-        "sender"   => "Anisa Rahma",
-        "subject"  => "Link Verifikasi Email Expired",
-        "category" => "Account",
-        "status"   => "Open",
-       
-        "date"     => "10 Mins Ago",
-    ],
-    [
-        "id"       => "CST-098",
-        "sender"   => "Budi Hermawan",
-        "subject"  => "OTP Tidak Masuk ke Inbox",
-        "category" => "Technical",
-        "status"   => "Diproses",
-       
-        "date"     => "Yesterday",
-    ],
-    [
-        "id"       => "CST-085",
-        "sender"   => "Siti Aminah",
-        "subject"  => "Permintaan Ganti Email Akun",
-        "category" => "Account",
-        "status"   => "Selesai",
-      
-        "date"     => "23 Apr",
-    ],
-];
-
-$stats = [
-    ["label" => "Open",          "value" => "07", "icon" => "alert-circle", "note" => "butuh respon",    "color" => "danger"],
-    ["label" => "Diproses",      "value" => "04", "icon" => "refresh-cw",   "note" => "sedang berjalan", "color" => "info"],
-    ["label" => "Selesai",       "value" => "28", "icon" => "check-circle", "note" => "minggu ini",      "color" => "success"],
-    ["label" => "Avg. Response", "value" => "14m","icon" => "clock",        "note" => "response time",   "color" => "primary"],
+    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
+    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
+    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
+    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
+    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
+    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones", "badge" => $sellerSupportCount],
+    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool", "badge" => $designerSupportCount],
+    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle", "badge" => $customerSupportCount],
+    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
+    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
 ];
 ?>
 <!DOCTYPE html>
@@ -270,12 +233,15 @@ $stats = [
     <div class="nav-section">
         <span class="nav-label">Navigation</span>
         <?php foreach ($menu_items as $item):
-            $active = ($item['path'] === $current_path) ? 'active' : '';
+            $active = (request()->url() === $item['path']) ? 'active' : '';
         ?>
         <a href="<?= $item['path'] ?>" class="menu-link <?= $active ?>">
-            <div class="menu-item">
+            <div class="menu-item" style="position: relative;">
                 <i data-feather="<?= $item['icon'] ?>"></i>
                 <span><?= $item['label'] ?></span>
+                @if(isset($item['badge']) && $item['badge'] > 0)
+                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--danger); color: white; border-radius: 99px; font-size: 8px; font-weight: 800; padding: 2px 6px; box-shadow: 0 2px 8px rgba(192,57,43,0.3);"><?= $item['badge'] ?></span>
+                @endif
             </div>
         </a>
         <?php endforeach; ?>
@@ -307,18 +273,30 @@ $stats = [
 
     <!-- Stats -->
     <div class="stats-row">
-        <?php
-        $clr_map = ['danger' => 'clr-danger', 'info' => 'clr-info', 'success' => 'clr-success', 'primary' => 'clr-primary'];
-        foreach ($stats as $s): ?>
         <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="<?= $s['icon'] ?>"></i></div>
+            <div class="stat-icon"><i data-feather="alert-circle"></i></div>
             <div>
-                <div class="stat-val <?= $clr_map[$s['color']] ?>"><?= $s['value'] ?></div>
-                <div class="stat-lbl"><?= $s['label'] ?></div>
-                <div class="stat-note"><?= $s['note'] ?></div>
+                <div class="stat-val clr-danger"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-lbl">Open</div>
+                <div class="stat-note">butuh respon</div>
             </div>
         </div>
-        <?php endforeach; ?>
+        <div class="stat-mini">
+            <div class="stat-icon"><i data-feather="message-square"></i></div>
+            <div>
+                <div class="stat-val clr-info"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-lbl">Replied</div>
+                <div class="stat-note">sudah dibalas</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-icon"><i data-feather="check-circle"></i></div>
+            <div>
+                <div class="stat-val clr-success"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-lbl">Resolved</div>
+                <div class="stat-note">selesai</div>
+            </div>
+        </div>
     </div>
 
     <!-- Toolbar -->
@@ -337,52 +315,54 @@ $stats = [
 
     <!-- Ticket List -->
     <div class="ticket-list">
-        <?php foreach ($tickets as $t):
-            $sl     = strtolower(str_replace(' ', '', $t['status']));
-           
-            $cat_cls = 'cat-' . strtolower($t['category']);
-        ?>
-        <div class="ticket-row st-<?= $sl ?>">
+        @forelse ($tickets as $t)
+        @php
+            $sl = $t->status;
+            $cat_cls = 'cat-account'; // Default
+        @endphp
+        <div class="ticket-row st-{{ $sl }}">
 
             <!-- ID + Time -->
             <div class="tcell">
-                <span class="tkt-id"><?= $t['id'] ?></span>
-                <div class="tkt-time"><i data-feather="clock"></i><?= $t['date'] ?></div>
+                <span class="tkt-id">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
+                <div class="tkt-time"><i data-feather="clock"></i>{{ $t->created_at->diffForHumans() }}</div>
             </div>
 
             <!-- Sender -->
             <div class="tcell">
-                <div class="sender-name"><?= $t['sender'] ?></div>
-                <span class="sender-cat <?= $cat_cls ?>"><?= $t['category'] ?></span>
+                <div class="sender-name">{{ $t->user->full_name }}</div>
+                <span class="sender-cat {{ $cat_cls }}">Support</span>
             </div>
 
             <!-- Subject -->
             <div class="tcell">
-                <div class="tkt-subject"><?= $t['subject'] ?></div>
+                <div class="tkt-subject">{{ $t->subject }}</div>
             </div>
-
-            <!-- Priority -->
-            
 
             <!-- Status -->
             <div class="tcell">
-                <select class="status-select status-<?= $sl ?>" onchange="updateStatus(this)">
-                    <option value="open"     <?= $sl === 'open'     ? 'selected' : '' ?>>Open</option>
-                    <option value="diproses" <?= $sl === 'diproses' ? 'selected' : '' ?>>Diproses</option>
-                    <option value="selesai"  <?= $sl === 'selesai'  ? 'selected' : '' ?>>Selesai</option>
+                <select class="status-select status-{{ $sl }}" onchange="updateTicketStatus(this, {{ $t->id }})">
+                    <option value="pending" {{ $sl === 'pending' ? 'selected' : '' }}>Open</option>
+                    <option value="replied" {{ $sl === 'replied' ? 'selected' : '' }}>Replied</option>
+                    <option value="resolved" {{ $sl === 'resolved' ? 'selected' : '' }}>Resolved</option>
                 </select>
             </div>
 
             <!-- Action -->
             <div class="tcell">
                 <button class="btn-reply"
-                        onclick="openChat('<?= $t['id'] ?>', '<?= $t['sender'] ?>', '<?= $t['subject'] ?>')">
-                    <i data-feather="message-circle"></i> Balas
+                        onclick="openChat('{{ $t->id }}', '{{ $t->user->full_name }}', '{{ $t->subject }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
+                    <i data-feather="message-circle"></i> View & Reply
                 </button>
             </div>
 
         </div>
-        <?php endforeach; ?>
+        @empty
+        <div class="panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
+            <i data-feather="inbox" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+            <p>Belum ada tiket bantuan dari pelanggan.</p>
+        </div>
+        @endforelse
     </div>
 
 </main>
@@ -402,62 +382,67 @@ $stats = [
         </div>
 
         <div class="chat-body" id="chatWindow">
-            <div class="bubble-wrap">
-                <div class="bubble-meta">Customer · Just now</div>
-                <div class="bubble customer">Halo Admin, saya mengalami kendala pada akun saya. Mohon bantuannya.</div>
-            </div>
-            <div class="bubble-wrap admin-wrap">
-                <div class="bubble-meta">Alex Rivera · Just now</div>
-                <div class="bubble admin">Halo, tim support sudah menerima laporan Anda. Kami akan segera membantu pengecekan.</div>
-            </div>
+            <!-- Messages will be injected here -->
         </div>
 
-        <div class="chat-footer">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Tulis balasan…"
-                   onkeydown="if(event.key==='Enter') sendMessage()">
-            <button class="btn-send" onclick="sendMessage()">
+        <form id="replyForm" action="" method="POST" class="chat-footer">
+            @csrf
+            <input type="text" name="reply" id="chatInput" class="chat-input" placeholder="Tulis balasan…" required>
+            <button type="submit" class="btn-send">
                 <i data-feather="send"></i> Kirim
             </button>
-        </div>
+        </form>
     </div>
 </div>
 
 <script>
     feather.replace({ 'stroke-width': 2 });
 
-    document.querySelectorAll('.ftab').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    function updateStatus(sel) {
+    function updateTicketStatus(sel, id) {
         sel.className = 'status-select status-' + sel.value;
         const row = sel.closest('.ticket-row');
         row.className = 'ticket-row st-' + sel.value;
+
+        fetch(`{{ url('admin/support') }}/${id}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ status: sel.value })
+        });
     }
 
-    function openChat(id, name, subject) {
-        document.getElementById('chatTitle').textContent = id + ' · ' + name;
+    function openChat(id, name, subject, message, reply) {
+        document.getElementById('chatTitle').textContent = '#' + id.toString().padStart(4, '0') + ' · ' + name;
         document.getElementById('chatSub').textContent = subject;
+        
+        const win = document.getElementById('chatWindow');
+        win.innerHTML = `
+            <div class="bubble-wrap">
+                <div class="bubble-meta">${name} · Customer</div>
+                <div class="bubble customer">${message}</div>
+            </div>
+        `;
+
+        if(reply && reply !== '') {
+            win.innerHTML += `
+                <div class="bubble-wrap admin-wrap">
+                    <div class="bubble-meta">Admin · Reply</div>
+                    <div class="bubble admin">${reply}</div>
+                </div>
+            `;
+        }
+
+        document.getElementById('replyForm').action = `{{ url('admin/support') }}/${id}/reply`;
         document.getElementById('chatModal').classList.add('show');
+        win.scrollTop = win.scrollHeight;
     }
+
     function closeChat() {
         document.getElementById('chatModal').classList.remove('show');
     }
-    function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const win   = document.getElementById('chatWindow');
-        if (!input.value.trim()) return;
-        const wrap = document.createElement('div');
-        wrap.className = 'bubble-wrap admin-wrap';
-        wrap.innerHTML = `<div class="bubble-meta">Alex Rivera · Now</div><div class="bubble admin">${input.value}</div>`;
-        win.appendChild(wrap);
-        input.value = '';
-        win.scrollTop = win.scrollHeight;
-        feather.replace({ 'stroke-width': 2 });
-    }
+
     window.addEventListener('click', e => {
         if (e.target === document.getElementById('chatModal')) closeChat();
     });

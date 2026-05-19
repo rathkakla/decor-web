@@ -6,6 +6,9 @@
     <title>Decor Designer - Kelola Portofolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Pannellum 360 Viewer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { background-color: #F8F6F4; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
@@ -15,14 +18,27 @@
         .sidebar-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .sidebar-closed { transform: translateX(-100%); }
         .main-full { margin-left: 0 !important; }
-        .tab-active { color: #B5733A; border-bottom: 3px solid #B5733A; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
+        
+        /* Pannellum overrides */
+        .pnlm-container { background: #111 !important; }
+        .pnlm-load-box { background: rgba(28,20,16,0.8) !important; border: 1px solid rgba(181, 115, 58, 0.2); border-radius: 16px; color: #fff; }
+        .pnlm-lbox { border-color: #B5733A !important; }
+        
+        /* Modal Animation */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate {
+            animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
-    <!-- SIDEBAR (8 Menus Consistent) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
         <div class="p-8">
             <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
@@ -52,10 +68,11 @@
                 <h2 class="font-black text-[10px] uppercase tracking-widest leading-none">Portfolio Management</h2>
             </div>
             <div class="flex items-center space-x-6">
-                <i class="fa-regular fa-bell text-xl"></i>
                 <div class="flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                    <span class="text-[10px] font-black uppercase tracking-widest">Elena Vance</span>
-                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold">EV</div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ Auth::user()->full_name }}</span>
+                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold">
+                        {{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}
+                    </div>
                 </div>
             </div>
         </header>
@@ -65,141 +82,130 @@
             <div class="flex justify-between items-end">
                 <div>
                     <h3 class="text-2xl font-black text-gray-900 tracking-tight">Your Masterpieces</h3>
-                    <p class="text-xs text-gray-400 font-bold italic mt-1">Manage and showcase your best interior designs.</p>
+                    <p class="text-xs text-gray-400 font-bold italic mt-1">Manage and showcase your interior design works.</p>
+                    <div class="flex items-center mt-3 space-x-2">
+                        <span class="text-[9px] bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-black uppercase tracking-widest">
+                            Portofolio Manual: {{ $manualPortfoliosCount }} / {{ $maxManualPortfolios }}
+                        </span>
+                        <span class="text-[8px] text-gray-400 font-bold">
+                            (Batas upload manual adalah 5. Menyelesaikan proyek dari customer akan otomatis menambah portofolio baru)
+                        </span>
+                    </div>
                 </div>
                 
                 <div class="flex items-center space-x-4">
-                    <!-- NEW: Kiyowo Search Bar -->
                     <div class="relative group">
                         <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors text-xs"></i>
                         <input type="text" id="portfolioSearch" placeholder="Search by title..." class="bg-white border-none rounded-2xl py-3 pl-10 pr-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none w-64 shadow-sm transition-all" onkeyup="filterPortfolio()">
                     </div>
-
-                    <a href="{{ route('designer.portfolio.create') }}" class="bg-primary text-white px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-105 transition-all">
-                        + Add New Work
-                    </a>
+ 
+                    @if($manualPortfoliosCount < $maxManualPortfolios)
+                        <a href="{{ route('designer.portfolio.create') }}" class="bg-primary text-white px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-105 transition-all">
+                            + Add New Work
+                        </a>
+                    @else
+                        <button disabled class="bg-gray-300 text-gray-500 cursor-not-allowed px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-none">
+                            + Add New Work
+                        </button>
+                    @endif
                 </div>
             </div>
-
-            <!-- TAB SYSTEM -->
-            <div class="flex border-b border-gray-200">
-                <button onclick="switchTab('interior')" id="tab-interior" class="px-8 py-4 text-[10px] font-black uppercase tracking-widest tab-active transition-all">Interior Consultation</button>
-                <button onclick="switchTab('product')" id="tab-product" class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-all">Product Design Service</button>
-            </div>
+ 
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-100 text-green-600 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                    {{ session('success') }}
+                </div>
+            @endif
+ 
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
+ 
+            @if($manualPortfoliosCount >= $maxManualPortfolios)
+                <div class="bg-amber-50 border border-amber-100 text-amber-800 p-6 rounded-[32px] shadow-sm flex items-start space-x-4">
+                    <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center flex-shrink-0 text-lg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black uppercase tracking-wider text-amber-900">Batas Upload Portofolio Manual Tercapai</h4>
+                        <p class="text-[11px] font-medium text-amber-700/90 mt-1 leading-relaxed">
+                            Batas upload portofolio secara manual adalah 5. Anda tidak dapat mengupload portofolio baru secara manual kecuali Anda menghapus portofolio manual yang ada, atau Anda menyelesaikan proyek/konsultasi dari customer di platform DECOR untuk menambahkan portofolio secara otomatis.
+                        </p>
+                    </div>
+                </div>
+            @endif
 
             <!-- PORTFOLIO GRID -->
             <div id="grid-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                
-                <!-- EXAMPLE CARD: INTERIOR CONSULTATION (Approved) -->
-                <div class="interior-card bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                    <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                @forelse($portfolios as $portfolio)
+                <div class="portfolio-card bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-2xl transition-all duration-500" 
+                     id="portfolio-card-{{ $portfolio->id }}"
+                     data-id="{{ $portfolio->id }}"
+                     data-title="{{ addslashes($portfolio->title) }}"
+                     data-image-url="{{ asset('storage/' . $portfolio->image_url) }}"
+                     data-is-360="{{ $portfolio->is_360 ? 'true' : 'false' }}"
+                     data-category="{{ $portfolio->category ?? 'Interior' }}"
+                     data-area="{{ $portfolio->area ?? '-' }}"
+                     data-duration="{{ $portfolio->duration ?? '-' }}"
+                     data-description="{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}">
+                    <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden cursor-pointer" onclick="openPortfolioModalFromCard({{ $portfolio->id }})">
+                        <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         <div class="absolute top-6 left-6">
-                            <span class="text-[8px] bg-white/90 backdrop-blur text-gray-900 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm">Residential · 2024</span>
+                            <span class="text-[8px] bg-white/90 backdrop-blur text-gray-900 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm">
+                                {{ $portfolio->category ?? 'Interior' }}
+                            </span>
                         </div>
+                        @if($portfolio->is_360)
                         <div class="absolute top-6 right-6">
-                            <span class="text-[8px] bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-green-200">Approved</span>
+                            <span class="text-[8px] bg-primary text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-vr-cardboard"></i> 360° VIEW
+                            </span>
                         </div>
+                        @endif
                     </div>
                     <div class="p-8">
                         <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-sm font-black text-gray-900 uppercase tracking-tight leading-none">Modern Scandi Living</h4>
-                            <span class="text-[9px] font-black text-primary uppercase">45jt</span>
+                            <h4 class="text-sm font-black text-gray-900 uppercase tracking-tight leading-none cursor-pointer hover:text-primary transition-colors" onclick="openPortfolioModalFromCard({{ $portfolio->id }})">{{ $portfolio->title }}</h4>
+                            @if($portfolio->budget)
+                            <span class="text-[9px] font-black text-primary uppercase">{{ $portfolio->budget }}</span>
+                            @endif
                         </div>
                         
                         <div class="flex items-center space-x-4 mb-6">
-                            <div class="flex items-center text-gray-400 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                            <div class="flex items-center text-gray-400 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 {{ $portfolio->area ? '' : 'hidden' }}" id="area-badge-{{ $portfolio->id }}">
                                 <i class="fa-solid fa-vector-square text-[10px] mr-2"></i>
-                                <span class="text-[9px] font-bold">210 sqm</span>
+                                <span class="text-[9px] font-bold" id="area-val-{{ $portfolio->id }}">{{ $portfolio->area }}</span>
                             </div>
+                            @if($portfolio->duration)
                             <div class="flex items-center text-gray-400 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                                 <i class="fa-solid fa-stopwatch text-[10px] mr-2"></i>
-                                <span class="text-[9px] font-bold">5 Months</span>
+                                <span class="text-[9px] font-bold">{{ $portfolio->duration }}</span>
                             </div>
+                            @endif
                         </div>
 
-                        <div class="pt-6 border-t border-gray-50 flex justify-between items-center">
-                            <div class="flex items-center">
-                                <div class="relative inline-block w-8 h-4 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="toggle1" checked class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-green-500 appearance-none cursor-pointer translate-x-4 transition-transform"/>
-                                    <label for="toggle1" class="toggle-label block overflow-hidden h-4 rounded-full bg-green-500 cursor-pointer"></label>
-                                </div>
-                                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Live</span>
-                            </div>
+                        <div class="pt-6 border-t border-gray-50 flex justify-end items-center">
                             <div class="flex items-center space-x-3">
-                                <button onclick="openEditModal(1)" class="w-9 h-9 flex items-center justify-center bg-primary/5 border border-primary/10 rounded-xl text-primary hover:bg-primary hover:text-white transition-all">
-                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                <button onclick="openPortfolioModalFromCard({{ $portfolio->id }})" class="w-9 h-9 flex items-center justify-center bg-primary/5 border border-primary/10 rounded-xl text-primary hover:bg-primary hover:text-white transition-all" title="Lihat Detail">
+                                    <i class="fa-solid fa-eye text-xs"></i>
                                 </button>
-                                <button onclick="openDeleteModal(1)" class="w-9 h-9 flex items-center justify-center bg-red-50 border border-red-100 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all">
+                                <button onclick="openDeleteModal({{ $portfolio->id }})" class="w-9 h-9 flex items-center justify-center bg-red-50 border border-red-100 rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all" title="Hapus Portofolio">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- EXAMPLE CARD: PRODUCT DESIGN (Rejected) -->
-                <div class="product-card hidden bg-white rounded-[40px] border border-red-100 shadow-sm overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                    <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=1000" class="w-full h-full object-cover grayscale opacity-80 group-hover:scale-110 transition-transform duration-700">
-                        <div class="absolute top-6 right-6">
-                            <span class="text-[8px] bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-red-200">Rejected</span>
-                        </div>
+                @empty
+                <div class="col-span-full py-20 text-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-briefcase text-gray-300 text-2xl"></i>
                     </div>
-                    <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-sm font-black text-gray-900 uppercase tracking-tight leading-none">Mid-Century Armchair</h4>
-                            <span class="text-[9px] font-black text-primary uppercase">4.5jt</span>
-                        </div>
-                        
-                        <div class="bg-red-50 p-4 rounded-2xl mb-6">
-                            <p class="text-[10px] text-red-500 font-bold leading-relaxed italic">
-                                <i class="fa-solid fa-circle-info mr-1"></i> "Admin: Foto produk terlalu gelap."
-                            </p>
-                        </div>
-
-                        <div class="pt-6 border-t border-gray-50 flex justify-between items-center">
-                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest italic text-red-400">Needs Revision</span>
-                            <div class="flex items-center space-x-3">
-                                <button onclick="openEditModal(2)" class="w-12 h-9 flex items-center justify-center bg-red-500 border border-red-600 rounded-xl text-white hover:bg-red-600 transition-all shadow-lg shadow-red-100">
-                                    <i class="fa-solid fa-rotate-right text-xs mr-2"></i> <span class="text-[8px] font-black uppercase">Fix</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="text-xs font-black text-gray-300 uppercase tracking-widest">No works uploaded yet.</p>
                 </div>
-
-                <!-- EXAMPLE CARD: PRODUCT DESIGN (Pending) -->
-                <div class="product-card hidden bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                    <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <div class="absolute top-6 right-6">
-                            <span class="text-[8px] bg-amber-500 text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-amber-200">Pending Review</span>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-sm font-black text-gray-900 uppercase tracking-tight leading-none">Minimalist Bamboo Lamp</h4>
-                            <span class="text-[9px] font-black text-primary uppercase">1.2jt</span>
-                        </div>
-                        
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="flex items-center text-gray-400 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                                <i class="fa-solid fa-ruler-combined text-[10px] mr-2"></i>
-                                <span class="text-[9px] font-bold">30x30x45cm</span>
-                            </div>
-                        </div>
-
-                        <div class="pt-6 border-t border-gray-50 flex justify-between items-center text-gray-300">
-                            <span class="text-[9px] font-black uppercase italic">Awaiting Admin...</span>
-                            <div class="flex items-center space-x-3">
-                                <button onclick="openEditModal(3)" class="w-9 h-9 flex items-center justify-center bg-gray-50 border border-gray-100 rounded-xl text-gray-300 hover:bg-primary hover:text-white transition-all">
-                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @endforelse
             </div>
         </div>
 
@@ -208,24 +214,16 @@
         </footer>
     </main>
 
-    <!-- MODALS (Edit & Delete remain same) -->
-    <div id="editModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-[48px] p-10 max-w-sm w-full shadow-2xl text-center space-y-6">
-            <div class="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-pen-nib"></i></div>
-            <h4 class="text-lg font-black text-gray-900 uppercase">Modify Masterpiece?</h4>
-            <div class="flex flex-col space-y-3 pt-4">
-                <a id="editConfirmBtn" href="#" class="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all text-center">Yes, Go to Editor</a>
-                <button onclick="closeEditModal()" class="text-[10px] font-black uppercase text-gray-300 tracking-widest py-2 hover:text-gray-500 transition-all">Cancel</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- MODALS -->
+    <!-- DELETE CONFIRMATION MODAL -->
     <div id="deleteModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
         <div class="bg-white rounded-[48px] p-10 max-w-sm w-full shadow-2xl text-center space-y-6">
             <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto text-3xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <h4 class="text-lg font-black text-gray-900 uppercase">Are you sure?</h4>
             <div class="flex flex-col space-y-3 pt-4">
                 <form id="deleteForm" method="POST">
+                    @csrf
+                    @method('DELETE')
                     <button type="submit" class="w-full bg-red-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-red-200 hover:scale-105 transition-all">Yes, Delete Forever</button>
                 </form>
                 <button onclick="closeDeleteModal()" class="text-[10px] font-black uppercase text-gray-300 tracking-widest py-2 hover:text-gray-500 transition-all">Cancel</button>
@@ -233,44 +231,81 @@
         </div>
     </div>
 
+    <!-- PORTFOLIO DETAIL & 360 VIEW MODAL -->
+    <div id="portfolioModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300">
+        <div class="bg-white w-full max-w-5xl rounded-[32px] overflow-hidden shadow-2xl relative flex flex-col md:flex-row h-[90vh] md:h-[70vh] border border-gray-100 modal-animate">
+            <!-- Close Button -->
+            <button onclick="closePortfolioModal()" class="absolute top-6 right-6 z-[110] w-10 h-10 bg-white/95 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-all shadow-md">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Left Column: Visual Area -->
+            <div class="w-full md:w-3/5 h-[45%] md:h-full bg-neutral-900 relative">
+                <!-- Static Image Viewer -->
+                <img id="modalStaticImage" src="" class="w-full h-full object-cover hidden">
+                
+                <!-- 360 Panorama Viewer Container -->
+                <div id="modal360Viewer" class="w-full h-full hidden"></div>
+                
+                <!-- 360 Control Indicator Overlay -->
+                <div id="modal360Indicator" class="absolute bottom-6 left-6 bg-black/75 backdrop-blur text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest pointer-events-none flex items-center gap-2 hidden">
+                    <i class="fa-solid fa-arrows-spin animate-spin text-primary"></i> Klik & seret untuk memutar ruangan 360°
+                </div>
+            </div>
+
+            <!-- Right Column: Info Area -->
+            <div class="w-full md:w-2/5 h-[55%] md:h-full p-8 md:p-10 flex flex-col justify-between bg-white overflow-y-auto">
+                <div class="space-y-6">
+                    <div>
+                        <span id="modalCategory" class="text-[8px] bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border border-primary/10">
+                            Interior
+                        </span>
+                        <h3 id="modalTitle" class="text-2xl font-black text-gray-900 uppercase tracking-tight mt-4 leading-tight">Project Title</h3>
+                    </div>
+
+                    <!-- Specs Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
+                            <p class="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Luas Area</p>
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="modalAreaInput" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 outline-none" placeholder="e.g. 50 sqm">
+                                <button onclick="savePortfolioArea()" class="bg-primary text-white text-[10px] font-black uppercase px-3 py-2.5 rounded-xl hover:scale-105 transition-all shadow-md shadow-primary/20 flex items-center justify-center flex-shrink-0 animate-save-btn" title="Simpan Luas Area">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                </button>
+                            </div>
+                            <span id="saveStatus" class="text-[8px] font-bold text-green-500 mt-1 hidden block">Tersimpan!</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
+                            <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Durasi Pengerjaan</p>
+                            <p id="modalDuration" class="text-xs font-bold text-gray-800 mt-2.5"><i class="fa-solid fa-clock text-primary mr-1 text-[10px]"></i> -</p>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-2">
+                        <h4 class="text-[9px] font-black uppercase tracking-widest text-gray-400">Concept & Detail</h4>
+                        <p id="modalDescription" class="text-xs text-gray-500 leading-relaxed font-medium">
+                            Description goes here...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let activeViewer = null;
+        let openPortfolioId = null;
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('sidebar-closed');
             document.getElementById('main-content').classList.toggle('main-full');
         }
 
-        // TAB SWITCH LOGIC
-        let currentTab = 'interior';
-        function switchTab(type) {
-            currentTab = type;
-            const intTab = document.getElementById('tab-interior');
-            const prodTab = document.getElementById('tab-product');
-            const interiorCards = document.querySelectorAll('.interior-card');
-            const productCards = document.querySelectorAll('.product-card');
-
-            if(type === 'interior') {
-                intTab.classList.add('tab-active'); intTab.classList.remove('text-gray-400');
-                prodTab.classList.remove('tab-active'); prodTab.classList.add('text-gray-400');
-                interiorCards.forEach(c => c.classList.remove('hidden'));
-                productCards.forEach(c => c.classList.add('hidden'));
-            } else {
-                prodTab.classList.add('tab-active'); prodTab.classList.remove('text-gray-400');
-                intTab.classList.remove('tab-active'); intTab.classList.add('text-gray-400');
-                productCards.forEach(c => c.classList.remove('hidden'));
-                interiorCards.forEach(c => c.classList.add('hidden'));
-            }
-            filterPortfolio(); // Re-apply search when switching tabs
-        }
-
-        // NEW: SEARCH FILTER LOGIC FOR PORTFOLIO
         function filterPortfolio() {
             const input = document.getElementById("portfolioSearch");
             const filter = input.value.toUpperCase();
-            const cards = document.querySelectorAll(currentTab === 'interior' ? '.interior-card' : '.product-card');
-            const otherCards = document.querySelectorAll(currentTab === 'interior' ? '.product-card' : '.interior-card');
-
-            // Hide cards from the other tab regardless of search
-            otherCards.forEach(card => card.classList.add('hidden'));
+            const cards = document.querySelectorAll('.portfolio-card');
 
             cards.forEach(card => {
                 const title = card.querySelector('h4').innerText;
@@ -282,12 +317,6 @@
             });
         }
 
-        function openEditModal(id) {
-            const editBtn = document.getElementById('editConfirmBtn');
-            editBtn.href = `/designer/portfolio/${id}/edit`;
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-        function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); }
         function openDeleteModal(id) {
             const form = document.getElementById('deleteForm');
             form.action = `/designer/portfolio/${id}/destroy`; 
@@ -295,10 +324,183 @@
         }
         function closeDeleteModal() { document.getElementById('deleteModal').classList.add('hidden'); }
 
-        window.onclick = function(event) {
-            if (event.target.id == 'deleteModal') closeDeleteModal();
-            if (event.target.id == 'editModal') closeEditModal();
+        function openPortfolioModalFromCard(id) {
+            const card = document.getElementById(`portfolio-card-${id}`);
+            if (!card) return;
+            
+            const title = card.getAttribute('data-title');
+            const imageUrl = card.getAttribute('data-image-url');
+            const is360 = card.getAttribute('data-is-360') === 'true';
+            const category = card.getAttribute('data-category');
+            const area = card.getAttribute('data-area');
+            const duration = card.getAttribute('data-duration');
+            const description = card.getAttribute('data-description');
+            
+            openPortfolioModal(id, title, imageUrl, is360, category, area, duration, description);
         }
+
+        function openPortfolioModal(id, title, imageUrl, is360, category, area, duration, description) {
+            openPortfolioId = id;
+            
+            // Destroy existing viewer if any to prevent memory leaks and issues
+            if (activeViewer) {
+                try {
+                    activeViewer.destroy();
+                } catch(e) {}
+                activeViewer = null;
+            }
+
+            // Reset save status label
+            document.getElementById('saveStatus').classList.add('hidden');
+
+            // Set text & input values
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalCategory').innerText = category;
+            document.getElementById('modalAreaInput').value = area === '-' ? '' : area;
+            document.getElementById('modalDuration').innerHTML = `<i class="fa-solid fa-clock text-primary mr-1 text-[10px]"></i> ${duration}`;
+            document.getElementById('modalDescription').innerText = description;
+
+            const staticImg = document.getElementById('modalStaticImage');
+            const viewer360 = document.getElementById('modal360Viewer');
+            const indicator360 = document.getElementById('modal360Indicator');
+
+            if (is360) {
+                staticImg.classList.add('hidden');
+                viewer360.classList.remove('hidden');
+                indicator360.classList.remove('hidden');
+
+                // Bypass CORS by converting absolute same-origin URLs to relative pathnames
+                let panoramaUrl = imageUrl;
+                try {
+                    const urlObj = new URL(imageUrl, window.location.origin);
+                    if (urlObj.origin === window.location.origin) {
+                        panoramaUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse panorama URL, using original: ", e);
+                }
+
+                // Initialize Pannellum Equirectangular Viewer
+                setTimeout(() => {
+                    activeViewer = pannellum.viewer('modal360Viewer', {
+                        "type": "equirectangular",
+                        "panorama": panoramaUrl,
+                        "autoLoad": true,
+                        "compass": false,
+                        "showZoomCtrl": true,
+                        "mouseZoom": false,
+                    });
+                    
+                    // Force resize after modal transition/animation completes (300ms)
+                    setTimeout(() => {
+                        if (activeViewer) {
+                            activeViewer.resize();
+                        }
+                    }, 300);
+                }, 50); // slight delay to ensure modal container size is fully rendered
+            } else {
+                staticImg.src = imageUrl;
+                staticImg.classList.remove('hidden');
+                viewer360.classList.add('hidden');
+                indicator360.classList.add('hidden');
+            }
+
+            // Open Modal
+            const modal = document.getElementById('portfolioModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePortfolioModal() {
+            if (activeViewer) {
+                try {
+                    activeViewer.destroy();
+                } catch(e) {}
+                activeViewer = null;
+            }
+
+            const modal = document.getElementById('portfolioModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+            openPortfolioId = null;
+        }
+
+        function savePortfolioArea() {
+            if (!openPortfolioId) return;
+            const areaValue = document.getElementById('modalAreaInput').value;
+            const saveBtn = document.querySelector('.animate-save-btn');
+            const statusText = document.getElementById('saveStatus');
+            
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
+            
+            fetch(`/designer/portfolio/${openPortfolioId}/update-area`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    area: areaValue
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>';
+                if (data.success) {
+                    statusText.innerText = 'Tersimpan!';
+                    statusText.classList.remove('hidden', 'text-red-500');
+                    statusText.classList.add('text-green-500');
+                    
+                    // Update dataset in-page card attributes
+                    const card = document.getElementById(`portfolio-card-${openPortfolioId}`);
+                    if (card) {
+                        card.setAttribute('data-area', data.area);
+                    }
+                    
+                    // Update in-page card badges as well
+                    const cardBadge = document.getElementById(`area-badge-${openPortfolioId}`);
+                    const cardVal = document.getElementById(`area-val-${openPortfolioId}`);
+                    
+                    if (data.area && data.area !== '-') {
+                        if (cardBadge) cardBadge.classList.remove('hidden');
+                        if (cardVal) cardVal.innerText = data.area;
+                    } else {
+                        if (cardBadge) cardBadge.classList.add('hidden');
+                    }
+                    
+                    setTimeout(() => statusText.classList.add('hidden'), 2000);
+                } else {
+                    statusText.innerText = 'Gagal menyimpan!';
+                    statusText.classList.remove('hidden', 'text-green-500');
+                    statusText.classList.add('text-red-500');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>';
+                statusText.innerText = 'Koneksi error!';
+                statusText.classList.remove('hidden', 'text-green-500');
+                statusText.classList.add('text-red-500');
+            });
+        }
+
+        // Close when clicking outside of the modal dialog boxes
+        window.addEventListener('click', function(e) {
+            const deleteModal = document.getElementById('deleteModal');
+            const portfolioModal = document.getElementById('portfolioModal');
+            
+            if (e.target === deleteModal) {
+                closeDeleteModal();
+            }
+            if (e.target === portfolioModal) {
+                closePortfolioModal();
+            }
+        });
     </script>
 </body>
 </html>

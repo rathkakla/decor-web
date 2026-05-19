@@ -73,7 +73,7 @@ $chat_type = isset($_GET['type']) ? $_GET['type'] : 'designer';
                 <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl transition-all <?= ($page == 'profile') ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' ?>">
                     <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
                 </a>
-                <a href="{{ route('order') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
+                <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
                 </a>
                 <a href="{{ route('customer.returns') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">

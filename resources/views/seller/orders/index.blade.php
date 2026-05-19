@@ -19,74 +19,10 @@
 </head>
 <body class="text-gray-800">
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-    <div class="p-8">
-        <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-        <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
-    </div>
-
-    <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
-        <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-        </a>
-        
-        <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*product*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
-        </a>
-        
-        <a href="{{ route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*order*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
-        </a>
-        
-        <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*chat*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
-        </a>
-        
-        <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*complaint*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
-        </a>
-        
-        <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*review*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-        </a>
-        
-        <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*report*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-        </a>
-    </nav>
-
-    <div class="p-4 border-t border-gray-100 space-y-1 bg-white">
-        <a href="{{ route('seller.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*setting*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
-        </a>
-        <a href="{{ route('seller.support') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*support*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-headset mr-3 w-5 text-center"></i> Support
-        </a>
-        
-        <div class="pt-2 mt-2 border-t border-gray-50">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="flex items-center w-full px-4 py-3 text-xs font-bold text-red-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg">
-                    <i class="fa-solid fa-arrow-right-from-bracket mr-3 w-5 text-center"></i> Logout
-                </button>
-            </form>
-        </div>
-    </div>
-</aside>
+    @include('seller.partials.sidebar')
 
   <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-    <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-        <div class="flex items-center">
-            <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
-                <i class="fa-solid fa-bars-staggered text-xl"></i>
-            </button>
-            <h2 class="font-bold text-xs uppercase tracking-widest text-white leading-none">Order Management</h2>
-        </div>
-        <div class="flex items-center space-x-6 text-white">
-            <p class="text-[10px] font-bold uppercase tracking-widest">{{ Auth::user()->full_name }}</p>
-            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->full_name) }}&background=fff&color=B5733A" class="w-9 h-9 rounded-lg border-2 border-white/20">
-        </div>
-    </header>
+    @include('seller.partials.header', ['title' => 'Order Management'])
 
     <div class="p-8 space-y-8 flex-1">
         <!-- ALERT PESAN SUKSES -->
@@ -122,6 +58,7 @@
             @php
                 $badgeClass = match($order->status) {
                     'pending' => 'bg-yellow-100 text-yellow-600',
+                    'waiting_verification' => 'bg-orange-100 text-orange-600',
                     'paid' => 'bg-blue-100 text-blue-600',
                     'shipped' => 'bg-indigo-100 text-indigo-600',
                     'completed' => 'bg-green-100 text-green-600',
@@ -160,7 +97,12 @@
                         <p class="text-xl font-black leading-none mt-1 text-gray-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
                     </div>
                     <div class="flex space-x-3 justify-end">
-                        @if($order->status == 'paid')
+                        @if($order->status == 'waiting_verification')
+                            <a href="{{ route('seller.orders.show', $order->id) }}" 
+                                class="px-5 py-2.5 bg-orange-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:opacity-90 transition-all">
+                                <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Validasi Pembayaran
+                            </a>
+                        @elseif($order->status == 'paid')
                             <!-- FIX: Gunakan route name dan kirim URL penuh ke fungsi JS -->
                             <button onclick="openStatusModal('{{ route('seller.orders.update-status', $order->id) }}')" 
                                 class="px-5 py-2.5 bg-[#B5733A] text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
@@ -208,10 +150,6 @@
                     <!-- Tombol Set Status Shipped -->
                     <button type="submit" name="status" value="shipped" class="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all text-xs font-bold text-gray-700">
                         <i class="fa-solid fa-box mr-2"></i> Pesanan Dikirim (Shipped)
-                    </button>
-                    <!-- Tombol Set Status Completed -->
-                    <button type="submit" name="status" value="completed" class="w-full text-left p-4 rounded-xl border border-gray-100 hover:border-green-500 hover:bg-green-50 transition-all text-xs font-bold text-gray-700">
-                        <i class="fa-solid fa-check-double mr-2"></i> Pesanan Telah Sampai (Completed)
                     </button>
                 </div>
             </form>

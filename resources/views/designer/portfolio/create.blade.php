@@ -51,10 +51,11 @@
                 <h2 class="font-black text-[10px] uppercase tracking-widest leading-none">Add New Masterpiece</h2>
             </div>
             <div class="flex items-center space-x-6 text-white">
-                <i class="fa-regular fa-bell text-xl"></i>
                 <div class="flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                    <span class="text-[10px] font-black uppercase tracking-widest">Elena Vance</span>
-                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold">EV</div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ Auth::user()->full_name }}</span>
+                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold">
+                        {{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}
+                    </div>
                 </div>
             </div>
         </header>
@@ -72,150 +73,91 @@
             <form action="{{ route('designer.portfolio.store') }}" method="POST" enctype="multipart/form-data" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-12">
                 @csrf 
 
-                <!-- LEFT COLUMN: MULTI-IMAGE UPLOADER -->
+                <!-- LEFT COLUMN: IMAGE UPLOADER & 360 TOGGLE -->
                 <div class="lg:col-span-2 space-y-6">
                     <div>
-                        <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Project Visuals</h3>
-                        <label class="block w-full aspect-square bg-white border-2 border-dashed border-gray-200 rounded-[40px] flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors group relative overflow-hidden shadow-sm">
-                            <input type="file" name="cover_image" accept="image/*">
-                            <div class="text-center group-hover:scale-105 transition-transform">
+                        <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Project Visual</h3>
+                        <label id="drop-area" class="block w-full aspect-square bg-white border-2 border-dashed border-gray-200 rounded-[40px] flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors group relative overflow-hidden shadow-sm">
+                            <input type="file" name="image" accept="image/*" onchange="previewImage(this)" required>
+                            <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-cover">
+                            <div id="upload-placeholder" class="text-center group-hover:scale-105 transition-transform">
                                 <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                                     <i class="fa-solid fa-camera"></i>
                                 </div>
-                                <h4 class="text-sm font-black text-gray-900 uppercase">Upload Cover</h4>
-                                <p class="text-[10px] text-gray-400 font-bold mt-1 italic">Main thumbnail for grid</p>
+                                <h4 class="text-sm font-black text-gray-900 uppercase">Upload Image</h4>
+                                <p class="text-[10px] text-gray-400 font-bold mt-1 italic">JPG, PNG up to 100MB</p>
                             </div>
                         </label>
+                        @error('image') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                            <input type="file" name="gallery[]" accept="image/*" multiple>
-                            <i class="fa-solid fa-plus text-gray-300 text-xl"></i>
-                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-2">Add Photo</span>
-                        </label>
-                        <label class="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-                            <input type="file" name="gallery[]" accept="image/*" multiple>
-                            <i class="fa-solid fa-plus text-gray-300 text-xl"></i>
-                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-2">Add Photo</span>
+                    <!-- 360 DEGREE TOGGLE -->
+                    <div class="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm">
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <div class="flex-1 pr-4">
+                                <h4 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center">
+                                    <i class="fa-solid fa-vr-cardboard text-primary mr-2 text-sm"></i>
+                                    360° Panorama
+                                </h4>
+                                <p class="text-[9px] text-gray-400 font-bold italic mt-1 leading-normal">
+                                    Aktifkan jika gambar yang diupload adalah foto panorama 360° (equirectangular) agar customer bisa berputar & melihat ruangan secara interaktif.
+                                </p>
+                            </div>
+                            <div class="relative flex-shrink-0">
+                                <input type="checkbox" name="is_360" id="is_360" value="1" class="sr-only peer">
+                                <div class="w-12 h-7 bg-gray-200 rounded-full transition-colors duration-300 peer-checked:bg-primary"></div>
+                                <div class="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform duration-300 shadow-sm peer-checked:translate-x-5"></div>
+                            </div>
                         </label>
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: UPDATED PROJECT DETAILS (DESIGN SERVICE FOCUS) -->
+                <!-- RIGHT COLUMN: PROJECT DETAILS -->
                 <div class="lg:col-span-3 bg-white p-10 rounded-[48px] border border-gray-100 shadow-sm space-y-8">
                     
-                    <!-- NEW: SERVICE TYPE SELECTOR -->
                     <div>
-                        <label class="text-[9px] font-black text-primary uppercase tracking-widest mb-3 block ml-2">What service are you offering? <span class="text-red-500">*</span></label>
-                        <select id="service-type" name="service_type" required class="w-full bg-primary/5 border-2 border-primary/10 rounded-2xl py-4 px-6 text-xs font-black text-primary uppercase tracking-widest outline-none appearance-none cursor-pointer">
-                            <option value="interior">Interior Consultation</option>
-                            <option value="product">Product Design Concept</option>
-                        </select>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Project Title <span class="text-red-500">*</span></label>
+                        <input type="text" name="title" value="{{ old('title') }}" placeholder="e.g., Modern Scandinavian Living Room" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
+                        @error('title') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Row 1: Title & Design Style -->
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Project Title <span class="text-red-500">*</span></label>
-                            <input type="text" name="title" placeholder="e.g., Industrial Loft" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Category <span class="text-red-500">*</span></label>
+                            <select name="category" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none appearance-none">
+                                <option value="Residential" {{ old('category') == 'Residential' ? 'selected' : '' }}>Residential</option>
+                                <option value="Commercial" {{ old('category') == 'Commercial' ? 'selected' : '' }}>Commercial</option>
+                                <option value="Hospitality" {{ old('category') == 'Hospitality' ? 'selected' : '' }}>Hospitality</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Design Style <span class="text-red-500">*</span></label>
-                            <input type="text" name="design_style" placeholder="e.g., Industrial Chic" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Budget Est. (Optional)</label>
+                            <input type="text" name="budget" value="{{ old('budget') }}" placeholder="e.g., 50jt - 100jt" class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
                         </div>
                     </div>
 
-                    <!-- Row 2: Dynamic Technical Fields (Area or Dimensions) -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label id="tech-label-1" class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Area ($sqm$) <span class="text-red-500">*</span></label>
-                            <div class="flex items-center bg-gray-50 rounded-2xl px-6 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                                <input type="text" id="tech-input-1" name="technical_value" placeholder="210" required class="w-full bg-transparent border-none py-4 text-xs font-bold text-gray-900 outline-none">
-                                <span id="tech-suffix-1" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">$sqm$</span>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1">
                         <div>
                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Est. Duration <span class="text-red-500">*</span></label>
-                            <input type="text" name="duration" placeholder="e.g., 5 Months" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Row 3: Design Fee & Year -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Design Fee (IDR) <span class="text-red-500">*</span></label>
-                            <div class="flex items-center bg-gray-50 rounded-2xl px-6 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                                <span class="text-xs font-black text-gray-400 uppercase tracking-widest mr-2">Rp</span>
-                                <input type="number" name="price" placeholder="4.500.000" required class="w-full bg-transparent border-none py-4 text-xs font-bold text-gray-900 outline-none">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Completion Year <span class="text-red-500">*</span></label>
-                            <input type="number" name="year" placeholder="2026" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Row 4: Category & Sub-Category -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Main Category <span class="text-red-500">*</span></label>
-                            <select id="main-category" name="category" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none appearance-none">
-                                <option value="" disabled selected>Select Category</option>
-                                <option value="Furniture">Furniture</option>
-                                <option value="Residential">Residential</option>
-                                <option value="Commercial">Commercial</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Service Detail <span class="text-red-500">*</span></label>
-                            <select id="sub-category" name="sub_category" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none appearance-none">
-                                <option value="" disabled selected>Select Sub</option>
+                            <select name="duration" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none appearance-none">
+                                <option value="" disabled selected>Select pengerjaan...</option>
+                                <option value="1-3 Months" {{ old('duration') == '1-3 Months' ? 'selected' : '' }}>1-3 Months</option>
+                                <option value="1-6 Months" {{ old('duration') == '1-6 Months' ? 'selected' : '' }}>1-6 Months</option>
+                                <option value="1-9 Months" {{ old('duration') == '1-9 Months' ? 'selected' : '' }}>1-9 Months</option>
+                                <option value="1-12 Months" {{ old('duration') == '1-12 Months' ? 'selected' : '' }}>1-12 Months</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Row 5: Material & Lead Designer -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Key Materials</label>
-                            <input type="text" name="material" placeholder="e.g., Brick, Iron, Oak" class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Lead Designer <span class="text-red-500">*</span></label>
-                            <input type="text" name="lead_designer" placeholder="e.g., Elena Vance" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        </div>
+                    <div>
+                        <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Project Description <span class="text-red-500">*</span></label>
+                        <textarea name="description" rows="4" placeholder="Describe the concept and story behind this masterpiece..." required class="w-full bg-gray-50 border-none rounded-3xl py-5 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none resize-none custom-scroll">{{ old('description') }}</textarea>
+                        @error('description') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Row 6: Link & Concept Note -->
-                    <div class="space-y-6">
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 flex items-center"><i class="fa-solid fa-link mr-2"></i> External Link (Behance/Pinterest)</label>
-                            <input type="url" name="external_link" placeholder="https://behance.net/..." class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Design Philosophy / Concept Note <span class="text-red-500">*</span></label>
-                            <textarea name="description" rows="3" placeholder="Describe the story behind this design..." required class="w-full bg-gray-50 border-none rounded-3xl py-5 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none resize-none custom-scroll"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="pt-6 border-t border-gray-50 flex items-center justify-between">
-                        <label class="flex items-center cursor-pointer group">
-                            <div class="relative">
-                                <input type="checkbox" name="is_live" class="sr-only" checked>
-                                <div class="block-toggle bg-gray-200 w-12 h-7 rounded-full group-hover:bg-gray-300 transition-colors"></div>
-                                <div class="dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform translate-x-5 shadow-sm"></div>
-                            </div>
-                            <div class="ml-4">
-                                <p class="text-[10px] font-black text-gray-900 uppercase tracking-widest">Submit for Review</p>
-                                <p class="text-[8px] text-gray-400 font-bold italic">Admin will validate this masterpiece.</p>
-                            </div>
-                        </label>
-                        <div class="space-x-4 flex">
-                            <a href="{{ route('designer.portfolio.index') }}" class="px-8 py-4 border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all text-center">Cancel</a>
-                            <button type="submit" class="bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:scale-105 transition-all">Submit Masterpiece</button>
-                        </div>
+                    <div class="pt-6 border-t border-gray-50 flex items-center justify-end space-x-4">
+                        <a href="{{ route('designer.portfolio.index') }}" class="px-8 py-4 border border-gray-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all text-center">Cancel</a>
+                        <button type="submit" class="bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:scale-105 transition-all">Submit Masterpiece</button>
                     </div>
                 </div>
             </form>
@@ -232,67 +174,19 @@
             document.getElementById('main-content').classList.toggle('main-full');
         }
 
-        const subCategories = {
-            'Furniture': ['Chair', 'Table', 'Sofa', 'Cabinet', 'Bed'],
-            'Residential': ['Living Room', 'Bedroom', 'Kitchen', 'Studio'],
-            'Commercial': ['Cafe', 'Office', 'Retail Store', 'Lobby']
-        };
-
-        const serviceType = document.getElementById('service-type');
-        const techLabel = document.getElementById('tech-label-1');
-        const techInput = document.getElementById('tech-input-1');
-        const techSuffix = document.getElementById('tech-suffix-1');
-
-        const mainCat = document.getElementById('main-category');
-        const subCat = document.getElementById('sub-category');
-
-        // Logic for Dynamic Fields (Interior vs Product)
-        serviceType.addEventListener('change', function() {
-            if(this.value === 'interior') {
-                techLabel.innerText = 'Area ($sqm$) *';
-                techInput.placeholder = '210';
-                techSuffix.innerText = '$sqm$';
-                techSuffix.classList.remove('hidden');
-            } else {
-                techLabel.innerText = 'Dimensions (LxWxH) *';
-                techInput.placeholder = '85x90x75cm';
-                techSuffix.classList.add('hidden');
-            }
-        });
-
-        // Logic for Dynamic Sub-Categories
-        mainCat.addEventListener('change', function() {
-            const selected = this.value;
-            subCat.innerHTML = '<option value="" disabled selected>Select Sub</option>';
+        function previewImage(input) {
+            const preview = document.getElementById('image-preview');
+            const placeholder = document.getElementById('upload-placeholder');
             
-            if (subCategories[selected]) {
-                subCategories[selected].forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item;
-                    opt.innerHTML = item;
-                    subCat.appendChild(opt);
-                });
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
             }
-        });
-
-        // Toggle Switch Animation Logic
-        const toggleInput = document.querySelector('input[name="is_live"]');
-        const toggleDot = document.querySelector('.dot');
-        const toggleBg = document.querySelector('.block-toggle');
-        
-        toggleInput.addEventListener('change', function() {
-            if(this.checked) {
-                toggleDot.classList.add('translate-x-5');
-                toggleBg.classList.replace('bg-gray-200', 'bg-green-500');
-            } else {
-                toggleDot.classList.remove('translate-x-5');
-                toggleBg.classList.replace('bg-green-500', 'bg-gray-200');
-            }
-        });
-
-        // Initial check for toggle
-        if(toggleInput.checked) {
-            toggleBg.classList.replace('bg-gray-200', 'bg-green-500');
         }
     </script>
 </body>

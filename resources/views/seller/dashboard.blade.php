@@ -22,21 +22,36 @@
     @include('seller.partials.sidebar')
 
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-            <div class="flex items-center">
-                <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4">
-                    <i class="fa-solid fa-bars-staggered text-xl"></i>
-                </button>
-                <h2 class="font-bold text-xs uppercase tracking-widest text-white leading-none">Overview</h2>
-            </div>
-            <div class="flex items-center space-x-6 text-white">
-                <p class="text-[10px] font-bold uppercase tracking-widest">{{ Auth::user()->full_name }}</p>
-                <img src="{{ Auth::user()->avatar_url }}" class="w-9 h-9 rounded-lg border-2 border-white/20 object-cover">
-            </div>
-        </header>
+    @include('seller.partials.header', ['title' => 'Overview'])
 
         <div class="p-8 space-y-8 flex-1">
             <h2 class="text-2xl font-bold">Welcome back, <span class="text-primary">{{ Auth::user()->full_name }}!</span></h2>
+
+            @if($seller->status === 'pending')
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-xl shadow-sm mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fa-solid fa-clock text-amber-400 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-bold text-amber-800 uppercase tracking-wider">Account Pending Approval</p>
+                        <p class="text-xs text-amber-700 mt-1">Akun Anda sedang dalam tahap peninjauan oleh Admin. Produk Anda tidak akan tampil di katalog customer sampai akun Anda disetujui. Mohon tunggu 1-2 hari kerja.</p>
+                    </div>
+                </div>
+            </div>
+            @elseif($seller->status === 'rejected')
+            <div class="bg-red-50 border-l-4 border-red-400 p-6 rounded-xl shadow-sm mb-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fa-solid fa-circle-xmark text-red-400 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-bold text-red-800 uppercase tracking-wider">Account Activation Rejected</p>
+                        <p class="text-xs text-red-700 mt-1">Maaf, pengajuan akun Anda ditolak dengan alasan: <strong class="italic">{{ $seller->rejection_reason }}</strong>. Silakan perbarui informasi profil atau produk Anda sesuai dengan ketentuan.</p>
+                    </div>
+                </div>
+            </div>
+            @endif
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
@@ -47,7 +62,7 @@
 
                 <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">New Orders</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pending Orders</p>
                     <h3 class="text-2xl font-bold mt-1">{{ $newOrdersCount }}</h3>
                 </div>
 
@@ -67,8 +82,20 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex justify-between items-center mb-10">
-                        <h3 class="text-lg font-bold">Monthly Revenue</h3>
-                        <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
+                        <div>
+                            <h3 class="text-lg font-bold">Annual Revenue Overview</h3>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Performance in {{ $selectedYear }}</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <form action="{{ route('seller.dashboard') }}" method="GET" id="yearFilterForm">
+                                <select name="year" onchange="document.getElementById('yearFilterForm').submit()" class="bg-gray-50 border-none text-[10px] font-black uppercase tracking-widest text-primary px-4 py-2 rounded-lg focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                                    @foreach($availableYears as $year)
+                                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>Year {{ $year }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                            <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
+                        </div>
                     </div>
                     <div class="h-64">
                         <canvas id="revenueChart"></canvas>

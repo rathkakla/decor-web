@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <!-- Pannellum 360 Viewer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -20,6 +23,17 @@
             }
         }
     </script>
+    <style>
+        /* Modal Animation */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate {
+            animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .pnlm-container { background: #111 !important; }
+    </style>
     <style>
         :root {
             --primary: #B5733A;
@@ -476,9 +490,14 @@
         <div class="port-grid">
 
             <!-- Big card -->
-            <div class="port-card col-span-7 h-96">
+            <div class="port-card col-span-7 h-96 cursor-pointer relative group" onclick="openPortfolioModal('Villa Nusa Living Room', 'https://pannellum.org/images/jfk.jpg', true, 'Residential · 2024', '120 sqm', '3 Months', 'A Mediterranean-inspired living room emphasizing natural travertine stone textures, custom-crafted walnut cabinetry, and warm biophilic elements.')">
                 <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900" alt="">
                 <span class="port-card-tag">Residential · 2024</span>
+                <div class="absolute top-4 right-4 z-10">
+                    <span class="bg-primary text-white text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-vr-cardboard animate-pulse"></i> 360° VIEW
+                    </span>
+                </div>
                 <div class="port-card-overlay">
                     <div>
                         <p style="color:#fff; font-size:16px; font-weight:800;" class="serif">Villa Nusa Living Room</p>
@@ -489,7 +508,7 @@
 
             <!-- Stack right -->
             <div class="col-span-5" style="display:flex; flex-direction:column; gap:16px;">
-                <div class="port-card" style="height:185px;">
+                <div class="port-card cursor-pointer" style="height:185px;" onclick="openPortfolioModal('The Velvet Lounge', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700', false, 'Lounge · 2024', '45 sqm', '1 Month', 'A rich velvet lounging area with deep boucle seating, polished brass details, and a moody, warm color palette.')">
                     <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700" alt="">
                     <span class="port-card-tag">Lounge · 2024</span>
                     <div class="port-card-overlay">
@@ -499,7 +518,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="port-card" style="height:185px;">
+                <div class="port-card cursor-pointer" style="height:185px;" onclick="openPortfolioModal('Monolith Kitchen', 'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=700', false, 'Kitchen · 2023', '35 sqm', '2 Months', 'A minimalist kitchen design featuring Nero Marquina marble, custom oak veneers, and hidden integrated appliances.')">
                     <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=700" alt="">
                     <span class="port-card-tag">Kitchen · 2023</span>
                     <div class="port-card-overlay">
@@ -512,7 +531,7 @@
             </div>
 
             <!-- Bottom row -->
-            <div class="port-card col-span-4 h-64">
+            <div class="port-card col-span-4 h-64 cursor-pointer" onclick="openPortfolioModal('Sanctuary Suite', 'https://images.unsplash.com/photo-1617104551722-3b2d51366400?w=700', false, 'Bedroom · 2023', '40 sqm', '1.5 Months', 'A serene master bedroom with natural linen drapes, solid walnut furniture, and biophilic lighting to enhance rest.')">
                 <img src="https://images.unsplash.com/photo-1617104551722-3b2d51366400?w=700" alt="">
                 <span class="port-card-tag">Bedroom · 2023</span>
                 <div class="port-card-overlay">
@@ -523,7 +542,7 @@
                 </div>
             </div>
 
-            <div class="port-card col-span-4 h-64">
+            <div class="port-card col-span-4 h-64 cursor-pointer" onclick="openPortfolioModal('Editorial Study', 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=700', false, 'Office · 2024', '30 sqm', '1 Month', 'A warm, sophisticated private office/library combining leather wall accents and structural steel shelving.')">
                 <img src="https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=700" alt="">
                 <span class="port-card-tag">Office · 2024</span>
                 <div class="port-card-overlay">
@@ -534,7 +553,7 @@
                 </div>
             </div>
 
-            <div class="port-card col-span-4 h-64">
+            <div class="port-card col-span-4 h-64 cursor-pointer" onclick="openPortfolioModal('Garden Terrace', 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=700', false, 'Outdoor · 2024', '60 sqm', '2 Months', 'An outdoor oasis featuring natural stone paving, structured greenery, and custom weather-resistant seating.')">
                 <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?w=700" alt="">
                 <span class="port-card-tag">Outdoor · 2024</span>
                 <div class="port-card-overlay">
@@ -733,7 +752,74 @@
     </div>
 </footer>
 
+<!-- PORTFOLIO DETAIL & 360 VIEW MODAL -->
+<div id="portfolioModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-300">
+    <div class="bg-white w-full max-w-5xl rounded-[32px] overflow-hidden shadow-2xl relative flex flex-col md:flex-row h-[90vh] md:h-[70vh] border border-gray-100 modal-animate">
+        <!-- Close Button -->
+        <button onclick="closePortfolioModal()" class="absolute top-6 right-6 z-[110] w-10 h-10 bg-white/95 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 transition-all shadow-md">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <!-- Left Column: Visual Area -->
+        <div class="w-full md:w-3/5 h-[45%] md:h-full bg-neutral-900 relative">
+            <!-- Static Image Viewer -->
+            <img id="modalStaticImage" src="" class="w-full h-full object-cover hidden">
+            
+            <!-- 360 Panorama Viewer Container -->
+            <div id="modal360Viewer" class="w-full h-full hidden"></div>
+            
+            <!-- 360 Control Indicator Overlay -->
+            <div id="modal360Indicator" class="absolute bottom-6 left-6 bg-black/75 backdrop-blur text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest pointer-events-none flex items-center gap-2 hidden">
+                <i class="fa-solid fa-arrows-spin animate-spin text-primary"></i> Klik & seret untuk memutar ruangan 360°
+            </div>
+        </div>
+
+        <!-- Right Column: Info Area -->
+        <div class="w-full md:w-2/5 h-[55%] md:h-full p-8 md:p-10 flex flex-col justify-between bg-white overflow-y-auto">
+            <div class="space-y-6">
+                <div>
+                    <span id="modalCategory" class="text-[8px] bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-black uppercase tracking-widest border border-primary/10">
+                        Interior
+                    </span>
+                    <h3 id="modalTitle" class="text-2xl font-black text-gray-900 uppercase tracking-tight mt-4 leading-tight">Project Title</h3>
+                </div>
+
+                <!-- Specs Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
+                        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Luas Area</p>
+                        <p id="modalArea" class="text-xs font-bold text-gray-800 mt-1"><i class="fa-solid fa-vector-square text-primary mr-1"></i> -</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100/50">
+                        <p class="text-[8px] font-black uppercase tracking-widest text-gray-400">Durasi Pengerjaan</p>
+                        <p id="modalDuration" class="text-xs font-bold text-gray-800 mt-1"><i class="fa-solid fa-clock text-primary mr-1"></i> -</p>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-2">
+                    <h4 class="text-[9px] font-black uppercase tracking-widest text-gray-400">Concept & Detail</h4>
+                    <p id="modalDescription" class="text-xs text-gray-500 leading-relaxed font-medium">
+                        Description goes here...
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-6 border-t border-gray-100 mt-8">
+                <a href="{{ route('customer.designers') }}" class="block w-full">
+                    <button class="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                        Temukan Designer Untuk Desain Ini
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+let activeViewer = null;
+
 function switchTab(btn, tabId) {
     // hide all
     ['portfolio','services','awards','reviews'].forEach(id => {
@@ -745,6 +831,96 @@ function switchTab(btn, tabId) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 }
+
+function openPortfolioModal(title, imageUrl, is360, category, area, duration, description) {
+    // Destroy existing viewer if any
+    if (activeViewer) {
+        try {
+            activeViewer.destroy();
+        } catch(e) {}
+        activeViewer = null;
+    }
+
+    // Set text values
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalCategory').innerText = category;
+    document.getElementById('modalArea').innerHTML = `<i class="fa-solid fa-vector-square text-primary mr-1 text-[10px]"></i> ${area}`;
+    document.getElementById('modalDuration').innerHTML = `<i class="fa-solid fa-clock text-primary mr-1 text-[10px]"></i> ${duration}`;
+    document.getElementById('modalDescription').innerText = description;
+
+    const staticImg = document.getElementById('modalStaticImage');
+    const viewer360 = document.getElementById('modal360Viewer');
+    const indicator360 = document.getElementById('modal360Indicator');
+
+    if (is360) {
+        staticImg.classList.add('hidden');
+        viewer360.classList.remove('hidden');
+        indicator360.classList.remove('hidden');
+
+        // Bypass CORS by converting absolute same-origin URLs to relative pathnames
+        let panoramaUrl = imageUrl;
+        try {
+            const urlObj = new URL(imageUrl, window.location.origin);
+            if (urlObj.origin === window.location.origin) {
+                panoramaUrl = urlObj.pathname + urlObj.search + urlObj.hash;
+            }
+        } catch (e) {
+            console.error("Failed to parse panorama URL, using original: ", e);
+        }
+
+        // Initialize Pannellum Equirectangular Viewer
+        setTimeout(() => {
+            activeViewer = pannellum.viewer('modal360Viewer', {
+                "type": "equirectangular",
+                "panorama": panoramaUrl,
+                "autoLoad": true,
+                "compass": false,
+                "showZoomCtrl": true,
+                "mouseZoom": false,
+            });
+            
+            // Force resize after modal transition/animation completes (300ms)
+            setTimeout(() => {
+                if (activeViewer) {
+                    activeViewer.resize();
+                }
+            }, 300);
+        }, 50); // slight delay to ensure modal container size is fully rendered
+    } else {
+        staticImg.src = imageUrl;
+        staticImg.classList.remove('hidden');
+        viewer360.classList.add('hidden');
+        indicator360.classList.add('hidden');
+    }
+
+    // Open Modal
+    const modal = document.getElementById('portfolioModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePortfolioModal() {
+    if (activeViewer) {
+        try {
+            activeViewer.destroy();
+        } catch(e) {}
+        activeViewer = null;
+    }
+
+    const modal = document.getElementById('portfolioModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+}
+
+// Close when clicking outside of the modal dialog box
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('portfolioModal');
+    if (e.target === modal) {
+        closePortfolioModal();
+    }
+});
 </script>
 
 </body>

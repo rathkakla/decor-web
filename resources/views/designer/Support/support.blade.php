@@ -120,6 +120,66 @@
                 </div>
             </div>
 
+            <!-- COMPLAINT FORM -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6">
+                    <h3 class="text-2xl font-black text-gray-800 italic uppercase">Kirim Komplain</h3>
+                    
+                    @if(session('success'))
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative" role="alert">
+                            <span class="block sm:inline">{{ session('success') }}</span>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('designer.support.submit') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Subjek</label>
+                            <input type="text" name="subject" required class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Contoh: Masalah Pembayaran">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Pesan Detail</label>
+                            <textarea name="message" required rows="4" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Jelaskan kendala Anda..."></textarea>
+                        </div>
+                        <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
+                            Kirim Sekarang
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                    <h3 class="text-2xl font-black text-gray-800 italic uppercase mb-6">Riwayat Komplain</h3>
+                    <div class="flex-1 overflow-y-auto space-y-4 pr-2 custom-scroll">
+                        @php
+                            $supports = \App\Models\Support::where('user_id', Auth::id())->latest()->get();
+                        @endphp
+                        @forelse($supports as $s)
+                        <div class="p-6 rounded-2xl border border-gray-50 bg-gray-50/50">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="text-xs font-black uppercase tracking-tight text-gray-800">{{ $s->subject }}</h4>
+                                <span class="text-[8px] font-black uppercase px-2 py-1 rounded bg-{{ $s->status === 'pending' ? 'yellow-100 text-yellow-700' : ($s->status === 'replied' ? 'blue-100 text-blue-700' : 'green-100 text-green-700') }}">
+                                    {{ $s->status }}
+                                </span>
+                            </div>
+                            <p class="text-[10px] text-gray-500 font-medium mb-3">{{ $s->message }}</p>
+                            @if($s->admin_reply)
+                            <div class="mt-3 p-4 rounded-xl bg-primary/5 border-l-4 border-primary">
+                                <p class="text-[9px] font-black uppercase text-primary mb-1">Admin Reply:</p>
+                                <p class="text-[10px] text-gray-600 font-bold italic">{{ $s->admin_reply }}</p>
+                            </div>
+                            @endif
+                            <div class="mt-2 text-[8px] text-gray-400 font-bold uppercase">{{ $s->created_at->diffForHumans() }}</div>
+                        </div>
+                        @empty
+                        <div class="text-center py-10">
+                            <i class="fa-solid fa-inbox text-3xl text-gray-200 mb-4 block"></i>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Belum ada riwayat</p>
+                        </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
             <!-- CHAT BANNER -->
             <div class="bg-gray-100/60 p-12 rounded-[48px] flex flex-col md:flex-row items-center justify-between border border-white">
                 <div class="max-w-xl space-y-4">

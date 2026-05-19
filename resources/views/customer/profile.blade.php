@@ -130,6 +130,9 @@
                 <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
                 </a>
+                <a href="{{ route('customer.my-consultations') }}" class="flex items-center space-x-4 px-4 py-3 {{ Route::is('customer.my-consultations') ? 'bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary transition-colors' }}">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Consultations</span>
+                </a>
                 <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
                     <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
                 </a>
@@ -139,11 +142,7 @@
                 </a>
                 <div class="pt-6 mt-6 border-t border-gray-100">
                     <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/seller')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
+                    <a href="{{ route('customer.chat-seller.with') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('customer/chat-seller*')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
                         <i class="fa-solid fa-shop text-xs"></i> 
                         <span class="text-[11px] uppercase tracking-widest">Seller</span>
                     </a>

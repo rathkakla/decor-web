@@ -230,7 +230,7 @@
  
         <!-- CTA -->
         <div class="cta-group">
-            <a href="{{ route('customer.riwayat-chat') }}" class="btn-primary">
+            <a href="{{ route('customer.chat-seller.with', $seller->id) }}" class="btn-primary">
                 <i class="fa-regular fa-message" style="font-size:12px;"></i>
                 Message Seller
             </a>
@@ -244,10 +244,68 @@
     <button class="tab-btn active" onclick="switchTab(this,'products')">
         <i class="fa-solid fa-grid-2" style="font-size:11px; margin-right:6px;"></i>Products
     </button>
+    <button class="tab-btn" onclick="switchTab(this,'vouchers')">
+        <i class="fa-solid fa-ticket" style="font-size:11px; margin-right:6px;"></i>Vouchers
+    </button>
 </div>
 
 <!-- ══════════════ CONTENT ══════════════ -->
 <div class="content-wrap">
+
+    <!-- ── VOUCHERS TAB ── -->
+    <div id="tab-vouchers" style="display: none;">
+        @if($vouchers->isNotEmpty())
+        <div class="mb-12 fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="section-label">Exclusive Store Vouchers</h3>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Claim to save on your next order</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($vouchers as $voucher)
+                <div class="relative bg-white border border-dashed border-primary/30 rounded-2xl p-6 flex items-center justify-between group hover:border-primary transition-all">
+                    <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-100 rounded-full"></div>
+                    <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-8 bg-white border border-gray-100 rounded-full"></div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-warm flex items-center justify-center text-primary">
+                            <i class="fa-solid fa-ticket text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-primary uppercase tracking-widest">{{ $voucher->code }}</p>
+                            <h4 class="text-sm font-bold text-gray-900">
+                                @if($voucher->discount_type == 'percentage')
+                                    {{ $voucher->discount_value }}% OFF
+                                @else
+                                    Rp {{ number_format($voucher->discount_value, 0, ',', '.') }} OFF
+                                @endif
+                            </h4>
+                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-1">Min. Spend Rp {{ number_format($voucher->min_purchase, 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+
+                    @if(in_array($voucher->id, $claimedVoucherIds))
+                        <button disabled class="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
+                            Claimed
+                        </button>
+                    @else
+                        <form action="{{ route('customer.vouchers.claim', $voucher->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-bark transition-all">
+                                Claim
+                            </button>
+                        </form>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @else
+        <div class="text-center py-20 text-gray-400">
+            <i class="fa-solid fa-ticket text-4xl mb-4 block opacity-20"></i>
+            <p class="font-bold">Toko ini belum memiliki voucher aktif.</p>
+        </div>
+        @endif
+    </div>
 
     <!-- ── PRODUCTS TAB ── -->
     <div id="tab-products">
@@ -296,7 +354,7 @@
 
 <script>
 function switchTab(btn, id) {
-    ['products'].forEach(t => {
+    ['products', 'vouchers'].forEach(t => {
         let el = document.getElementById('tab-' + t);
         if(el) el.style.display = 'none';
     });

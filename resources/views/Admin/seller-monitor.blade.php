@@ -5,77 +5,19 @@ if ($current_path == "" || $current_path == "index") {
     $current_path = "seller-monitor"; 
 }
 
-$admin_name = "Alex Rivera";
+$admin_name = Auth::user()->full_name;
 $admin_role = "SUPER ADMIN";
 
 $menu_items = [
-    ["label" => "Dashboard",         "path" => "dashboard",         "icon" => "grid"],
-    ["label" => "User Management",    "path" => "user-management",  "icon" => "users"],
-    ["label" => "Seller Monitor",     "path" => "seller-monitor",    "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",   "path" => "designer-monitor",  "icon" => "pen-tool"],
-    ["label" => "Seller Support",     "path" => "seller-support",    "icon" => "headphones"],
-    ["label" => "Designer Support",   "path" => "designer-support",  "icon" => "pen-tool"],
-    ["label" => "Customer Support",   "path" => "customer-support",  "icon" => "message-circle"],
-    ["label" => "Product Validation", "path" => "product-validation","icon" => "check-circle"],
-     ["label" => "Portofolio Validation", "path" => "portofolio-validation","icon" => "image"],
-];
-
-$sellers = [
-    [
-        "id"           => "SEL-001",
-        "name"         => "Studio Archi",
-        "owner"        => "Marco Verratti",
-        "total_sales"  => "Rp 45.200.000",
-        "transactions" => 124,
-        "rating"       => 4.5,
-        "status"       => "Active",
-        "last_active"  => "2 hours ago",
-        "joined"       => "Feb 2023",
-        "admin_fee"    => "Rp 2.26M",
-    ],
-    [
-        "id"           => "SEL-002",
-        "name"         => "Modern Craft",
-        "owner"        => "Sarah Jenkins",
-        "total_sales"  => "Rp 128.000.000",
-        "transactions" => 412,
-        "rating"       => 4.8,
-        "status"       => "Active",
-        "last_active"  => "Now",
-        "joined"       => "Oct 2022",
-        "admin_fee"    => "Rp 6.4M",
-    ],
-    [
-        "id"           => "SEL-003",
-        "name"         => "WoodCraft Ltd",
-        "owner"        => "Budi Santoso",
-        "total_sales"  => "Rp 8.500.000",
-        "transactions" => 12,
-        "rating"       => 1.8,
-        "status"       => "Warning",
-        "last_active"  => "1 day ago",
-        "joined"       => "Jun 2023",
-        "admin_fee"    => "Rp 425K",
-    ],
-    [
-        "id"           => "SEL-004",
-        "name"         => "Retro Furniture",
-        "owner"        => "Amelia Rose",
-        "total_sales"  => "Rp 0",
-        "transactions" => 0,
-        "rating"       => 0.0,
-        "status"       => "Banned",
-        "last_active"  => "3 days ago",
-        "joined"       => "Jan 2024",
-        "admin_fee"    => "Rp 0",
-    ],
-];
-
-$stats = [
-    ["label" => "Total Sellers",  "value" => count($sellers), "icon" => "shopping-bag",  "note" => "registered"],
-    ["label" => "Active",         "value" => 2,               "icon" => "check-circle",  "note" => "selling now"],
-    ["label" => "Warning",        "value" => 1,               "icon" => "alert-triangle","note" => "under review"],
-    ["label" => "Banned",         "value" => 1,               "icon" => "x-circle",      "note" => "removed"],
+    ["label" => "Dashboard",         "path" => route('admin.dashboard'),         "icon" => "grid"],
+    ["label" => "User Management",    "path" => route('admin.user-management'),  "icon" => "users"],
+    ["label" => "Seller Monitor",     "path" => route('admin.seller-monitor'),    "icon" => "shopping-bag"],
+    ["label" => "Designer Monitor",   "path" => route('admin.designer-monitor'),  "icon" => "pen-tool"],
+    ["label" => "Seller Support",     "path" => route('admin.seller-support'),    "icon" => "headphones"],
+    ["label" => "Designer Support",   "path" => route('admin.designer-support'),  "icon" => "pen-tool"],
+    ["label" => "Customer Support",   "path" => route('admin.customer-support'),  "icon" => "message-circle"],
+    ["label" => "Product Validation", "path" => route('admin.product.validation'),"icon" => "check-circle"],
+     ["label" => "Portofolio Validation", "path" => route('admin.portfolio-validation'),"icon" => "image"],
 ];
 ?>
 <!DOCTYPE html>
@@ -341,11 +283,12 @@ $stats = [
         </a>
         <?php endforeach; ?>
         <span class="nav-label" style="margin-top:20px;">System</span>
-        <a href="settings" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
-        <a href="logout"   class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
+        <a href="{{ route('admin.settings') }}" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
+        <form action="{{ route('logout') }}" method="POST" id="logout-form" class="hidden">@csrf</form>
+        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
     </div>
     <div class="sidebar-footer">
-        <img src="https://ui-avatars.com/api/?name=Alex+Rivera&background=B5733A&color=fff&size=80" class="s-avatar">
+        <img src="https://ui-avatars.com/api/?name=<?= urlencode($admin_name) ?>&background=B5733A&color=fff&size=80" class="s-avatar">
         <div>
             <div class="s-name"><?= $admin_name ?></div>
             <div class="s-role"><?= $admin_role ?></div>
@@ -369,16 +312,38 @@ $stats = [
 
     <!-- Mini Stats -->
     <div class="stats-row">
-        <?php foreach ($stats as $s): ?>
         <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="<?= $s['icon'] ?>"></i></div>
+            <div class="stat-icon"><i data-feather="shopping-bag"></i></div>
             <div>
-                <div class="stat-val"><?= $s['value'] ?></div>
-                <div class="stat-lbl"><?= $s['label'] ?></div>
-                <div class="stat-note"><?= $s['note'] ?></div>
+                <div class="stat-val">{{ $stats['total'] }}</div>
+                <div class="stat-lbl">Total Sellers</div>
+                <div class="stat-note">registered</div>
             </div>
         </div>
-        <?php endforeach; ?>
+        <div class="stat-mini">
+            <div class="stat-icon"><i data-feather="check-circle"></i></div>
+            <div>
+                <div class="stat-val">{{ $stats['active'] }}</div>
+                <div class="stat-lbl">Active</div>
+                <div class="stat-note">selling now</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-icon"><i data-feather="alert-triangle"></i></div>
+            <div>
+                <div class="stat-val">{{ $stats['warning'] }}</div>
+                <div class="stat-lbl">Warning</div>
+                <div class="stat-note">inactive > 30d</div>
+            </div>
+        </div>
+        <div class="stat-mini">
+            <div class="stat-icon"><i data-feather="x-circle"></i></div>
+            <div>
+                <div class="stat-val">{{ $stats['banned'] }}</div>
+                <div class="stat-lbl">Banned</div>
+                <div class="stat-note">removed</div>
+            </div>
+        </div>
     </div>
 
     <!-- Toolbar -->
@@ -398,52 +363,53 @@ $stats = [
 
     <!-- Cards -->
     <div class="cards-grid">
-        <?php foreach ($sellers as $s):
-            $sl        = strtolower($s['status']);
-            $isBanned  = $s['status'] === 'Banned';
-            $isWarning = $s['status'] === 'Warning';
-            $lowRating = $s['rating'] < 3;
-        ?>
-        <div class="seller-card <?= $isBanned ? 'is-banned' : '' ?>">
-            <div class="card-bar bar-<?= $sl ?>"></div>
+        @foreach ($sellers as $s)
+        @php
+            $sl        = strtolower($s->status);
+            $isBanned  = $s->status === 'Banned';
+            $isWarning = $s->status === 'Warning';
+            $lowRating = $s->rating < 3;
+        @endphp
+        <div class="seller-card {{ $isBanned ? 'is-banned' : '' }}">
+            <div class="card-bar bar-{{ $sl }}"></div>
             <div class="card-body">
 
                 <div class="card-head">
-                    <div class="shop-avatar <?= ($isBanned || $isWarning) ? 'grayed' : '' ?>">
+                    <div class="shop-avatar {{ ($isBanned || $isWarning) ? 'grayed' : '' }}">
                         <i data-feather="shopping-bag"></i>
                     </div>
-                    <span class="pill pill-<?= $sl ?>">
-                        <i data-feather="<?= $sl === 'active' ? 'check' : ($sl === 'warning' ? 'alert-triangle' : 'x') ?>"></i>
-                        <?= $s['status'] ?>
+                    <span class="pill pill-{{ $sl }}">
+                        <i data-feather="{{ $sl === 'active' ? 'check' : ($sl === 'warning' ? 'alert-triangle' : 'x') }}"></i>
+                        {{ $s->status }}
                     </span>
                 </div>
 
-                <div class="card-name <?= $isBanned ? 'name-banned' : '' ?>"><?= $s['name'] ?></div>
-                <div class="card-owner"><i data-feather="user"></i><?= $s['owner'] ?></div>
-                <div class="seller-id"><?= $s['id'] ?></div>
+                <div class="card-name {{ $isBanned ? 'name-banned' : '' }}">{{ $s->name }}</div>
+                <div class="card-owner"><i data-feather="user"></i>{{ $s->owner }}</div>
+                <div class="seller-id">{{ $s->id }}</div>
 
                 <!-- Metrics -->
                 <div class="card-metrics">
                     <div class="metric">
-                        <div class="metric-val"><?= $s['transactions'] ?></div>
+                        <div class="metric-val">{{ $s->transactions }}</div>
                         <div class="metric-lbl">Orders</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-val" style="font-size:11px;"><?= $s['total_sales'] ?></div>
+                        <div class="metric-val" style="font-size:11px;">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
                         <div class="metric-lbl">Revenue</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-val"><?= $s['admin_fee'] ?></div>
+                        <div class="metric-val">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
                         <div class="metric-lbl">Admin Fee</div>
                     </div>
                 </div>
 
                 <!-- Activity + Rating -->
                 <div class="activity-row">
-                    <span class="activity-dot dot-<?= $sl ?>"></span>
-                    <span class="activity-txt">Last active: <?= $s['last_active'] ?></span>
-                    <div class="rating-chip <?= $lowRating ? 'rating-low' : '' ?>">
-                        <i data-feather="star"></i> <?= number_format($s['rating'],1) ?>
+                    <span class="activity-dot dot-{{ $sl }}"></span>
+                    <span class="activity-txt">Last order: {{ $s->last_active }}</span>
+                    <div class="rating-chip {{ $lowRating ? 'rating-low' : '' }}">
+                        <i data-feather="star"></i> {{ number_format($s->rating,1) }}
                     </div>
                 </div>
 
@@ -451,26 +417,33 @@ $stats = [
 
             <div class="card-footer">
                 <div class="footer-meta">
-                    <div class="joined-txt"><i data-feather="calendar"></i> Joined <?= $s['joined'] ?></div>
-                    <div class="fee-txt"><?= $s['admin_fee'] ?> fee earned</div>
+                    <div class="joined-txt"><i data-feather="calendar"></i> Joined {{ $s->joined }}</div>
+                    <div class="fee-txt">Rp {{ number_format($s->admin_fee, 0, ',', '.') }} fee</div>
                 </div>
                 <div class="card-actions">
-                    <a href="seller-detail?name=<?= urlencode($s['name']) ?>" class="btn-view">
+                    <a href="{{ route('admin.seller-detail', ['id' => $s->db_id]) }}" class="btn-view">
                         View <i data-feather="arrow-right"></i>
                     </a>
-                    <?php if ($isBanned): ?>
+                    @if ($isBanned)
                     <button class="btn-restore" onclick="return confirm('Restore this seller?')">
                         <i data-feather="refresh-cw"></i>
                     </button>
-                    <?php else: ?>
+                    @else
+                    <form action="{{ route('admin.user.warn', $s->user_id) }}" method="POST" onsubmit="return confirm('Kirim peringatan ke seller ini?')">
+                        @csrf
+                        <input type="hidden" name="message" value="Toko Anda sudah tidak aktif melakukan transaksi selama lebih dari 30 hari. Mohon tingkatkan aktivitas penjualan Anda.">
+                        <button type="submit" class="btn-ban" title="Send Inactivity Warning">
+                            <i data-feather="alert-triangle"></i>
+                        </button>
+                    </form>
                     <button class="btn-ban" onclick="return confirm('Suspend this seller?')">
                         <i data-feather="slash"></i>
                     </button>
-                    <?php endif; ?>
+                    @endif
                 </div>
             </div>
         </div>
-        <?php endforeach; ?>
+        @endforeach
     </div>
 
 </main>

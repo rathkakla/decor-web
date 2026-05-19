@@ -12,12 +12,15 @@ use Illuminate\Support\Facades\Storage;
 class ProfileController extends Controller
 {
     // 1. LIHAT PROFILE (GET)
-    public function show(Request $request)
+    public function index(Request $request)
     {
         $user = $request->user();
-        $customer = Customer::with('mainAddress')->firstOrCreate(
-            ['user_id' => $user->id]
-        );
+        
+        // Ensure customer record exists
+        $customer = Customer::firstOrCreate(['user_id' => $user->id]);
+        
+        // Load relationships safely
+        $customer->load('mainAddress');
 
         $data = [
             'id' => $user->id,
@@ -26,7 +29,7 @@ class ProfileController extends Controller
             'email' => $user->email,
             'phone' => $customer->phone ?? '',
             'profile_image' => $customer->profile_image ?? '',
-            'address' => $customer->mainAddress->full_address ?? '',
+            'address' => $customer->mainAddress?->full_address ?? '',
         ];
 
         return response()->json([

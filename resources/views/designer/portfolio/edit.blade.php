@@ -151,17 +151,15 @@
                     </div>
 
                     <!-- Row 2: Dynamic Technical Fields -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label id="tech-label-1" class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Dimensions (LxWxH) *</label>
-                            <div class="flex items-center bg-gray-50 rounded-2xl px-6 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                                <input type="text" id="tech-input-1" name="technical_value" value="85x90x75cm" required class="w-full bg-transparent border-none py-4 text-xs font-bold text-gray-900 outline-none">
-                                <span id="tech-suffix-1" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 hidden">$sqm$</span>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1">
                         <div>
                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2 text-primary">Est. Duration <span class="text-red-500">*</span></label>
-                            <input type="text" name="duration" value="2 Weeks" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
+                            <select name="duration" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none appearance-none">
+                                <option value="1-3 Months" {{ $designer->portfolios->first()->duration == '1-3 Months' ? 'selected' : '' }}>1-3 Months</option>
+                                <option value="1-6 Months" {{ $designer->portfolios->first()->duration == '1-6 Months' ? 'selected' : '' }}>1-6 Months</option>
+                                <option value="1-9 Months" {{ $designer->portfolios->first()->duration == '1-9 Months' ? 'selected' : '' }}>1-9 Months</option>
+                                <option value="1-12 Months" {{ $designer->portfolios->first()->duration == '1-12 Months' ? 'selected' : '' }}>1-12 Months</option>
+                            </select>
                         </div>
                     </div>
 
@@ -268,19 +266,7 @@
         const mainCat = document.getElementById('main-category');
         const subCat = document.getElementById('sub-category');
 
-        function updateTechnicalFields(type) {
-            if(type === 'interior') {
-                techLabel.innerText = 'Area ($sqm$) *';
-                techSuffix.classList.remove('hidden');
-            } else {
-                techLabel.innerText = 'Dimensions (LxWxH) *';
-                techSuffix.classList.add('hidden');
-            }
-        }
-
-        serviceType.addEventListener('change', function() {
-            updateTechnicalFields(this.value);
-        });
+        // Technical fields logic removed as per area input removal
 
         mainCat.addEventListener('change', function() {
             const selected = this.value;

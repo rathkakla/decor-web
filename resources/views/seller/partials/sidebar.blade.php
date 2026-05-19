@@ -12,8 +12,22 @@
         <a href="{{ route('seller.products.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.products.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-couch mr-3 w-5 text-center"></i> Kelola Produk
         </a>
-        <a href="{{ route('seller.orders') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.orders*') || Request::routeIs('orders*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
+        <a href="{{ route('seller.orders') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.orders*') || Request::routeIs('orders*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <div class="flex items-center">
+                <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
+            </div>
+            @php
+                $seller = \App\Models\Seller::where('user_id', Auth::id())->first();
+                $newOrdersCount = 0;
+                if ($seller) {
+                    $newOrdersCount = \App\Models\Order::whereHas('orderItems.product', function ($q) use ($seller) {
+                        $q->where('seller_id', $seller->id);
+                    })->whereIn('status', ['pending', 'waiting_verification'])->count();
+                }
+            @endphp
+            @if($newOrdersCount > 0)
+                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $newOrdersCount }}</span>
+            @endif
         </a>
         <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
@@ -29,6 +43,11 @@
         <!-- Laporan -->
         <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*report*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
+        </a>
+
+        <!-- Voucher -->
+        <a href="{{ route('seller.vouchers.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.vouchers.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-ticket mr-3 w-5 text-center"></i> Kelola Voucher
         </a>
     </nav>
     

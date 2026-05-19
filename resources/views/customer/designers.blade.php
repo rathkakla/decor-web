@@ -33,31 +33,29 @@
                 <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
                     <?= $site_name ?>
                 </a>
-                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
+                <form action="{{ route('customer.catalog') }}" method="GET" class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
                     <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-                </div>
+                    <input type="text" name="search" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
+                </form>
             </div>
             <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
                 <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
+                <a href="{{ route('customer.designers') }}" class="text-primary transition-all font-bold">Designers</a>
                  <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-               
             </nav>
             <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <button class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-regular fa-bell text-lg"></i>
-                </button>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-<a href="{{ route('customer.profile') }}" class="block">
-    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full bg-slate-100">
-    </div>
-</a>
-                </div>
+                @auth
+                    <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    </a>
+                    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
+                        <a href="{{ route('customer.profile') }}" class="block w-full h-full">
+                            <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
+                        </a>
+                    </div>
+                @else
+                    <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">Sign In</a>
+                @endauth
             </div>
         </div>
     </header>
@@ -73,76 +71,38 @@
             </div>
         </header>
 
-        
-          
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-32">
+            @forelse($designers as $designer)
             <div class="group">
                 <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 mb-6 relative">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
+                    @php
+                        $image = $designer->designer_image 
+                            ? asset('storage/' . $designer->designer_image) 
+                            : 'https://ui-avatars.com/api/?name='.urlencode($designer->user->full_name).'&background=B5733A&color=fff';
+                    @endphp
+                    <img src="{{ $image }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
                     <div class="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md text-white text-[8px] px-3 py-1 rounded-full border border-white/20 uppercase font-bold tracking-widest">
-                        ★ 4.9 (124 reviews)
+                        ★ 4.9 ({{ $designer->consultations->where('status', 4)->count() }} projects)
                     </div>
                 </div>
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <h3 class="text-xl font-bold">Elena Moretti</h3>
-                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">Senior Interior Architect</p>
-                    </div>
-                    
-                </div>
-                <p class="text-xs text-gray-500 leading-relaxed mb-6">Specializing in Italian modernism and organic sculptural spaces that bridge the gap between luxury and comfort.</p>
-               <a href="{{ route('customer.portofolio') }}" class="block w-full">
-    <button class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-opacity-90 transition">
-        View Portofolio
-    </button>
-</a>
-            </div>
-
-            <div class="group">
-                <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 mb-6 relative">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
-                    <div class="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md text-white text-[8px] px-3 py-1 rounded-full border border-white/20 uppercase font-bold tracking-widest">
-                        ★ 5.0 (82 reviews)
+                        <h3 class="text-xl font-bold">{{ $designer->studio_name ?? $designer->user->full_name }}</h3>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">{{ $designer->specialty }}</p>
                     </div>
                 </div>
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h3 class="text-xl font-bold">Julian Thorne</h3>
-                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">Principal Creative Lead</p>
-                    </div>
-                    
-                </div>
-                <p class="text-xs text-gray-500 leading-relaxed mb-6">Focused on high-end residential estates where sustainability meets timeless editorial grandeur.</p>
-                <a href="{{ route('customer.portofolio') }}" class="block w-full">
+                <p class="text-xs text-gray-500 leading-relaxed mb-6 line-clamp-3">{{ $designer->bio ?? 'No bio provided.' }}</p>
+               <a href="{{ route('customer.designer.profile', $designer->id) }}" class="block w-full">
                     <button class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-opacity-90 transition">
                         View Portofolio
                     </button>
                 </a>
             </div>
-
-            <div class="group">
-                <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 mb-6 relative">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
-                    <div class="absolute bottom-4 left-4 bg-black/50 backdrop-blur-md text-white text-[8px] px-3 py-1 rounded-full border border-white/20 uppercase font-bold tracking-widest">
-                        ★ 4.8 (210 reviews)
-                    </div>
-                </div>
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h3 class="text-xl font-bold">Aria Katsaros</h3>
-                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">Acoustics & Lighting Expert</p>
-                    </div>
-                    
-                </div>
-                <p class="text-xs text-gray-500 leading-relaxed mb-6">Pioneering sensory-driven design, specializing in how lighting and sound shape the emotional resonance of home.</p>
-                <a href="{{ route('customer.portofolio') }}" class="block w-full">
-                    <button class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-opacity-90 transition">
-                        View Portofolio
-                    </button>
-                </a>
+            @empty
+            <div class="col-span-full py-20 text-center">
+                <p class="text-gray-400 font-bold uppercase tracking-widest">No designers available yet.</p>
             </div>
+            @endforelse
         </div>
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-[3rem] overflow-hidden bg-gray-50 border border-gray-100">

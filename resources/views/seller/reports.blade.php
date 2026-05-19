@@ -19,17 +19,11 @@
     <!-- Sidebar (Same as dashboard) -->
     @include('seller.partials.sidebar')
 
-    <main class="ml-64 min-h-screen flex flex-col">
-        <header class="bg-primary text-white p-4 px-8 flex justify-between items-center shadow-lg">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-chart-line text-xl"></i>
-                <h1 class="text-xs font-black uppercase tracking-[0.2em]">Business Analytics</h1>
-            </div>
-            <a href="{{ route('seller.reports.download', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="bg-white text-primary px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all flex items-center space-x-2">
-                <i class="fa-solid fa-file-pdf"></i>
-                <span>Download PDF Report</span>
-            </a>
-        </header>
+    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
+        @php
+            $extraAction = '<a href="'.route('seller.reports.download', ['start_date' => $startDate, 'end_date' => $endDate]).'" class="bg-white text-primary px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all flex items-center space-x-2"><i class="fa-solid fa-file-pdf"></i><span>Download PDF Report</span></a>';
+        @endphp
+        @include('seller.partials.header', ['title' => 'Business Analytics', 'extra_action' => $extraAction])
 
         <div class="p-8 space-y-8 flex-1">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -69,14 +63,14 @@
                     </div>
                 </div>
 
-                <!-- Pesanan Baru -->
+                <!-- Total Pesanan Selesai -->
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group">
                     <div class="relative z-10">
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Pesanan Baru</p>
-                        <h3 class="text-3xl font-black text-gray-900">{{ $newOrdersCount }}</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">Total Pesanan Selesai</p>
+                        <h3 class="text-3xl font-black text-gray-900">{{ $transactions->groupBy('order_id')->count() }}</h3>
                         <div class="mt-4 flex items-center text-blue-500 space-x-1">
                             <i class="fa-solid fa-circle-check text-xs"></i>
-                            <span class="text-[10px] font-bold">+5.2% vs last month</span>
+                            <span class="text-[10px] font-bold">Based on selected period</span>
                         </div>
                     </div>
                     <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.05] transition-all">
@@ -175,5 +169,14 @@
         </footer>
     </main>
 
+    <script>
+        const btn = document.getElementById('toggle-sidebar');
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-content');
+        btn.addEventListener('click', () => { 
+            sidebar.classList.toggle('sidebar-hidden'); 
+            main.classList.toggle('main-expanded'); 
+        });
+    </script>
 </body>
 </html>

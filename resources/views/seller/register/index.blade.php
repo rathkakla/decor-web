@@ -21,6 +21,21 @@
         
         .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #E5E7EB; transition: all 0.5s ease; }
         .step-dot.active { background: #B5733A; box-shadow: 0 0 10px rgba(181, 115, 58, 0.4); width: 24px; border-radius: 10px; }
+        
+        .terms-container {
+            height: 300px;
+            overflow-y: scroll;
+            padding: 20px;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+        .terms-container::-webkit-scrollbar { width: 6px; }
+        .terms-container::-webkit-scrollbar-track { background: #F1F1F1; }
+        .terms-container::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-white antialiased">
@@ -66,6 +81,7 @@
                     @csrf
                     
                     <div id="section-1" class="space-y-8">
+>
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">01 — Identity</span>
                         <div class="grid gap-6">
                             <div class="grid grid-cols-2 gap-6">
@@ -111,20 +127,112 @@
                                 </div>
                                 <textarea name="store_address" required placeholder="Street name, Building No, City..." class="input-underline text-sm font-medium h-24 resize-none">{{ old('store_address') }}</textarea>
                             </div>
+
+                            <div class="flex items-start space-x-3 py-4">
+                                <input type="checkbox" id="terms-checkbox" disabled class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-not-allowed">
+                                <label for="terms-checkbox" class="text-[10px] text-gray-500 leading-relaxed uppercase font-bold tracking-wider">
+                                    Saya menyetujui <button type="button" onclick="openTerms()" class="text-primary underline">Syarat & Ketentuan</button> yang berlaku pada platform DECOR.
+                                </label>
+                            </div>
                         </div>
                         <div class="flex items-center space-x-4">
                             <button type="button" onclick="nextStep(2)" class="w-1/3 py-5 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
-                            <button type="submit" class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center">
+                            <button type="submit" id="submit-reg" disabled class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed">
                                 Complete Registration
                             </button>
                         </div>
                     </div>
-                </form>
+                  <!-- Terms Modal -->
+    <div id="terms-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Syarat & Ketentuan Seller</h3>
+                    <button type="button" onclick="closeTerms()" class="text-gray-400 hover:text-gray-600 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div id="modal-terms-box" class="terms-container h-[400px] custom-scrollbar">
+                    <p class="mb-4">Dengan mendaftarkan akun sebagai Seller, pengguna dianggap telah membaca, memahami, dan menyetujui seluruh syarat dan ketentuan yang berlaku pada platform marketplace.</p>
+                    
+                    <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Kewajiban Seller</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                        <li>Seller wajib memberikan informasi produk secara lengkap, jelas, dan sesuai dengan kondisi asli produk, termasuk nama produk, deskripsi, harga, stok, ukuran, warna, dan foto produk.</li>
+                        <li>Seller dilarang menjual produk yang melanggar hukum, produk ilegal, barang terlarang, produk palsu, maupun barang yang tidak sesuai dengan peraturan yang berlaku.</li>
+                        <li>Seller wajib menjaga kualitas produk dan memastikan barang yang dikirim kepada customer dalam kondisi baik, layak, dan sesuai dengan deskripsi produk yang ditampilkan.</li>
+                        <li>Seller wajib memproses dan mengirimkan pesanan customer tepat waktu sesuai dengan ketentuan pengiriman yang berlaku pada platform.</li>
+                        <li>Seller wajib memberikan tanggapan yang baik terhadap pertanyaan, komplain, maupun permintaan pengembalian barang dari customer sesuai prosedur yang berlaku.</li>
+                    </ul>
+
+                    <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Larangan Bagi Seller</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                        <li>Seller dilarang melakukan tindakan penipuan dalam bentuk apa pun, termasuk memberikan informasi palsu, manipulasi transaksi, maupun tindakan yang merugikan customer and platform.</li>
+                        <li>Seller dilarang melakukan manipulasi harga produk, termasuk menaikkan harga secara tidak wajar untuk kepentingan tertentu atau membuat promo yang menyesatkan.</li>
+                        <li>Seller dilarang mengunggah atau menjual produk palsu, tiruan, atau produk yang melanggar hak kekayaan intelektual pihak lain.</li>
+                        <li>Seller dilarang melakukan spam produk, duplikasi produk berlebihan, maupun aktivitas lain yang dapat mengganggu kenyamanan pengguna platform.</li>
+                    </ul>
+
+                    <h4 class="font-bold text-gray-800 mt-6 mb-2 uppercase text-[11px] tracking-wider">Hak Platform</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                        <li>Platform berhak melakukan peninjauan, pembatasan, penghapusan produk, maupun penonaktifan toko apabila ditemukan pelanggaran terhadap syarat dan ketentuan yang berlaku.</li>
+                        <li>Platform berhak memberikan peringatan, suspend sementara, maupun suspend permanen terhadap akun seller yang terbukti melakukan pelanggaran.</li>
+                        <li>Platform berhak menghapus produk atau konten yang dianggap tidak sesuai, menyesatkan, melanggar hukum, atau merugikan pihak lain.</li>
+                    </ul>
+                    
+                    <div class="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                        <p class="text-primary font-bold text-center italic text-xs">Silakan scroll hingga akhir untuk mengaktifkan persetujuan.</p>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button type="button" id="btn-modal-close" disabled onclick="acceptTerms()" class="bg-gray-200 text-gray-500 px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-widest cursor-not-allowed transition-all duration-300">Close & Accept</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        function openTerms() {
+            document.getElementById('terms-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTerms() {
+            document.getElementById('terms-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function acceptTerms() {
+            termsCheckbox.checked = true;
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            closeTerms();
+        }
+
+        const modalTermsBox = document.getElementById('modal-terms-box');
+        const modalCloseBtn = document.getElementById('btn-modal-close');
+        const termsCheckbox = document.getElementById('terms-checkbox');
+        const submitBtn = document.getElementById('submit-reg');
+
+        modalTermsBox.addEventListener('scroll', function() {
+            const scrollTotal = modalTermsBox.scrollHeight - modalTermsBox.clientHeight;
+            if (modalTermsBox.scrollTop / scrollTotal > 0.95) {
+                modalCloseBtn.disabled = false;
+                modalCloseBtn.classList.remove('bg-gray-200', 'text-gray-500', 'cursor-not-allowed');
+                modalCloseBtn.classList.add('bg-primary', 'text-white');
+                
+                termsCheckbox.disabled = false;
+                termsCheckbox.classList.remove('cursor-not-allowed');
+            }
+        });
+
+        termsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
         function nextStep(step) {
             document.getElementById('section-1').classList.add('hidden');
             document.getElementById('section-2').classList.add('hidden');
