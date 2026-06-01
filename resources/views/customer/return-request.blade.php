@@ -30,81 +30,11 @@
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-            
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    {{ $site_name }}
-                </a>
-                
-                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-                </div>
-            </div>
-
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                 <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-            </nav>
-
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <button class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-regular fa-bell text-lg"></i>
-                </button>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                    <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                        <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <main class="flex-grow flex content-container w-full bg-white">
         <!-- ASIDE: SIDEBAR NAVIGATION -->
-        <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
-            <div class="text-center mb-10">
-                <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
-                <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
-                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
-            </div>
-
-            <nav class="space-y-1">
-                <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
-                </a>
-                <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
-                </a>
-                <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
-                    <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
-                </a>
-            
-                <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
-                    <i class="fa-regular fa-heart text-xs"></i>
-                    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-                </a>
-                <div class="pt-6 mt-6 border-t border-gray-100">
-                    <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/seller')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-shop text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Seller</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
+        @include('customer.partials.sidebar')
 
         <!-- CONTENT AREA -->
         <div class="flex-grow p-12">
@@ -162,20 +92,18 @@
                             <div class="grid grid-cols-1 gap-6">
                                 <div class="space-y-2">
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Jenis Return</label>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <label class="relative flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50/50 cursor-pointer hover:bg-white hover:border-primary transition-all group">
-                                            <input type="radio" name="return_type" value="refund" class="opacity-0 absolute peer" required onchange="toggleBankInput(this.value)">
-                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
-                                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                    <div class="grid grid-cols-2 gap-0 rounded-xl p-1 bg-gray-100/80 border border-gray-200/30 w-full">
+                                        <label class="cursor-pointer select-none">
+                                            <input type="radio" name="return_type" value="refund" class="sr-only peer" required onchange="toggleBankInput(this.value)">
+                                            <div class="py-3.5 text-xs font-bold rounded-lg text-gray-500 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm hover:text-gray-900 transition-all duration-200 text-center flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-coins text-[10px]"></i> Refund
                                             </div>
-                                            <span class="ml-3 text-xs font-bold text-gray-600 group-hover:text-primary">Refund</span>
                                         </label>
-                                        <label class="relative flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50/50 cursor-pointer hover:bg-white hover:border-primary transition-all group">
-                                            <input type="radio" name="return_type" value="exchange" class="opacity-0 absolute peer" onchange="toggleBankInput(this.value)">
-                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full flex items-center justify-center peer-checked:border-primary peer-checked:bg-primary transition-all">
-                                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                        <label class="cursor-pointer select-none">
+                                            <input type="radio" name="return_type" value="exchange" class="sr-only peer" onchange="toggleBankInput(this.value)">
+                                            <div class="py-3.5 text-xs font-bold rounded-lg text-gray-500 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm hover:text-gray-900 transition-all duration-200 text-center flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-rotate text-[10px]"></i> Ganti Barang Baru
                                             </div>
-                                            <span class="ml-3 text-xs font-bold text-gray-600 group-hover:text-primary">Ganti Barang Baru</span>
                                         </label>
                                     </div>
                                 </div>

@@ -345,4 +345,42 @@ class AdminController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function portfolioValidation(Request $request)
+    {
+        $statusFilter = $request->get('status', 'pending'); // Default to pending
+
+        $query = \App\Models\DesignerPortfolio::with(['designer.user']);
+
+        if ($statusFilter && $statusFilter !== 'semua') {
+            $query->where('status', $statusFilter);
+        }
+
+        $portfolios = $query->latest()->get();
+
+        $stats = [
+            'pending' => \App\Models\DesignerPortfolio::where('status', 'pending')->count(),
+            'approved' => \App\Models\DesignerPortfolio::where('status', 'approved')->count(),
+            'rejected' => \App\Models\DesignerPortfolio::where('status', 'rejected')->count(),
+            'total' => \App\Models\DesignerPortfolio::count(),
+        ];
+
+        return view('Admin.portofolio-validation', compact('portfolios', 'stats', 'statusFilter'));
+    }
+
+    public function approvePortfolio($id)
+    {
+        $portfolio = \App\Models\DesignerPortfolio::findOrFail($id);
+        $portfolio->update(['status' => 'approved']);
+
+        return back()->with('success', 'Portofolio telah disetujui dan dipublikasikan.');
+    }
+
+    public function rejectPortfolio(Request $request, $id)
+    {
+        $portfolio = \App\Models\DesignerPortfolio::findOrFail($id);
+        $portfolio->update(['status' => 'rejected']);
+
+        return back()->with('success', 'Portofolio telah ditolak.');
+    }
 }

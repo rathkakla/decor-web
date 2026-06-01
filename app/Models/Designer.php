@@ -41,18 +41,29 @@ class Designer extends Model
         return $this->hasMany(Consultation::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(ConsultationReview::class, 'designer_id');
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        $avg = $this->reviews()->avg('rating');
+        return $avg ? number_format($avg, 1) : '0.0';
+    }
+
     public function getAverageProjectDurationAttribute()
     {
-        $portfolios = $this->portfolios()->whereNotNull('duration')->where('duration', '!=', '')->get();
-        if ($portfolios->isEmpty()) {
+        $reviews = $this->reviews()->whereNotNull('project_duration')->where('project_duration', '!=', '')->get();
+        if ($reviews->isEmpty()) {
             return '-';
         }
 
         $totalMonths = 0;
         $count = 0;
 
-        foreach ($portfolios as $portfolio) {
-            $months = $this->parseDurationToMonths($portfolio->duration);
+        foreach ($reviews as $review) {
+            $months = $this->parseDurationToMonths($review->project_duration);
             if ($months !== null) {
                 $totalMonths += $months;
                 $count++;

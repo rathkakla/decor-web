@@ -24,7 +24,7 @@ class ConsultationController extends Controller
         }
 
         $consultations = Consultation::where('customer_id', $customer->id)
-            ->with(['designer.user'])
+            ->with(['designer.user', 'messages', 'quotes', 'attachments'])
             ->latest()
             ->get();
 
@@ -40,7 +40,8 @@ class ConsultationController extends Controller
             'designer_id' => 'required|exists:designers,id',
             'title' => 'required|string|max:150',
             'description' => 'nullable|string',
-            'budget_range' => 'required|string',
+            'budget_range' => 'required_if:consultation_type,request_proposal|nullable|string',
+            'consultation_type' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -51,7 +52,8 @@ class ConsultationController extends Controller
             'designer_id' => $request->designer_id,
             'title' => $request->title,
             'description' => $request->description ?? '',
-            'budget_range' => $request->budget_range,
+            'budget_range' => $request->budget_range ?? '-',
+            'consultation_type' => $request->consultation_type ?? 'chat_consultation',
             'status' => Consultation::STATUS_WAITING_APPROVAL,
         ]);
 
@@ -91,41 +93,19 @@ class ConsultationController extends Controller
             $consultation = Consultation::find($quote->consultation_id);
             if ($consultation) {
                 if ($request->status == 'accepted') {
-                    $consultation->update(['status' => Consultation::STATUS_WAITING_CONSULTATION_FEE]);
+                    $consultation->update(['status' => Consultation::STATUS_WAITING_FINAL_PAYMENT]);
                     
                     // Post RAB file to chat history as a message & attachment from the designer
                     $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items;
                     if ($items && isset($items['file_path'])) {
                         $filePath = $items['file_path'];
                         
-                        // 1. Create text message from designer
-                        \App\Models\ConsultationMessage::create([
-                            'consultation_id' => $consultation->id,
-                            'sender_id' => $consultation->designer->user_id,
-                            'message' => "Halo! Project Agreement & RAB telah disetujui. Berikut adalah file RAB resmi untuk proyek kita.",
-                        ]);
-                        
-                        // 2. Create attachment message from designer
-                        \App\Models\ConsultationAttachment::create([
-                            'consultation_id' => $consultation->id,
-                            'uploaded_by' => $consultation->designer->user_id,
-                            'file_url' => $filePath,
-                            'file_type' => 'document',
-                        ]);
+                        // System messages and attachments removed to keep chat pure
                     }
                 } elseif ($request->status == 'rejected') {
                     $consultation->update(['status' => Consultation::STATUS_REJECTED]);
                 } else { // revision
                     $consultation->update(['status' => Consultation::STATUS_ACTIVE]);
-                    
-                    $senderId = Auth::id() ?? ($consultation->customer ? $consultation->customer->user_id : null);
-                    if ($senderId) {
-                        \App\Models\ConsultationMessage::create([
-                            'consultation_id' => $consultation->id,
-                            'sender_id' => $senderId,
-                            'message' => "🔄 Permintaan Revisi RAB:\n\"" . $request->revision_notes . "\"",
-                        ]);
-                    }
                 }
             }
 
@@ -149,6 +129,11 @@ class ConsultationController extends Controller
             'message' => 'required|string',
         ]);
 
+        $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_expired) {
+            return response()->json(['success' => false, 'message' => 'Waktu chat konsultasi telah habis.'], 400);
+        }
+
         $message = ConsultationMessage::create([
             'consultation_id' => $id,
             'sender_id' => Auth::id(),
@@ -167,6 +152,11 @@ class ConsultationController extends Controller
             'file' => 'required|file|max:10240', // 10MB
             'file_type' => 'required|string',
         ]);
+
+        $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_expired) {
+            return response()->json(['success' => false, 'message' => 'Waktu chat konsultasi telah habis.'], 400);
+        }
 
         if ($request->hasFile('file')) {
             $path = $request->file('file')->store('consultations/attachments', 'public');
@@ -187,34 +177,43 @@ class ConsultationController extends Controller
         return response()->json(['success' => false, 'message' => 'No file uploaded'], 400);
     }
 
-    public function pay($id)
+    public function pay(Request $request, $id)
     {
+        $request->validate([
+            'payment_proof' => 'required|file|image|max:10240',
+        ]);
+
         $consultation = Consultation::findOrFail($id);
         
-        if ($consultation->status == Consultation::STATUS_WAITING_CONSULTATION_FEE) {
-            // Distinguish between initial Fee and Final Project Payment
-            $hasAcceptedQuote = $consultation->quotes()->where('status', 'accepted')->exists();
-            
-            if ($hasAcceptedQuote) {
-                // This is the Final Payment
-                $status = Consultation::STATUS_COMPLETED;
-            } else {
-                // This is the Initial Consultation Fee (500k)
-                $status = (empty($consultation->description)) 
-                    ? Consultation::STATUS_WAITING_BRIEF 
-                    : Consultation::STATUS_ACTIVE;
-            }
-        } else {
+        if ($consultation->status != Consultation::STATUS_WAITING_CONSULTATION_FEE && 
+            $consultation->status != Consultation::STATUS_WAITING_FINAL_PAYMENT) {
             return response()->json(['success' => false, 'message' => 'Invalid status for payment'], 400);
         }
 
-        $consultation->update(['status' => $status]);
+        if ($request->hasFile('payment_proof')) {
+            $path = $request->file('payment_proof')->store('payment_proofs', 'public');
+            $consultation->payment_proof = $path;
+            $consultation->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment successful.',
-            'data' => $consultation
-        ]);
+            $priceText = "";
+            if ($consultation->status == Consultation::STATUS_WAITING_CONSULTATION_FEE) {
+                $priceText = "fee sebesar Rp " . number_format($consultation->consultation_fee, 0, ',', '.');
+            } else {
+                $quote = $consultation->quotes()->latest()->first();
+                $amount = $quote ? $quote->amount : 0;
+                $priceText = "proyek sebesar Rp " . number_format($amount, 0, ',', '.');
+            }
+
+            // System message and attachment creation removed
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bukti pembayaran berhasil diunggah. Menunggu validasi desainer.',
+                'data' => $consultation
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Gagal mengunggah bukti pembayaran'], 400);
     }
 
     public function submitBrief(Request $request, $id)
@@ -281,6 +280,14 @@ class ConsultationController extends Controller
             ->first();
             
         if (!$freeConsultation) {
+            $totalFreeUsed = \App\Models\FreeConsultation::where('customer_id', $customer->id)->count();
+            if ($totalFreeUsed >= 3) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda telah mencapai batas maksimal 3x Free Consultation.',
+                ], 403);
+            }
+
             $freeConsultation = \App\Models\FreeConsultation::create([
                 'customer_id' => $customer->id,
                 'designer_id' => $id,
@@ -308,6 +315,52 @@ class ConsultationController extends Controller
                 'free_consultation' => $freeConsultation,
                 'time_left' => $timeLeft
             ]
+        ]);
+    }
+
+    public function submitReview(Request $request, $id)
+    {
+        $request->validate([
+            'rating'           => 'required|integer|min:1|max:5',
+            'comment'          => 'required|string',
+            'project_duration' => 'required|string|max:100',
+        ]);
+
+        $consultation = \App\Models\Consultation::with('customer')->findOrFail($id);
+        $customer = \App\Models\Customer::where('user_id', Auth::id())->first();
+        
+        if (!$customer || $consultation->customer_id !== $customer->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+        }
+
+        if ($consultation->status !== \App\Models\Consultation::STATUS_COMPLETED) {
+            return response()->json(['success' => false, 'message' => 'Hanya konsultasi yang sudah selesai yang dapat diulas.'], 400);
+        }
+
+        if (\App\Models\ConsultationReview::where('consultation_id', $id)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Anda sudah memberikan ulasan untuk konsultasi ini.'], 400);
+        }
+
+        $review = \App\Models\ConsultationReview::create([
+            'consultation_id'  => $id,
+            'customer_id'      => Auth::id(),
+            'designer_id'      => $consultation->designer_id,
+            'rating'           => $request->rating,
+            'comment'          => $request->comment,
+            'project_duration' => $request->project_duration,
+        ]);
+
+        $portfolio = \App\Models\DesignerPortfolio::where('consultation_id', $id)->first();
+        if ($portfolio) {
+            $portfolio->update([
+                'duration' => $request->project_duration
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Terima kasih! Ulasan Anda berhasil dikirim.',
+            'data' => $review
         ]);
     }
 }

@@ -117,7 +117,7 @@ class AiDesignController extends Controller
             // ── Simpan hasil ke storage ───────────────────────────────────────
             $filename  = 'ai-results/' . Str::uuid() . '.jpg';
             Storage::disk('public')->put($filename, $responseBody);
-            $outputUrl = config('app.url') . '/storage/' . $filename;
+            $outputUrl = asset('storage/' . $filename);
 
             // Label yang ditampilkan ke user
             $roomLabels = [

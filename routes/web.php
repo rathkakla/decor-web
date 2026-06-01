@@ -26,12 +26,12 @@ Route::get('/design-lab', function () {
 })->name('design-lab');
 
 // Jalur AI murni ke Controller
-Route::post('/api/generate-room', [AiDesignController::class, 'generate']);
 
 // PUBLIC INVOICE ROUTE
 Route::get('/invoice/{id}/download', [SellerController::class, 'downloadPdfInvoice'])->name('invoice.download');
 Route::get('/consultation/invoice/{id}', [App\Http\Controllers\DesignerController::class, 'downloadInvoice'])->name('consultation.invoice.public');
 Route::get('/consultation/quote/{id}/download-rab/public', [App\Http\Controllers\CustomerController::class, 'downloadRab'])->name('consultation.download-rab.public');
+Route::get('/consultation/quote/{id}/download-designs', [App\Http\Controllers\DesignerController::class, 'downloadDesignImages'])->name('consultation.download-designs.public');
 Route::get('/invoice/{id}/view', [SellerController::class, 'printInvoice'])->name('invoice.view');
 
 // Registrasi dinamis berdasarkan role
@@ -139,7 +139,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my-consultations', [CustomerController::class, 'myConsultations'])->name('my-consultations');
         
         // New Workflow Routes
+        Route::get('/track-consultations', [CustomerController::class, 'trackConsultationList'])->name('track-consultation.list');
         Route::post('/consultation/{id}/pay-fee', [CustomerController::class, 'payConsultationFee'])->name('consultation.pay-fee');
+        Route::post('/consultation/{id}/upload-payment-proof', [CustomerController::class, 'uploadPaymentProof'])->name('consultation.upload-payment-proof');
         Route::post('/consultation/{id}/submit-brief', [CustomerController::class, 'submitConsultationBrief'])->name('consultation.submit-brief');
         Route::post('/consultation/{id}/accept-offer', [CustomerController::class, 'acceptConsultationOffer'])->name('consultation.accept-offer');
         Route::post('/consultation/{id}/reject-offer', [CustomerController::class, 'rejectConsultationOffer'])->name('consultation.reject-offer');
@@ -147,6 +149,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/consultation/quote/{id}/download-rab', [CustomerController::class, 'downloadRab'])->name('consultation.download-rab');
         Route::post('/consultation/{id}/pay-final', [CustomerController::class, 'payFinalProject'])->name('consultation.pay-final');
         Route::post('/consultation/{id}/messages', [CustomerController::class, 'sendConsultationMessage'])->name('consultation.messages.send');
+        Route::post('/consultation/{id}/review', [CustomerController::class, 'submitConsultationReview'])->name('consultation.review.submit');
 
         Route::get('/chat-seller/{seller_id?}', [CustomerController::class, 'chatWithSeller'])->name('chat-seller.with');
         Route::post('/chat-seller/send', [CustomerController::class, 'sendChatMessage'])->name('chat-seller.send');
@@ -156,6 +159,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/vouchers/claim/{id}', [CustomerController::class, 'claimVoucher'])->name('vouchers.claim');
         Route::post('/vouchers/apply', [CustomerController::class, 'applyVoucher'])->name('vouchers.apply');
         Route::post('/orders/{id}/complete', [CustomerController::class, 'completeOrder'])->name('orders.complete');
+        Route::post('/orders/submit-reviews', [CustomerController::class, 'submitOrderReviews'])->name('orders.submit-reviews');
         
         // Support Submission
         Route::get('/support', fn() => view('customer.support'))->name('support');
@@ -250,6 +254,7 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
     Route::post('/consultations/{id}/messages', [App\Http\Controllers\DesignerController::class, 'sendConsultationMessage'])->name('consultations.messages.send');
     Route::post('/consultations/{id}/attachments', [App\Http\Controllers\DesignerController::class, 'uploadConsultationAttachment'])->name('consultations.attachments.upload');
     Route::patch('/consultations/{id}/status', [App\Http\Controllers\DesignerController::class, 'updateConsultationStatus'])->name('consultations.update-status');
+    Route::post('/consultations/{id}/validate-payment', [App\Http\Controllers\DesignerController::class, 'validatePayment'])->name('consultations.validate-payment');
     Route::get('/consultations/rab-template/download', [App\Http\Controllers\DesignerController::class, 'downloadRabTemplate'])->name('consultations.download-rab-template');
 
     // Invoice Download
@@ -261,21 +266,12 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
 
     // Performance & Reviews
     Route::get('/reviews', [App\Http\Controllers\DesignerController::class, 'reviews'])->name('reviews');
+    Route::post('/reviews/{reviewId}/reply', [App\Http\Controllers\DesignerController::class, 'replyReview'])->name('reviews.reply');
 
     // Reports System (Folder: report)
     Route::prefix('reports')->group(function () {
-        // Halaman Utama Laporan (Grafik)
-        Route::get('/', function () {
-            return view('designer.report.index');
-        })->name('reports');
-
-        // Halaman Template PDF untuk di-download
-        Route::get('/export', function () {
-            return view('designer.report.export_pdf', [
-                'start_date' => request('start_date', '2026-04-01'),
-                'end_date' => request('end_date', '2026-05-04')
-            ]);
-        })->name('report.export');
+        Route::get('/', [App\Http\Controllers\DesignerController::class, 'reportIndex'])->name('reports');
+        Route::get('/export', [App\Http\Controllers\DesignerController::class, 'reportExport'])->name('report.export');
     });
 
     // Settings (Folder: settings)
@@ -330,9 +326,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/support/{id}/reply', [App\Http\Controllers\AdminController::class, 'replySupport'])->name('admin.support.reply');
     Route::patch('/support/{id}/status', [App\Http\Controllers\AdminController::class, 'updateSupportStatus'])->name('admin.support.status');
 
-    Route::get('/portofolio-validation', function () {
-        return view('Admin.portofolio-validation');
-    })->name('admin.portfolio-validation');
+    Route::get('/portofolio-validation', [App\Http\Controllers\AdminController::class, 'portfolioValidation'])->name('admin.portfolio-validation');
+    Route::post('/portofolio-validation/{id}/approve', [App\Http\Controllers\AdminController::class, 'approvePortfolio'])->name('admin.portfolio.approve');
+    Route::post('/portofolio-validation/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectPortfolio'])->name('admin.portfolio.reject');
 
     Route::get('/settings', function () {
         return view('Admin.settings');

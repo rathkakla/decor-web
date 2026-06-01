@@ -6,6 +6,13 @@
     <title>Decor Designer - Project Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Fancybox.bind('[data-fancybox]', {});
+        });
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { background-color: #F8F6F4; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
@@ -23,7 +30,7 @@
         $consultation_id = "DEC-" . str_pad($consultation->id, 5, '0', STR_PAD_LEFT); 
     @endphp
 
-    <main class="flex flex-col min-h-screen">
+    <main class="flex flex-col h-screen overflow-hidden">
         <!-- HEADER: ADAPTIVE PROGRESS STEPS -->
         <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-xl text-white flex-shrink-0">
             <div class="flex items-center">
@@ -35,6 +42,7 @@
             </div>
             
             <!-- STEPS LOGIC (0: Waiting Brief, 1: Drafting, 2: Review, 3: Revision, 4: Completed) -->
+            @if($consultation->consultation_type != 'chat_consultation')
             <div class="flex items-center space-x-10">
                 <div class="flex items-center space-x-3 {{ $status == 0 ? '' : 'opacity-30' }}">
                     <span class="w-6 h-6 rounded-full {{ $status == 0 ? 'bg-white text-primary' : 'border border-white' }} flex items-center justify-center text-[10px] font-black">1</span>
@@ -64,6 +72,22 @@
                     </div>
                 </div>
             </div>
+            @else
+            <div class="flex items-center space-x-4">
+                @if($consultation->consultation_type == 'chat_consultation' && $consultation->chat_expires_at && !$consultation->is_chat_expired && $status == 1)
+                    <div id="chat-countdown" class="flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20 font-mono text-xs font-black text-white shrink-0">
+                        <i class="fa-solid fa-clock text-amber-300 animate-pulse"></i>
+                        <span id="countdown-timer">--:--</span>
+                    </div>
+                @endif
+                <div class="flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ Auth::user()->full_name }}</span>
+                    <div class="w-8 h-8 rounded-lg bg-white text-primary flex items-center justify-center font-bold">
+                        {{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}
+                    </div>
+                </div>
+            </div>
+            @endif
         </header>
 
         <div class="flex-1 flex overflow-hidden">
@@ -71,9 +95,33 @@
             <aside class="w-80 bg-white border-r border-gray-100 p-8 space-y-10 overflow-y-auto flex-shrink-0 custom-scroll">
                 <div class="space-y-4">
                     <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Client Profile</h3>
-                    <div class="bg-gray-50 rounded-[32px] p-6 border border-gray-100 shadow-inner">
-                        <p class="text-[11px] font-black text-gray-900 uppercase leading-none mb-1">{{ $consultation->customer->user->full_name }}</p>
-                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">Budget: {{ $consultation->budget_range }}</p>
+                    <div class="bg-gray-50 rounded-[32px] p-6 border border-gray-100 shadow-inner space-y-3">
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Client Name</p>
+                            <p class="text-[11px] font-black text-gray-900 uppercase leading-none">{{ $consultation->customer->user->full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Type</p>
+                            <p class="text-[11px] font-black text-gray-800">
+                                {{ $consultation->consultation_type == 'chat_consultation' ? 'Chat Consultation' : 'Request Proposal' }}
+                            </p>
+                        </div>
+                        @if($consultation->consultation_type != 'chat_consultation')
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Budget</p>
+                            <p class="text-[10px] font-black text-primary uppercase tracking-tighter">{{ $consultation->budget_range }}</p>
+                        </div>
+                        @endif
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Status</p>
+                            <p class="text-[11px] font-black {{ $consultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
+                                @if($consultation->is_chat_expired)
+                                    Expired
+                                @else
+                                    {{ \App\Models\Consultation::getStatusLabel($status) }}
+                                @endif
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -98,30 +146,131 @@
                     </form>
                 </div>
 
+                <!-- Generate Invoice -->
+                <div class="space-y-4 border-t border-gray-100 pt-6">
+                    <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Actions</h3>
+                    <a href="{{ route('consultation.invoice.public', $consultation->id) }}" class="w-full flex items-center justify-center space-x-2 bg-gray-50 hover:bg-primary/5 border border-gray-100 hover:border-primary/20 text-gray-500 hover:text-primary transition-all rounded-xl py-3 group">
+                        <i class="fa-solid fa-file-invoice-dollar group-hover:rotate-12 transition-transform"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Generate Invoice</span>
+                    </a>
+
+                    @if($consultation->payment_proof)
+                        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
+                            <p class="text-[8px] font-black text-amber-700 uppercase tracking-widest">Bukti Pembayaran</p>
+                            <a href="{{ asset('storage/' . $consultation->payment_proof) }}" target="_blank" class="block w-full rounded-xl overflow-hidden border border-amber-200">
+                                <img src="{{ asset('storage/' . $consultation->payment_proof) }}" class="w-full h-24 object-cover">
+                            </a>
+                            <div class="flex gap-2">
+                                <form action="{{ route('designer.consultations.validate-payment', $consultation->id) }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Verify</button>
+                                </form>
+                                <form action="{{ route('designer.consultations.validate-payment', $consultation->id) }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Reject</button>
+                                </form>
+                            </div>
+                        </div>
+                    @elseif($status == 5)
+                        <div class="space-y-2">
+                            <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="7">
+                                <button type="submit" class="w-full px-4 py-3 bg-green-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-700 transition-all">
+                                    <i class="fa-solid fa-check mr-1"></i> Approve Request
+                                </button>
+                            </form>
+                            <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="6">
+                                <button type="submit" class="w-full px-4 py-3 bg-red-100 text-red-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-200 transition-all border border-red-200">
+                                    <i class="fa-solid fa-xmark mr-1"></i> Reject
+                                </button>
+                            </form>
+                        </div>
+                    @elseif($status == 7)
+                        <div class="bg-amber-50 text-amber-600 px-4 py-3 rounded-xl border border-amber-100 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i> Waiting for Client Payment</p>
+                        </div>
+                    @elseif($status == 6)
+                        <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-ban mr-1"></i> Consultation Rejected</p>
+                        </div>
+                    @elseif($status == 0)
+                        <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
+                            @csrf @method('PATCH')
+                            <input type="hidden" name="status" value="1">
+                            <button type="submit" class="w-full px-4 py-3 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all">Start Project</button>
+                        </form>
+                    @elseif($status == 9)
+                        <div class="bg-amber-50 text-amber-600 px-4 py-3 rounded-xl border border-amber-100 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i> Waiting for Final Payment</p>
+                        </div>
+                    @elseif($status == 4)
+                        <div class="bg-green-50 text-green-600 px-4 py-3 rounded-xl border border-green-100 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-check mr-1"></i> Project Completed</p>
+                        </div>
+                    @endif
+                </div>
+
             </aside>
 
             <!-- CANVAS AREA: PROJECT WORKSPACE -->
             <section class="flex-1 bg-[#FDFCFB] flex flex-col overflow-hidden relative">
                 <!-- Project Details Header -->
-                <div class="p-12 border-b border-gray-100 bg-white/50">
-                    <div class="max-w-4xl mx-auto">
-                        <h3 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $consultation->title }}</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mt-4">{{ $consultation->description }}</p>
+                <div class="bg-white px-8 py-4 border-b border-gray-100 flex justify-between items-center z-10 shadow-sm relative">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">{{ $consultation->title }}</h2>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{{ $consultation->description }}</p>
                     </div>
                 </div>
 
                 <!-- Chat & Progress Area -->
-                <div class="flex-1 overflow-y-auto p-12 custom-scroll bg-gray-50/30">
+                <div class="flex-1 overflow-y-auto p-12 pb-28 custom-scroll bg-gray-50/30">
                     <div class="max-w-4xl mx-auto space-y-8">
                     @php
-                        $chatItems = collect();
+                        $rawItems = collect();
                         foreach($consultation->messages as $m) {
-                            $chatItems->push((object)['type' => 'message', 'data' => $m, 'time' => $m->created_at]);
+                            $rawItems->push((object)['type' => 'message', 'data' => $m, 'time' => $m->created_at, 'sender_id' => $m->sender_id]);
                         }
                         foreach($consultation->attachments as $a) {
-                            $chatItems->push((object)['type' => 'attachment', 'data' => $a, 'time' => $a->created_at]);
+                            $rawItems->push((object)['type' => 'attachment', 'data' => $a, 'time' => $a->created_at, 'sender_id' => $a->uploaded_by]);
                         }
-                        $chatItems = $chatItems->sortBy('time');
+                        $rawItems = $rawItems->sortBy('time')->values();
+
+                        $chatItems = collect();
+                        $currentCollage = null;
+
+                        foreach ($rawItems as $item) {
+                            if ($item->type == 'attachment' && Str::contains($item->data->file_type, 'image')) {
+                                if ($currentCollage && 
+                                    $currentCollage->sender_id == $item->sender_id && 
+                                    $currentCollage->time->diffInMinutes($item->time) < 2) {
+                                    $currentCollage->images[] = $item->data;
+                                } else {
+                                    if ($currentCollage) {
+                                        $chatItems->push($currentCollage);
+                                    }
+                                    $currentCollage = (object)[
+                                        'type' => 'collage',
+                                        'sender_id' => $item->sender_id,
+                                        'time' => $item->time,
+                                        'images' => [$item->data]
+                                    ];
+                                }
+                            } else {
+                                if ($currentCollage) {
+                                    $chatItems->push($currentCollage);
+                                    $currentCollage = null;
+                                }
+                                $chatItems->push($item);
+                            }
+                        }
+                        if ($currentCollage) {
+                            $chatItems->push($currentCollage);
+                        }
                     @endphp
 
                     @forelse($chatItems as $item)
@@ -132,19 +281,28 @@
                                     <span class="block text-[8px] font-black uppercase tracking-widest mt-2 {{ $item->data->sender_id == Auth::id() ? 'text-white/60' : 'text-gray-400' }}">{{ $item->data->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
+                        @elseif($item->type == 'collage')
+                            <div class="flex {{ $item->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
+                                <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->sender_id == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col gap-2">
+                                    <div class="grid {{ count($item->images) > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-1 overflow-hidden rounded-xl">
+                                        @foreach($item->images as $img)
+                                            @php $fileUrl = str_starts_with($img->file_url, 'http') ? $img->file_url : asset('storage/' . $img->file_url); @endphp
+                                            <a href="{{ $fileUrl }}" data-fancybox="gallery-{{ $item->time->timestamp }}" class="block {{ count($item->images) > 1 ? 'aspect-square' : '' }}">
+                                                <img src="{{ $fileUrl }}" class="w-full h-full object-cover hover:opacity-90 transition-opacity {{ count($item->images) == 1 ? 'max-w-xs max-h-60 rounded-xl' : '' }}">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                    <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->time->format('H:i') }}</span>
+                                </div>
+                            </div>
                         @elseif($item->type == 'attachment')
                             <div class="flex {{ $item->data->uploaded_by == Auth::id() ? 'justify-end' : 'justify-start' }}">
                                 <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->data->uploaded_by == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col items-center gap-2">
-                                    @if(Str::contains($item->data->file_type, 'image'))
-                                        <a href="{{ $item->data->file_url }}" target="_blank">
-                                            <img src="{{ $item->data->file_url }}" class="max-w-xs max-h-60 rounded-xl object-cover">
-                                        </a>
-                                    @else
-                                        <div class="flex items-center gap-3 px-4 py-2">
-                                            <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
-                                            <a href="{{ $item->data->file_url }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
-                                        </div>
-                                    @endif
+                                    @php $fileUrl = str_starts_with($item->data->file_url, 'http') ? $item->data->file_url : asset('storage/' . $item->data->file_url); @endphp
+                                    <div class="flex items-center gap-3 px-4 py-2">
+                                        <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
+                                        <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
+                                    </div>
                                     <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->data->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
@@ -241,6 +399,13 @@
                                     <p class="text-[8px] text-gray-400 font-bold uppercase">Format didukung: PDF, Excel (XLSX, XLS), CSV, Gambar (Max 10MB)</p>
                                 </div>
 
+                                <!-- Design Image Upload -->
+                                <div class="space-y-2 pt-2 border-t border-gray-100">
+                                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Upload Design Image (Bisa pilih lebih dari 1)</label>
+                                    <input type="file" name="design_image[]" accept="image/*" multiple class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-[11px] font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all">
+                                    <p class="text-[8px] text-gray-400 font-bold uppercase">Gambar ini akan otomatis menjadi portofolio Anda setelah project selesai (Max 10MB per file)</p>
+                                </div>
+
                                 <!-- Amount -->
                                 <div class="space-y-2 pt-2 border-t border-gray-100">
                                     <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Project Fee / Design Fee (IDR)</label>
@@ -278,89 +443,79 @@
                     }
                 </script>
 
-                <!-- Action Footer -->
-                <div class="p-6 bg-white border-t border-gray-100">
-                    <div class="max-w-4xl mx-auto flex items-center space-x-4">
-                        <form action="{{ route('designer.consultations.messages.send', $consultation->id) }}" method="POST" enctype="multipart/form-data" class="flex-1 flex space-x-2 bg-gray-50 border border-gray-100 rounded-[2rem] px-4 py-2 items-center focus-within:border-primary/30 focus-within:bg-white transition-all shadow-sm">
-                            @csrf
-                            <label for="chat-attachment" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-gray-100 shrink-0">
-                                <i class="fa-solid fa-paperclip"></i>
-                            </label>
-                            <input type="file" id="chat-attachment" name="attachment" class="hidden" onchange="this.form.submit()">
-                            
-                            <input type="text" name="message" placeholder="Type your instruction or update for the client..." class="flex-1 bg-transparent border-none outline-none text-[11px] font-bold px-2">
-                            <button type="submit" class="bg-primary text-white px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20 shrink-0">
-                                Send
-                            </button>
-                        </form>
-                        <button onclick="toggleQuoteModal()" class="bg-amber-100 text-amber-700 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-all border border-amber-200 shrink-0">
-                            <i class="fa-solid fa-file-invoice mr-2"></i> Project Agreement (RAB)
-                        </button>
+                <!-- Action Footer: Flying Chat Input -->
+                @if($status == 4)
+                    <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
+                        <div class="bg-green-50/90 backdrop-blur-md border border-green-200 rounded-2xl px-6 py-3 shadow-lg">
+                            <p class="text-xs font-black text-green-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Proyek Selesai. Chat telah dinonaktifkan.</p>
+                        </div>
                     </div>
-                </div>
+                @elseif($consultation->is_chat_expired)
+                    <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
+                        <div class="bg-red-50/90 backdrop-blur-md border border-red-200 rounded-2xl px-6 py-3 shadow-lg">
+                            <p class="text-xs font-black text-red-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Waktu Konsultasi Habis. Chat telah dinonaktifkan.</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="absolute bottom-0 left-0 right-0 p-4 {{ in_array($status, [0, 5, 6, 7]) ? 'opacity-20 pointer-events-none' : '' }}">
+                        <div class="max-w-4xl mx-auto flex items-center space-x-4">
+                            <form action="{{ route('designer.consultations.messages.send', $consultation->id) }}" method="POST" enctype="multipart/form-data" class="flex-1 flex space-x-2 bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-[2rem] px-4 py-2 items-center focus-within:border-primary/40 focus-within:bg-white/95 transition-all shadow-xl shadow-black/5">
+                                @csrf
+                                <label for="chat-attachment" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-gray-100 shrink-0">
+                                    <i class="fa-solid fa-paperclip"></i>
+                                </label>
+                                <input type="file" id="chat-attachment" name="attachment" class="hidden" onchange="this.form.submit()">
+                                
+                                <input type="text" name="message" placeholder="Type your instruction or update for the client..." class="flex-1 bg-transparent border-none outline-none text-[11px] font-bold px-2">
+                                <button type="submit" class="bg-primary text-white px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20 shrink-0">
+                                    Send
+                                </button>
+                            </form>
+                             @if($consultation->consultation_type != 'chat_consultation')
+                                <button onclick="toggleQuoteModal()" class="bg-amber-100/80 backdrop-blur-md text-amber-700 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-all border border-amber-200 shrink-0">
+                                    <i class="fa-solid fa-file-invoice mr-2"></i> Project Agreement (RAB)
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </section>
         </div>
 
-        <!-- STICKY FOOTER: ACTIONS -->
-        <footer class="h-20 bg-white/95 backdrop-blur-md border-t border-gray-100 px-10 flex items-center justify-between flex-shrink-0">
-             <a href="{{ route('consultation.invoice.public', $consultation->id) }}" class="flex items-center space-x-3 text-gray-400 hover:text-primary transition-all group italic">
-                <i class="fa-solid fa-file-invoice-dollar text-xl group-hover:rotate-12 transition-transform"></i>
-                <span class="text-[10px] font-black uppercase tracking-widest leading-none">Generate Invoice</span>
-            </a>
 
-            <div class="flex items-center space-x-4">
-                @if($status == 5)
-                    <div class="flex space-x-3">
-                        <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <input type="hidden" name="status" value="7">
-                            <button type="submit" class="px-8 py-3.5 bg-green-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-xl shadow-green-200">
-                                <i class="fa-solid fa-check mr-2"></i> Approve Request
-                            </button>
-                        </form>
-                        <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
-                            @csrf @method('PATCH')
-                            <input type="hidden" name="status" value="6">
-                            <button type="submit" class="px-8 py-3.5 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-200">
-                                <i class="fa-solid fa-xmark mr-2"></i> Reject
-                            </button>
-                        </form>
-                    </div>
-                @elseif($status == 7)
-                    <div class="bg-amber-50 text-amber-600 px-6 py-3 rounded-xl border border-amber-100">
-                        <p class="text-[10px] font-black uppercase tracking-widest">
-                            <i class="fa-solid fa-clock mr-2"></i> Approved. Waiting for Client Payment
-                        </p>
-                    </div>
-                @elseif($status == 6)
-                    <div class="bg-red-50 text-red-600 px-6 py-3 rounded-xl border border-red-100">
-                        <p class="text-[10px] font-black uppercase tracking-widest">
-                            <i class="fa-solid fa-ban mr-2"></i> Consultation Rejected
-                        </p>
-                    </div>
-                @elseif($status == 0)
-                    <p class="text-[10px] font-black text-gray-400 uppercase italic mr-4">Waiting for client brief...</p>
-                    <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="1">
-                        <button type="submit" class="px-10 py-3.5 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Start Project</button>
-                    </form>
-                @elseif($status == 1)
-                    <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="4">
-                        <button type="submit" class="px-14 py-3.5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/40 hover:scale-105 transition-all">
-                            Submit Final Concept
-                        </button>
-                    </form>
-                @elseif($status == 4)
-                    <div class="bg-green-50 text-green-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                        Project Completed
-                    </div>
-                @endif
-            </div>
-        </footer>
     </main>
 
+    @if($consultation && $consultation->consultation_type == 'chat_consultation' && $consultation->chat_expires_at && !$consultation->is_chat_expired && $status == 1)
+    <script>
+        (function() {
+            const expiresAt = new Date("{{ $consultation->chat_expires_at->toIso8601String() }}").getTime();
+            const timerSpan = document.getElementById('countdown-timer');
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = expiresAt - now;
+                
+                if (distance < 0) {
+                    clearInterval(x);
+                    if (timerSpan) timerSpan.innerHTML = "00:00";
+                    window.location.reload();
+                    return;
+                }
+                
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                if (timerSpan) {
+                    timerSpan.innerHTML = 
+                        String(minutes).padStart(2, '0') + ":" + 
+                        String(seconds).padStart(2, '0');
+                }
+            }
+            
+            updateTimer();
+            const x = setInterval(updateTimer, 1000);
+        })();
+    </script>
+    @endif
 </body>
 </html>

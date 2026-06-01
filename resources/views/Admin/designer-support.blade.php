@@ -28,241 +28,259 @@ $menu_items = [
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        :root {
-            --primary:       #B5733A;
-            --primary-hover: #8A5229;
-            --primary-light: #F7F0E8;
-            --primary-muted: #E8D4BC;
-            --bg:            #F5F2EE;
-            --surface:       #FFFFFF;
-            --surface-2:     #FAF8F5;
-            --border:        #E8E2DB;
-            --border-soft:   #EFE9E3;
-            --text:          #1C1410;
-            --text-soft:     #6B5F55;
-            --text-muted:    #A8998D;
-            --danger:        #C0392B;
-            --danger-bg:     #FEF1F0;
-            --success:       #1A7A4A;
-            --success-bg:    #EDF7F1;
-            --warning:       #B45309;
-            --warning-bg:    #FFFBEB;
-            --info:          #1565C0;
-            --info-bg:       #E3F2FD;
-            --sidebar-w:     256px;
-            --radius:        14px;
-            --radius-sm:     9px;
-            --shadow:        0 1px 4px rgba(28,20,16,.05), 0 4px 18px rgba(28,20,16,.04);
-            --shadow-card:   0 2px 8px rgba(28,20,16,.06), 0 8px 32px rgba(28,20,16,.05);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 13px; }
-
-        /* ─── SIDEBAR ─── */
-        aside { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; }
-        .brand { padding: 26px 22px 22px; border-bottom: 1px solid var(--border-soft); }
-        .brand-row { display: flex; align-items: center; gap: 10px; }
-        .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .brand-icon svg { width: 16px; height: 16px; stroke: #fff; }
-        .brand-name { font-size: 16px; font-weight: 800; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; }
-        .nav-section { padding: 18px 14px 8px; flex: 1; overflow-y: auto; }
-        .nav-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); padding: 0 8px; margin-bottom: 6px; display: block; }
-        .menu-link { text-decoration: none; display: block; margin-bottom: 2px; }
-        .menu-item { padding: 9px 10px; display: flex; align-items: center; gap: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 500; color: var(--text-soft); transition: all .15s ease; border: 1px solid transparent; }
-        .menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-        .menu-item:hover { background: var(--surface-2); color: var(--text); }
-        .menu-link.active .menu-item { background: var(--primary-light); color: var(--primary); font-weight: 700; border-color: var(--primary-muted); }
-        .sidebar-footer { padding: 16px 22px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; }
-        .s-avatar { width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--border-soft); object-fit: cover; }
-        .s-name { font-size: 12px; font-weight: 700; }
-        .s-role { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .s-dot { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-
-        /* ─── MAIN ─── */
-        main { margin-left: var(--sidebar-w); flex: 1; padding: 36px 40px 72px; }
-
-        /* ─── PAGE HEADER ─── */
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; animation: fadeUp 0.4s ease both; }
-        .page-eyebrow { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .16em; color: var(--primary); margin-bottom: 5px; }
-        .page-title { font-size: 24px; font-weight: 800; color: var(--text); }
-        .page-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-        /* ─── STATS ─── */
-        .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 28px; }
-        .stat-mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; animation: fadeUp 0.4s ease both; }
-        .stat-mini::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background: var(--primary); }
-        .stat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .stat-icon svg { width: 16px; height: 16px; stroke: var(--primary); }
-        .stat-val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-        .stat-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
-        .stat-note { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
-        .stat-val.clr-danger { color: var(--danger); }
-        .stat-val.clr-info { color: var(--info); }
-        .stat-val.clr-success { color: var(--success); }
-
-        /* ─── TICKET LIST ─── */
-        .ticket-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.4s ease 0.28s both; }
-        .ticket-row {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            display: grid; grid-template-columns: 130px 1fr 120px 110px 110px 130px;
-            align-items: center; gap: 0;
-            transition: transform 0.15s, box-shadow 0.15s;
-            overflow: hidden; position: relative;
-        }
-        .ticket-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-        .ticket-row.st-pending::before  { background: var(--danger); }
-        .ticket-row.st-replied::before  { background: var(--info); }
-        .ticket-row.st-resolved::before { background: var(--success); }
-        .tcell { padding: 16px 18px; border-right: 1px solid var(--border-soft); }
-        .tkt-id { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--primary); display: block; }
-        .tkt-time { font-size: 9px; color: var(--text-muted); font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 3px; }
-        .sender-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
-        .tkt-subject { font-size: 12.5px; font-weight: 500; color: var(--text-soft); }
-        .status-select {
-            padding: 6px 10px; border-radius: 8px; font-size: 10px; font-weight: 800;
-            border: 1.5px solid; outline: none; cursor: pointer;
-            text-transform: uppercase; transition: 0.2s; font-family: inherit; width: 100%;
-        }
-        .status-pending  { background: var(--danger-bg);  color: var(--danger);  border-color: #F5C6C1; }
-        .status-replied  { background: var(--info-bg);    color: var(--info);    border-color: #BBDEFB; }
-        .status-resolved { background: var(--success-bg); color: var(--success); border-color: #B8DEC8; }
-        .btn-reply {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 14px; border-radius: 9px; font-size: 11px; font-weight: 700;
-            background: var(--primary); color: #fff; border: none; cursor: pointer;
-            transition: 0.15s; white-space: nowrap;
-        }
-
-        /* ─── CHAT MODAL ─── */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .bg-primary { background-color: #B5733A; }
+        .text-primary { color: #B5733A; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
+        .sidebar-hidden { transform: translateX(-100%); }
+        .main-expanded { margin-left: 0 !important; }
         .chat-modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(28,20,16,0.55); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .chat-modal.show { display: flex; }
-        .chat-content { background: var(--surface); width: 480px; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
-        .chat-header { padding: 18px 22px; background: var(--primary); display: flex; align-items: center; justify-content: space-between; }
-        .chat-title { font-size: 13px; font-weight: 800; color: #fff; }
-        .chat-body { flex: 1; padding: 20px; overflow-y: auto; background: var(--surface-2); display: flex; flex-direction: column; gap: 12px; min-height: 300px; }
-        .bubble-wrap { display: flex; flex-direction: column; }
-        .bubble-wrap.admin-wrap { align-items: flex-end; }
-        .bubble { max-width: 82%; padding: 11px 15px; border-radius: 14px; font-size: 12.5px; }
-        .bubble.user { background: var(--surface); border: 1px solid var(--border-soft); border-bottom-left-radius: 4px; }
-        .bubble.admin { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-        .chat-footer { padding: 16px 18px; border-top: 1px solid var(--border-soft); background: var(--surface); display: flex; gap: 8px; }
-        .chat-input { flex: 1; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 10px; outline: none; }
-        .btn-send { padding: 10px 16px; background: var(--primary); color: #fff; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; }
-
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        .chat-content { transform: scale(0.95); transition: 0.3s; }
+        .chat-modal.show .chat-content { transform: scale(1); }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #FAF8F5; }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="text-gray-800 bg-[#F8F6F4]">
 
-<aside>
-    <div class="brand">
-        <div class="brand-row"><div class="brand-icon"><i data-feather="layout"></i></div><div class="brand-name">DECOR</div></div>
+@include("Admin.partials.sidebar")
+
+<main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
+    @include("Admin.partials.header", ["title" => "Designer Support"])
+    <div class="p-8 space-y-8 flex-1">
+
+    <div class="mb-8">
+        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Partnership Care</div>
+        <div class="text-2xl font-bold text-gray-900">Designer Support Hub</div>
+        <div class="text-xs text-gray-500 mt-1">Bantu desainer mengatasi kendala unggah portofolio, pencairan dana, dan sistem proyek.</div>
     </div>
-    <div class="nav-section">
-        <span class="nav-label">Navigation</span>
-        @foreach ($menu_items as $item)
-        @php $active = (request()->url() === $item['path']) ? 'active' : ''; @endphp
-        <a href="{{ $item['path'] }}" class="menu-link {{ $active }}">
-            <div class="menu-item" style="position: relative;">
-                <i data-feather="{{ $item['icon'] }}"></i>
-                <span>{{ $item['label'] }}</span>
-                @if(isset($item['badge']) && $item['badge'] > 0)
-                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--danger); color: white; border-radius: 99px; font-size: 8px; font-weight: 800; padding: 2px 6px;">{{ $item['badge'] }}</span>
-                @endif
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mb-4">
+                <i data-feather="alert-circle" class="w-5 h-5"></i>
             </div>
-        </a>
-        @endforeach
-    </div>
-</aside>
-
-<main>
-    <div class="page-header">
-        <div>
-            <div class="page-eyebrow">Communication Hub</div>
-            <div class="page-title">Designer Support Center</div>
-            <div class="page-desc">Tanggapi keluhan dan bantuan teknis dari para desainer interior.</div>
+            <h3 class="text-2xl font-bold text-gray-900 text-red-500"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Open</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">butuh respon cepat</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-blue-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center mb-4">
+                <i data-feather="message-square" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 text-blue-500"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Replied</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">menunggu respon balik</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-green-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-green-50 text-green-500 flex items-center justify-center mb-4">
+                <i data-feather="check-circle" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 text-green-500"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Resolved</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">kasus selesai</p>
         </div>
     </div>
 
-    <div class="stats-row">
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="alert-circle"></i></div>
-            <div>
-                <div class="stat-val clr-danger">{{ str_pad($stats['open'], 2, '0', STR_PAD_LEFT) }}</div>
-                <div class="stat-lbl">Open</div>
-            </div>
+    <div class="flex items-center gap-4 mb-6">
+        <div class="flex-1 relative">
+            <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari ID tiket atau nama desainer…">
         </div>
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="message-square"></i></div>
-            <div>
-                <div class="stat-val clr-info">{{ str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) }}</div>
-                <div class="stat-lbl">Replied</div>
-            </div>
-        </div>
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="check-circle"></i></div>
-            <div>
-                <div class="stat-val clr-success">{{ str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) }}</div>
-                <div class="stat-lbl">Resolved</div>
-            </div>
+        <div class="flex gap-1 bg-white border border-gray-100 shadow-sm rounded-xl p-1">
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors bg-orange-50 text-primary">Semua</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Open</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Diproses</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Selesai</button>
         </div>
     </div>
 
-    <div class="ticket-list">
+    <!-- Ticket List -->
+    <div class="space-y-4">
         @forelse ($tickets as $t)
-        <div class="ticket-row st-{{ $t->status }}">
-            <div class="tcell"><span class="tkt-id">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span><div class="tkt-time">{{ $t->created_at->diffForHumans() }}</div></div>
-            <div class="tcell"><div class="sender-name">{{ $t->user->full_name }}</div><span class="nav-label">Designer</span></div>
-            <div class="tcell"><div class="tkt-subject">{{ $t->subject }}</div></div>
-            <div class="tcell">
-                <select class="status-select status-{{ $t->status }}" onchange="updateTicketStatus(this, {{ $t->id }})">
-                    <option value="pending" {{ $t->status === 'pending' ? 'selected' : '' }}>Open</option>
-                    <option value="replied" {{ $t->status === 'replied' ? 'selected' : '' }}>Replied</option>
-                    <option value="resolved" {{ $t->status === 'resolved' ? 'selected' : '' }}>Resolved</option>
+        @php
+            $sl = strtolower($t->status);
+            $leftBorder = match($sl) {
+                'pending' => 'border-l-4 border-red-500',
+                'replied' => 'border-l-4 border-blue-500',
+                'resolved' => 'border-l-4 border-green-500',
+                default => 'border-l-4 border-gray-500'
+            };
+        @endphp
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow group {{ $leftBorder }} ticket-row" id="row-{{ $t->id }}">
+
+            <!-- ID + Time -->
+            <div class="w-[130px]">
+                <span class="inline-block px-2 py-1 bg-orange-50 text-primary text-[9px] font-black uppercase tracking-widest rounded-md mb-1.5 font-mono">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
+                <div class="flex items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                    <i data-feather="clock" class="w-3 h-3 mr-1.5"></i> {{ $t->created_at->diffForHumans() }}
+                </div>
+            </div>
+
+            <!-- Sender -->
+            <div class="w-1/5">
+                <div class="text-sm font-bold text-gray-900 truncate">{{ $t->user->full_name }}</div>
+                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-purple-50 text-purple-600">
+                    Designer
+                </span>
+            </div>
+
+            <!-- Subject -->
+            <div class="flex-1">
+                <div class="text-xs font-semibold text-gray-600 line-clamp-2">{{ $t->subject }}</div>
+            </div>
+
+            <!-- Status -->
+            <div class="w-[140px]">
+                @php
+                    $selectCls = match($sl) {
+                        'pending' => 'bg-red-50 text-red-600 border-red-200',
+                        'replied' => 'bg-blue-50 text-blue-600 border-blue-200',
+                        'resolved' => 'bg-green-50 text-green-600 border-green-200',
+                        default => 'bg-gray-50 text-gray-600 border-gray-200'
+                    };
+                @endphp
+                <select class="w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer {{ $selectCls }}" onchange="updateTicketStatus(this, {{ $t->id }})">
+                    <option value="pending" {{ $sl === 'pending' ? 'selected' : '' }}>Open</option>
+                    <option value="replied" {{ $sl === 'replied' ? 'selected' : '' }}>Replied</option>
+                    <option value="resolved" {{ $sl === 'resolved' ? 'selected' : '' }}>Resolved</option>
                 </select>
             </div>
-            <div class="tcell">
-                <button class="btn-reply" onclick="openChat('{{ $t->id }}', '{{ $t->user->full_name }}', '{{ $t->subject }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">View & Reply</button>
+
+            <!-- Action -->
+            <div class="w-[140px] flex justify-end">
+                <button class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-[10px] font-bold bg-primary text-white hover:bg-[#8A5229] transition-colors whitespace-nowrap w-full"
+                        onclick="openChat('{{ $t->id }}', '{{ addslashes($t->user->full_name) }}', '{{ addslashes($t->subject) }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
+                    <i data-feather="message-circle" class="w-3.5 h-3.5 mr-1.5"></i> View & Reply
+                </button>
             </div>
+
         </div>
         @empty
-        <p class="text-center py-10 text-muted">Belum ada tiket bantuan.</p>
+        <div class="text-center py-12 bg-white rounded-xl border border-gray-100 text-gray-400 shadow-sm">
+            <i data-feather="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p class="text-sm font-semibold">Belum ada tiket bantuan dari designer.</p>
+        </div>
         @endforelse
+    </div>
+
     </div>
 </main>
 
+<!-- ══════════ CHAT MODAL ══════════ -->
 <div id="chatModal" class="chat-modal">
-    <div class="chat-content">
-        <div class="chat-header"><div class="chat-title" id="chatTitle">—</div><button onclick="closeChat()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button></div>
-        <div class="chat-body" id="chatWindow"></div>
-        <form id="replyForm" action="" method="POST" class="chat-footer">
+    <div class="chat-content bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-5 bg-primary flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3 text-white">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <i data-feather="message-circle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold" id="chatTitle">—</div>
+                    <div class="text-[10px] text-white/80 mt-0.5" id="chatSub">—</div>
+                </div>
+            </div>
+            <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors" onclick="closeChat()">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <div class="chat-body" id="chatWindow">
+            <!-- Messages will be injected here -->
+        </div>
+
+        <form id="replyForm" action="" method="POST" class="p-4 bg-white border-t border-gray-100 flex gap-2 shrink-0">
             @csrf
-            <input type="text" name="reply" id="chatInput" class="chat-input" placeholder="Tulis balasan…" required>
-            <button type="submit" class="btn-send">Kirim</button>
+            <input type="text" name="reply" id="chatInput" class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Tulis balasan…" required>
+            <button type="submit" class="px-5 py-3 bg-primary hover:bg-[#8A5229] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors">
+                <i data-feather="send" class="w-4 h-4"></i> Kirim
+            </button>
         </form>
     </div>
 </div>
 
 <script>
-    feather.replace();
+    feather.replace({ 'stroke-width': 2 });
+
     function updateTicketStatus(sel, id) {
+        const val = sel.value;
+        const clsMap = {
+            'pending': 'bg-red-50 text-red-600 border-red-200',
+            'replied': 'bg-blue-50 text-blue-600 border-blue-200',
+            'resolved': 'bg-green-50 text-green-600 border-green-200'
+        };
+        const borderMap = {
+            'pending': 'border-l-4 border-red-500',
+            'replied': 'border-l-4 border-blue-500',
+            'resolved': 'border-l-4 border-green-500'
+        };
+        
+        sel.className = `w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer ${clsMap[val]}`;
+        
+        const row = sel.closest('.ticket-row');
+        row.className = row.className.replace(/border-l-4 border-\w+-500/, borderMap[val]);
+
         fetch(`{{ url('admin/support') }}/${id}/status`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({ status: sel.value })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ status: val })
         });
     }
+
     function openChat(id, name, subject, message, reply) {
-        document.getElementById('chatTitle').textContent = '#' + id + ' · ' + name;
+        document.getElementById('chatTitle').textContent = '#' + id.toString().padStart(4, '0') + ' · ' + name;
+        document.getElementById('chatSub').textContent = subject;
+        
         const win = document.getElementById('chatWindow');
-        win.innerHTML = `<div class="bubble-wrap"><div class="bubble user">${message}</div></div>`;
-        if(reply) win.innerHTML += `<div class="bubble-wrap admin-wrap"><div class="bubble admin">${reply}</div></div>`;
+        win.innerHTML = `
+            <div class="flex flex-col items-start w-full mb-2">
+                <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 pl-1">${name} · Designer</div>
+                <div class="max-w-[85%] px-4 py-3 bg-white border border-gray-200 text-gray-800 text-xs rounded-2xl rounded-tl-sm shadow-sm leading-relaxed">${message}</div>
+            </div>
+        `;
+
+        if(reply && reply !== '') {
+            win.innerHTML += `
+                <div class="flex flex-col items-end w-full mt-4">
+                    <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 pr-1">Admin · Reply</div>
+                    <div class="max-w-[85%] px-4 py-3 bg-primary text-white text-xs rounded-2xl rounded-tr-sm shadow-sm leading-relaxed">${reply}</div>
+                </div>
+            `;
+        }
+
         document.getElementById('replyForm').action = `{{ url('admin/support') }}/${id}/reply`;
         document.getElementById('chatModal').classList.add('show');
+        win.scrollTop = win.scrollHeight;
     }
-    function closeChat() { document.getElementById('chatModal').classList.remove('show'); }
+
+    function closeChat() {
+        document.getElementById('chatModal').classList.remove('show');
+    }
+
+    window.addEventListener('click', e => {
+        if (e.target === document.getElementById('chatModal')) closeChat();
+    });
+</script>
+
+<script>
+    const btn = document.getElementById("toggle-sidebar");
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main-content");
+    if(btn) {
+        btn.addEventListener("click", () => { 
+            sidebar.classList.toggle("sidebar-hidden"); 
+            main.classList.toggle("main-expanded"); 
+        });
+    }
 </script>
 </body>
 </html>

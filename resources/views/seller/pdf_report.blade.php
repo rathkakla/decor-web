@@ -62,7 +62,13 @@
             @foreach($transactions as $item)
             <tr>
                 <td>{{ $item->order->created_at->format('d/m/Y') }}</td>
-                <td>#{{ $item->order->id }}</td>
+                <td>
+                    @if($item->order->return_code)
+                        #DEC-{{ str_replace('RET-', '', $item->order->return_code) }}-RET
+                    @else
+                        #{{ $item->order->id }}
+                    @endif
+                </td>
                 <td>{{ $item->product->name }}</td>
                 <td class="text-right">{{ $item->quantity }}</td>
                 <td class="text-right">Rp {{ number_format($item->price, 0, ',', '.') }}</td>

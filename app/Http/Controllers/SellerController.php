@@ -536,6 +536,7 @@ class SellerController extends Controller
                     'payment_method' => $originalOrder->payment_method,
                     'status' => 'paid', // Automatically paid as it's an exchange
                     'payment_proof' => $originalOrder->payment_proof,
+                    'return_code' => 'RET-' . $originalOrder->id,
                 ]);
 
                 foreach ($originalOrder->orderItems as $item) {

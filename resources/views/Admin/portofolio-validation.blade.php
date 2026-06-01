@@ -1,74 +1,27 @@
-<?php
-$current_page = basename($_SERVER['PHP_SELF']);
-$current_path = str_replace('.php', '', $current_page);
-if ($current_path == "" || $current_path == "index") {
-    $current_path = "portofolio-validation";
-}
-
-$admin_name = "Alex Rivera";
-$admin_role = "SUPER ADMIN";
+@php
+$admin_name = Auth::user()->full_name;
+$admin_role = "ADMIN";
 
 $menu_items = [
-    ["label" => "Dashboard",              "path" => "dashboard",              "icon" => "grid"],
-    ["label" => "User Management",        "path" => "user-management",        "icon" => "users"],
-    ["label" => "Seller Monitor",         "path" => "seller-monitor",         "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",       "path" => "designer-monitor",       "icon" => "pen-tool"],
-    ["label" => "Seller Support",         "path" => "seller-support",         "icon" => "headphones"],
-    ["label" => "Designer Support",       "path" => "designer-support",       "icon" => "pen-tool"],
-    ["label" => "Customer Support",       "path" => "customer-support",       "icon" => "message-circle"],
-    ["label" => "Product Validation",     "path" => "product-validation",     "icon" => "check-circle"],
-    ["label" => "Portofolio Validation",  "path" => "portofolio-validation",  "icon" => "image"],
+    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
+    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
+    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
+    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
+    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
+    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones"],
+    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool"],
+    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle"],
+    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
+    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
 ];
 
-$pending_portfolios = [
-    [
-        "id"          => "PF-772",
-        "designer"    => "Julian Thorne",
-        "title"       => "Warm Minimalist Penthouse",
-        "style"       => "Mid-Century Modern",
-        "image"       => "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600",
-        "description" => "Proyek renovasi apartemen dengan fokus pada pencahayaan alami dan material kayu walnut premium.",
-        "material"    => "Solid Walnut, Travertine Stone",
-        "dimensions"  => "120 sqm",
-        "duration"    => "3 Months",
-        "submitted"   => "15 Mins Ago",
-        "status"      => "Pending",
-    ],
-    [
-        "id"          => "PF-775",
-        "designer"    => "Elena Rodriguez",
-        "title"       => "Zen Garden Studio",
-        "style"       => "Japanese Minimalist",
-        "image"       => "https://images.unsplash.com/photo-1594051663637-99c39a7c6a99?w=600",
-        "description" => "Transformasi studio kecil menjadi ruang meditasi yang menenangkan dengan elemen bambu dan batu alam.",
-        "material"    => "Bamboo, Slate Tile",
-        "dimensions"  => "45 sqm",
-        "duration"    => "1.5 Months",
-        "submitted"   => "3 Hours Ago",
-        "status"      => "Review",
-    ],
-    [
-        "id"          => "PF-780",
-        "designer"    => "Marcus Webb",
-        "title"       => "Industrial Loft Conversion",
-        "style"       => "Industrial Chic",
-        "image"       => "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600",
-        "description" => "Konversi gudang menjadi hunian modern dengan ekspos bata merah, besi hitam, dan aksen kayu reclaimed.",
-        "material"    => "Reclaimed Wood, Exposed Brick, Iron",
-        "dimensions"  => "210 sqm",
-        "duration"    => "5 Months",
-        "submitted"   => "Yesterday",
-        "status"      => "Pending",
-    ],
+$stats_view = [
+    ["label" => "Pending",   "value" => sprintf("%02d", $stats['pending']),  "icon" => "clock",        "note" => "menunggu kurasi",   "color" => "warning"],
+    ["label" => "Published", "value" => sprintf("%02d", $stats['approved']), "icon" => "check-circle", "note" => "karya live",        "color" => "success"],
+    ["label" => "Rejected",  "value" => sprintf("%02d", $stats['rejected']), "icon" => "x-circle",     "note" => "tidak layak",       "color" => "danger"],
+    ["label" => "Total",     "value" => sprintf("%02d", $stats['total']),    "icon" => "zap",          "note" => "semua portofolio",  "color" => "primary"],
 ];
-
-$stats = [
-    ["label" => "Pending",   "value" => "08",  "icon" => "clock",        "note" => "menunggu kurasi",   "color" => "warning"],
-    ["label" => "Published", "value" => "124", "icon" => "check-circle", "note" => "karya live",        "color" => "success"],
-    ["label" => "Rejected",  "value" => "12",  "icon" => "x-circle",     "note" => "tidak layak",       "color" => "danger"],
-    ["label" => "Total",     "value" => "144", "icon" => "zap",          "note" => "semua portofolio",  "color" => "primary"],
-];
-?>
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,388 +31,229 @@ $stats = [
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        :root {
-            --primary:       #B5733A;
-            --primary-hover: #8A5229;
-            --primary-light: #F7F0E8;
-            --primary-muted: #E8D4BC;
-            --bg:            #F5F2EE;
-            --surface:       #FFFFFF;
-            --surface-2:     #FAF8F5;
-            --border:        #E8E2DB;
-            --border-soft:   #EFE9E3;
-            --text:          #1C1410;
-            --text-soft:     #6B5F55;
-            --text-muted:    #A8998D;
-            --danger:        #C0392B;
-            --danger-bg:     #FEF1F0;
-            --success:       #1A7A4A;
-            --success-bg:    #EDF7F1;
-            --warning:       #B45309;
-            --warning-bg:    #FFFBEB;
-            --info:          #1565C0;
-            --info-bg:       #E3F2FD;
-            --sidebar-w:     256px;
-            --radius:        14px;
-            --radius-sm:     9px;
-            --shadow:        0 1px 4px rgba(28,20,16,.05), 0 4px 18px rgba(28,20,16,.04);
-            --shadow-card:   0 2px 8px rgba(28,20,16,.06), 0 8px 32px rgba(28,20,16,.05);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 13px; }
-
-        /* ─── SIDEBAR ─── */
-        aside { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; }
-        .brand { padding: 26px 22px 22px; border-bottom: 1px solid var(--border-soft); }
-        .brand-row { display: flex; align-items: center; gap: 10px; }
-        .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .brand-icon svg { width: 16px; height: 16px; stroke: #fff; }
-        .brand-name { font-size: 16px; font-weight: 800; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; }
-        .brand-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; font-weight: 600; }
-        .nav-section { padding: 18px 14px 8px; flex: 1; overflow-y: auto; }
-        .nav-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); padding: 0 8px; margin-bottom: 6px; display: block; }
-        .menu-link { text-decoration: none; display: block; margin-bottom: 2px; }
-        .menu-item { padding: 9px 10px; display: flex; align-items: center; gap: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 500; color: var(--text-soft); transition: all .15s ease; border: 1px solid transparent; }
-        .menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-        .menu-item:hover { background: var(--surface-2); color: var(--text); }
-        .menu-link.active .menu-item { background: var(--primary-light); color: var(--primary); font-weight: 700; border-color: var(--primary-muted); }
-        .sidebar-footer { padding: 16px 22px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; }
-        .s-avatar { width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--border-soft); object-fit: cover; }
-        .s-name { font-size: 12px; font-weight: 700; }
-        .s-role { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .s-dot { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-
-        /* ─── MAIN ─── */
-        main { margin-left: var(--sidebar-w); flex: 1; padding: 36px 40px 72px; }
-
-        /* ─── PAGE HEADER ─── */
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; animation: fadeUp 0.4s ease both; }
-        .page-eyebrow { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .16em; color: var(--primary); margin-bottom: 5px; }
-        .page-title { font-size: 24px; font-weight: 800; color: var(--text); }
-        .page-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-        /* ─── STATS ─── */
-        .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
-        .stat-mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; animation: fadeUp 0.4s ease both; }
-        .stat-mini:nth-child(1){ animation-delay:.05s } .stat-mini:nth-child(2){ animation-delay:.10s }
-        .stat-mini:nth-child(3){ animation-delay:.15s } .stat-mini:nth-child(4){ animation-delay:.20s }
-        .stat-mini::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background: var(--primary); }
-        .stat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .stat-icon svg { width: 16px; height: 16px; stroke: var(--primary); }
-        .stat-val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-        .stat-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
-        .stat-note { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
-        .clr-warning { color: var(--warning); } .clr-success { color: var(--success); }
-        .clr-danger  { color: var(--danger); }  .clr-primary { color: var(--primary); }
-
-        /* ─── TOOLBAR ─── */
-        .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: fadeUp 0.4s ease 0.22s both; }
-        .search-wrap { position: relative; flex: 1; max-width: 320px; }
-        .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; }
-        .search-input { width: 100%; padding: 9px 14px 9px 36px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text); outline: none; transition: 0.15s; }
-        .search-input:focus { border-color: var(--primary-muted); background: var(--primary-light); }
-        .search-input::placeholder { color: var(--text-muted); }
-        .filter-tabs { display: flex; gap: 4px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 4px; }
-        .ftab { padding: 6px 14px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: 0.15s; border: none; background: none; font-family: inherit; }
-        .ftab.active, .ftab:hover { background: var(--primary-light); color: var(--primary); }
-
-        /* ─── PORTFOLIO LIST ─── */
-        .product-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.4s ease 0.28s both; }
-
-        .product-row {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            display: grid; grid-template-columns: 72px 210px 1fr 130px 110px 90px 180px;
-            align-items: center; gap: 0;
-            transition: transform 0.15s, box-shadow 0.15s;
-            overflow: hidden; position: relative;
-        }
-        .product-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
-        .product-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--warning); }
-        .product-row.st-review::before { background: var(--info); }
-
-        .tcell { padding: 14px 16px; border-right: 1px solid var(--border-soft); }
-        .tcell:last-child { border-right: none; }
-        .tcell:first-child { padding: 0; }
-
-        .prod-thumb { width: 72px; height: 72px; object-fit: cover; display: block; cursor: pointer; transition: opacity 0.15s; }
-        .prod-thumb:hover { opacity: 0.85; }
-
-        .prod-id { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: var(--primary); }
-        .prod-name { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 3px; }
-        .prod-shop { font-size: 10px; color: var(--text-muted); margin-top: 2px; font-weight: 600; }
-
-        .cat-badge { display: inline-flex; padding: 3px 9px; border-radius: 5px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: var(--primary-light); color: var(--primary); }
-
-        .prod-dim { font-size: 13px; font-weight: 700; color: var(--text); }
-        .prod-dur { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
-
-        .tkt-time { font-size: 10px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 3px; }
-        .tkt-time svg { width: 10px; height: 10px; }
-
-        .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 7px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-        .st-pending { background: var(--warning-bg); color: var(--warning); }
-        .st-review  { background: var(--info-bg);    color: var(--info); }
-
-        .action-cell { display: flex; gap: 6px; }
-        .btn-approve {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 7px 12px; border-radius: 8px; font-size: 10px; font-weight: 700;
-            background: var(--success-bg); color: var(--success);
-            border: 1.5px solid #B8DEC8; cursor: pointer; transition: 0.15s; white-space: nowrap;
-        }
-        .btn-approve:hover { background: var(--success); color: #fff; border-color: var(--success); }
-        .btn-reject {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 7px 12px; border-radius: 8px; font-size: 10px; font-weight: 700;
-            background: var(--danger-bg); color: var(--danger);
-            border: 1.5px solid #F5C6C1; cursor: pointer; transition: 0.15s; white-space: nowrap;
-        }
-        .btn-reject:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-        .btn-approve svg, .btn-reject svg { width: 11px; height: 11px; }
-
-        /* row disabled after decision */
-        .product-row.decided { opacity: 0.5; pointer-events: none; }
-        .product-row.decided::before { background: var(--text-muted) !important; }
-
-        /* ─── DETAIL MODAL ─── */
-        .detail-modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(28,20,16,0.55); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
-        .detail-modal.show { display: flex; }
-        .detail-content {
-            background: var(--surface); width: 100%; max-width: 820px;
-            border-radius: 20px; overflow: hidden;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1) both;
-            display: flex; max-height: 90vh;
-        }
-        .detail-img-wrap { width: 340px; flex-shrink: 0; position: relative; }
-        .detail-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .detail-img-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, rgba(28,20,16,0.75), transparent); }
-        .detail-img-overlay .prod-id-lg { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.7); }
-        .detail-img-overlay .prod-shop-lg { font-size: 13px; font-weight: 800; color: #fff; margin-top: 2px; }
-        .detail-body { flex: 1; padding: 36px; overflow-y: auto; display: flex; flex-direction: column; }
-        .detail-close { align-self: flex-end; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.15s; margin-bottom: 20px; }
-        .detail-close:hover { background: var(--border); color: var(--text); }
-        .detail-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-        .detail-style { font-size: 12px; font-weight: 700; color: var(--primary); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
-        .detail-desc { font-size: 13px; color: var(--text-soft); line-height: 1.7; margin-top: 16px; padding: 16px; background: var(--surface-2); border-radius: 10px; border-left: 3px solid var(--primary-muted); font-style: italic; }
-        .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .spec-box { background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 10px; padding: 14px 16px; }
-        .spec-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-        .spec-value { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 4px; }
-        .detail-actions { display: flex; gap: 10px; margin-top: 24px; }
-        .btn-approve-lg {
-            flex: 1; padding: 13px; border-radius: 10px; font-size: 12px; font-weight: 800;
-            background: var(--success); color: #fff; border: none; cursor: pointer; transition: 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 7px;
-        }
-        .btn-approve-lg:hover { background: #155e3b; }
-        .btn-reject-lg {
-            flex: 1; padding: 13px; border-radius: 10px; font-size: 12px; font-weight: 800;
-            background: var(--danger-bg); color: var(--danger); border: 1.5px solid #F5C6C1; cursor: pointer; transition: 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 7px;
-        }
-        .btn-reject-lg:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-        .btn-approve-lg svg, .btn-reject-lg svg { width: 14px; height: 14px; }
-
-        /* ─── CONFIRM MODAL ─── */
-        .confirm-modal { display: none; position: fixed; z-index: 3000; inset: 0; background: rgba(28,20,16,0.6); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
-        .confirm-modal.show { display: flex; }
-        .confirm-box {
-            background: var(--surface); border-radius: 18px; width: 400px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.22);
-            animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1) both;
-            overflow: hidden;
-        }
-        .confirm-header { padding: 20px 24px 0; }
-        .confirm-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
-        .confirm-icon.approve { background: var(--success-bg); }
-        .confirm-icon.reject  { background: var(--danger-bg); }
-        .confirm-icon svg { width: 20px; height: 20px; }
-        .confirm-icon.approve svg { stroke: var(--success); }
-        .confirm-icon.reject  svg { stroke: var(--danger); }
-        .confirm-title { font-size: 16px; font-weight: 800; color: var(--text); }
-        .confirm-desc  { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
-        .confirm-target { font-size: 12px; font-weight: 700; color: var(--text-soft); margin-top: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: 9px; border: 1px solid var(--border-soft); }
-        .confirm-footer { padding: 20px 24px 24px; display: flex; gap: 8px; margin-top: 20px; }
-        .btn-confirm-cancel { flex: 1; padding: 11px; border-radius: 10px; font-size: 12px; font-weight: 700; background: var(--surface-2); color: var(--text-soft); border: 1.5px solid var(--border); cursor: pointer; font-family: inherit; transition: 0.15s; }
-        .btn-confirm-cancel:hover { border-color: var(--primary-muted); color: var(--primary); }
-        .btn-confirm-ok { flex: 1; padding: 11px; border-radius: 10px; font-size: 12px; font-weight: 800; border: none; cursor: pointer; font-family: inherit; transition: 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-confirm-ok.approve { background: var(--success); color: #fff; }
-        .btn-confirm-ok.approve:hover { background: #155e3b; }
-        .btn-confirm-ok.reject  { background: var(--danger);  color: #fff; }
-        .btn-confirm-ok.reject:hover  { background: #922b21; }
-        .btn-confirm-ok svg { width: 13px; height: 13px; }
-
-        @keyframes fadeUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-        @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .bg-primary { background-color: #B5733A; }
+        .text-primary { color: #B5733A; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
+        .sidebar-hidden { transform: translateX(-100%); }
+        .main-expanded { margin-left: 0 !important; }
+        .detail-modal, .confirm-modal { display: none; position: fixed; inset: 0; background: rgba(28, 20, 16, 0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 2000; }
+        .detail-modal.show, .confirm-modal.show { display: flex; }
+        .detail-content { transform: scale(0.95); transition: 0.3s; }
+        .detail-modal.show .detail-content { transform: scale(1); }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="text-gray-800 bg-[#F8F6F4]">
 
-<!-- ══════════ SIDEBAR ══════════ -->
-<aside>
-    <div class="brand">
-        <div class="brand-row">
-            <div class="brand-icon"><i data-feather="layout"></i></div>
-            <div>
-                <div class="brand-name">DECOR</div>
-                
+@include("Admin.partials.sidebar")
+
+<main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
+    @include("Admin.partials.header", ["title" => "Portfolio Validation"])
+    <div class="p-8 space-y-8 flex-1">
+
+    <div class="mb-8">
+        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Aesthetic Curation</div>
+        <div class="text-2xl font-bold text-gray-900">Portfolio Validation</div>
+        <div class="text-xs text-gray-500 mt-1">Kurasi dan publikasikan portofolio karya desainer sebelum tampil di platform.</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        @foreach ($stats_view as $s)
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            @php
+                $borderColor = match($s['color']) {
+                    'warning' => 'bg-amber-600',
+                    'info' => 'bg-blue-600',
+                    'success' => 'bg-green-600',
+                    'danger' => 'bg-red-600',
+                    default => 'bg-primary'
+                };
+                $iconBg = match($s['color']) {
+                    'warning' => 'bg-amber-50 text-amber-600',
+                    'info' => 'bg-blue-50 text-blue-600',
+                    'success' => 'bg-green-50 text-green-600',
+                    'danger' => 'bg-red-50 text-red-600',
+                    default => 'bg-orange-50 text-primary'
+                };
+            @endphp
+            <div class="absolute bottom-0 left-0 right-0 h-1 {{ $borderColor }}"></div>
+            <div class="w-10 h-10 rounded-lg {{ $iconBg }} flex items-center justify-center mb-4">
+                <i data-feather="{{ $s['icon'] }}" class="w-5 h-5"></i>
             </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ $s['value'] }}</h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{{ $s['label'] }}</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">{{ $s['note'] }}</p>
         </div>
-    </div>
-    <div class="nav-section">
-        <span class="nav-label">Navigation</span>
-        <?php foreach ($menu_items as $item):
-            $active = ($item['path'] === $current_path) ? 'active' : '';
-        ?>
-        <a href="<?= $item['path'] ?>" class="menu-link <?= $active ?>">
-            <div class="menu-item">
-                <i data-feather="<?= $item['icon'] ?>"></i>
-                <span><?= $item['label'] ?></span>
-            </div>
-        </a>
-        <?php endforeach; ?>
-        <span class="nav-label" style="margin-top:20px;">System</span>
-        <a href="settings" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
-        <a href="logout"   class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
-    </div>
-    <div class="sidebar-footer">
-        <img src="https://ui-avatars.com/api/?name=Alex+Rivera&background=B5733A&color=fff&size=80" class="s-avatar">
-        <div>
-            <div class="s-name"><?= $admin_name ?></div>
-            <div class="s-role"><?= $admin_role ?></div>
-        </div>
-        <span class="s-dot"></span>
-    </div>
-</aside>
-
-<!-- ══════════ MAIN ══════════ -->
-<main>
-    <div class="page-header">
-        <div>
-            <div class="page-eyebrow">Aesthetic Curation</div>
-            <div class="page-title">Portfolio Validation</div>
-            <div class="page-desc">Kurasi dan publikasikan portofolio karya desainer sebelum tampil di platform.</div>
-        </div>
+        @endforeach
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-        <?php foreach ($stats as $s): ?>
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="<?= $s['icon'] ?>"></i></div>
-            <div>
-                <div class="stat-val clr-<?= $s['color'] ?>"><?= $s['value'] ?></div>
-                <div class="stat-lbl"><?= $s['label'] ?></div>
-                <div class="stat-note"><?= $s['note'] ?></div>
-            </div>
+    <div class="flex items-center gap-4 mb-6">
+        <div class="flex-1 relative">
+            <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="portfolioSearch" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari portofolio, desainer, atau style…">
         </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <div class="search-wrap">
-            <i data-feather="search"></i>
-            <input class="search-input" type="text" placeholder="Cari portofolio, desainer, atau style…">
-        </div>
-        <div class="filter-tabs">
-            <button class="ftab active">Semua</button>
-            <button class="ftab">Pending</button>
-            <button class="ftab">Review</button>
-            <button class="ftab">Published</button>
+        <div class="flex gap-1 bg-white border border-gray-100 shadow-sm rounded-xl p-1">
+            <a href="{{ route('admin.portfolio-validation', ['status' => 'semua']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'semua' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Semua</a>
+            <a href="{{ route('admin.portfolio-validation', ['status' => 'pending']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'pending' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Pending</a>
+            <a href="{{ route('admin.portfolio-validation', ['status' => 'approved']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'approved' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Published</a>
+            <a href="{{ route('admin.portfolio-validation', ['status' => 'rejected']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'rejected' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Rejected</a>
         </div>
     </div>
 
     <!-- Portfolio List -->
-    <div class="product-list">
-        <?php foreach ($pending_portfolios as $p):
-            $sl = strtolower($p['status']);
-        ?>
-        <div class="product-row st-<?= $sl ?>" id="row-<?= $p['id'] ?>">
+    <div class="space-y-4" id="portfolioList">
+        @forelse ($portfolios as $p)
+        @php
+            $sl = strtolower($p->status);
+            $leftBorder = match($sl) {
+                'pending' => 'border-l-4 border-amber-500',
+                'approved' => 'border-l-4 border-green-500',
+                'rejected' => 'border-l-4 border-red-500',
+                default => 'border-l-4 border-gray-500'
+            };
+        @endphp
+        <div class="product-row bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow group {{ $leftBorder }} {{ $sl == 'rejected' ? 'opacity-75' : '' }}" id="row-{{ $p->id }}" data-search="{{ strtolower($p->title . ' ' . ($p->designer->user->full_name ?? '') . ' ' . $p->category) }}">
 
             <!-- Thumbnail -->
-            <div class="tcell" style="padding:0;">
-                <img src="<?= $p['image'] ?>" class="prod-thumb"
-                     onclick="openDetail(<?= htmlspecialchars(json_encode($p)) ?>)">
+            <div class="shrink-0">
+                <img src="{{ $p->image_url ? asset('storage/' . $p->image_url) : 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600' }}" 
+                     class="w-20 h-20 rounded-xl object-cover border border-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
+                     onclick="openDetail({{ json_encode([
+                          'id' => $p->id,
+                          'title' => $p->title,
+                          'designer' => $p->designer->user->full_name ?? 'N/A',
+                          'style' => $p->category ?? '-',
+                          'image' => $p->image_url ? asset('storage/' . $p->image_url) : '',
+                          'description' => $p->description ?? '',
+                          'dimensions' => $p->area ?? '-',
+                          'duration' => $p->duration ?? '-',
+                          'status' => $p->status
+                     ]) }})">
             </div>
 
             <!-- Info -->
-            <div class="tcell">
-                <div class="prod-id"><?= $p['id'] ?></div>
-                <div class="prod-name"><?= $p['title'] ?></div>
-                <div class="prod-shop"><?= $p['designer'] ?></div>
+            <div class="w-1/4 cursor-pointer" onclick="openDetail({{ json_encode([
+                  'id' => $p->id,
+                  'title' => $p->title,
+                  'designer' => $p->designer->user->full_name ?? 'N/A',
+                  'style' => $p->category ?? '-',
+                  'image' => $p->image_url ? asset('storage/' . $p->image_url) : '',
+                  'description' => $p->description ?? '',
+                  'dimensions' => $p->area ?? '-',
+                  'duration' => $p->duration ?? '-',
+                  'status' => $p->status
+             ]) }})">
+                <div class="inline-block px-2 py-1 bg-orange-50 text-primary text-[9px] font-black uppercase tracking-widest rounded-md mb-1.5 font-mono">PF-{{ str_pad($p->id, 3, '0', STR_PAD_LEFT) }}</div>
+                <div class="text-sm font-bold text-gray-900 hover:text-primary transition-colors truncate">{{ $p->title }}</div>
+                <div class="text-[10px] text-gray-500 font-semibold mt-1"><i data-feather="user" class="w-3 h-3 inline mr-1"></i>{{ $p->designer->user->full_name ?? 'N/A' }}</div>
             </div>
 
             <!-- Style -->
-            <div class="tcell">
-                <span class="cat-badge"><?= $p['style'] ?></span>
+            <div class="w-1/6">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black text-gray-600 bg-gray-100 uppercase tracking-widest">
+                    {{ $p->category ?? '-' }}
+                </span>
             </div>
 
             <!-- Dim + Duration -->
-            <div class="tcell">
-                <div class="prod-dim"><?= $p['dimensions'] ?></div>
-                <div class="prod-dur">Durasi: <?= $p['duration'] ?></div>
+            <div class="w-1/6">
+                <div class="text-sm font-bold text-gray-900">{{ $p->area ?? '-' }}</div>
+                <div class="text-[10px] font-semibold text-gray-500 mt-1">Durasi: {{ $p->duration ?? '-' }}</div>
             </div>
 
             <!-- Submitted -->
-            <div class="tcell">
-                <div class="tkt-time"><i data-feather="clock"></i><?= $p['submitted'] ?></div>
-            </div>
-
-            <!-- Status -->
-            <div class="tcell">
-                <span class="status-pill st-<?= $sl ?>" id="pill-<?= $p['id'] ?>"><?= $p['status'] ?></span>
-            </div>
-
-            <!-- Actions -->
-            <div class="tcell">
-                <div class="action-cell">
-                    <button class="btn-approve"
-                        onclick="askConfirm('approve','<?= $p['id'] ?>','<?= addslashes($p['title']) ?>')">
-                        <i data-feather="check"></i> Approve
-                    </button>
-                    <button class="btn-reject"
-                        onclick="askConfirm('reject','<?= $p['id'] ?>','<?= addslashes($p['title']) ?>')">
-                        <i data-feather="x"></i> Tolak
-                    </button>
+            <div class="w-1/6">
+                <div class="flex items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <i data-feather="clock" class="w-3 h-3 mr-1.5"></i> {{ $p->created_at->diffForHumans() }}
                 </div>
             </div>
 
+            <!-- Status -->
+            <div class="w-1/6">
+                @php
+                    $statusCls = match($sl) {
+                        'pending' => 'bg-amber-50 text-amber-600',
+                        'approved' => 'bg-green-50 text-green-600',
+                        'rejected' => 'bg-red-50 text-red-600',
+                        default => 'bg-gray-50 text-gray-600'
+                    };
+                @endphp
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest {{ $statusCls }}" id="pill-{{ $p->id }}">
+                    {{ strtoupper($p->status) }}
+                </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex-1 flex justify-end gap-2">
+                @if($p->status == 'pending')
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors" title="Approve"
+                    onclick="askConfirm('approve','{{ $p->id }}','{{ addslashes($p->title) }}')">
+                    <i data-feather="check" class="w-4 h-4"></i>
+                </button>
+                <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Reject"
+                    onclick="askConfirm('reject','{{ $p->id }}','{{ addslashes($p->title) }}')">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+                @endif
+            </div>
+
         </div>
-        <?php endforeach; ?>
+        @empty
+        <div class="text-center py-12 bg-white rounded-xl border border-gray-100 text-gray-400 shadow-sm">
+            <i data-feather="image" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p class="text-sm font-semibold">Tidak ada portofolio dengan status "{{ ucfirst($statusFilter) }}"</p>
+        </div>
+        @endforelse
+    </div>
     </div>
 </main>
 
 <!-- ══════════ DETAIL MODAL ══════════ -->
 <div id="detailModal" class="detail-modal">
-    <div class="detail-content">
-        <div class="detail-img-wrap">
-            <img id="modalImg" src="" alt="">
-            <div class="detail-img-overlay">
-                <div class="prod-id-lg" id="modalId"></div>
-                <div class="prod-shop-lg" id="modalDesigner"></div>
+    <div class="detail-content bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+        <div class="w-full md:w-1/2 relative bg-gray-100">
+            <img id="modalImg" src="" alt="" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent text-white">
+                <div class="inline-block px-2 py-1 bg-primary/90 text-white text-[10px] font-black uppercase tracking-widest rounded-md mb-2 font-mono" id="modalId"></div>
+                <div class="text-sm font-bold opacity-90"><i data-feather="user" class="w-3.5 h-3.5 inline mr-1.5"></i><span id="modalDesigner"></span></div>
             </div>
         </div>
-        <div class="detail-body">
-            <button class="detail-close" onclick="closeDetail()">×</button>
-            <div class="detail-title" id="modalTitle"></div>
-            <div class="detail-style" id="modalStyle"></div>
-            <div class="detail-desc"  id="modalDesc"></div>
-            <div class="spec-grid">
-                <div class="spec-box"><div class="spec-label">Area</div><div class="spec-value" id="modalDim"></div></div>
-                <div class="spec-box"><div class="spec-label">Durasi</div><div class="spec-value" id="modalDuration"></div></div>
-                <div class="spec-box"><div class="spec-label">Material</div><div class="spec-value" id="modalMaterial" style="font-size:11px;"></div></div>
-                <div class="spec-box"><div class="spec-label">Designer</div><div class="spec-value" id="modalDesignerSpec"></div></div>
+        <div class="w-full md:w-1/2 p-8 flex flex-col relative overflow-y-auto">
+            <button class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors" onclick="closeDetail()">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+            <div class="text-2xl font-bold text-gray-900 mb-2 pr-8" id="modalTitle"></div>
+            <div class="text-xs font-black text-primary uppercase tracking-widest mb-6" id="modalStyle"></div>
+            
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-6">
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Description</div>
+                <div class="text-xs text-gray-600 leading-relaxed italic" id="modalDesc"></div>
             </div>
-            <div class="detail-actions">
-                <button class="btn-approve-lg" id="modalApproveBtn">
-                    <i data-feather="check-circle"></i> Approve & Publish
+            
+            <div class="grid grid-cols-2 gap-4 mb-8 mt-auto">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Area</div>
+                    <div class="text-sm font-bold text-gray-900" id="modalDim"></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Duration</div>
+                    <div class="text-sm font-bold text-gray-900" id="modalDuration"></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 col-span-2">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Designer</div>
+                    <div class="text-sm font-bold text-gray-900" id="modalDesignerSpec"></div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4" id="detailActionArea">
+                <button class="flex-1 flex items-center justify-center py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-colors" id="modalApproveBtn">
+                    <i data-feather="check-circle" class="w-4 h-4 mr-2"></i> Approve & Publish
                 </button>
-                <button class="btn-reject-lg" id="modalRejectBtn">
-                    <i data-feather="x-circle"></i> Tolak & Notifikasi Designer
+                <button class="flex items-center justify-center px-6 py-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-bold transition-colors" id="modalRejectBtn">
+                    <i data-feather="x-circle" class="w-4 h-4 mr-2"></i> Tolak
                 </button>
             </div>
         </div>
@@ -468,32 +262,43 @@ $stats = [
 
 <!-- ══════════ CONFIRM MODAL ══════════ -->
 <div id="confirmModal" class="confirm-modal">
-    <div class="confirm-box">
-        <div class="confirm-header">
-            <div class="confirm-icon" id="confirmIcon">
-                <i data-feather="check-circle"></i>
+    <div class="bg-white w-[400px] p-8 rounded-3xl text-center shadow-2xl transform scale-95 transition-transform duration-200" id="confirmBox">
+        <div class="mb-6">
+            <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" id="confirmIcon">
             </div>
-            <div class="confirm-title" id="confirmTitle"></div>
-            <div class="confirm-desc"  id="confirmDesc"></div>
-            <div class="confirm-target" id="confirmTarget"></div>
+            <div class="text-xl font-bold text-gray-900" id="confirmTitle"></div>
+            <div class="text-xs text-gray-500 mt-2" id="confirmDesc"></div>
+            <div class="text-sm font-bold text-gray-900 mt-4 px-4 py-2 bg-gray-50 rounded-lg truncate border border-gray-100" id="confirmTarget"></div>
         </div>
-        <div class="confirm-footer">
-            <button class="btn-confirm-cancel" onclick="closeConfirm()">Batal</button>
-            <button class="btn-confirm-ok" id="confirmOkBtn" onclick="executeAction()">
-                <i data-feather="check"></i> <span id="confirmOkLabel">Ya, Lanjutkan</span>
+        <div class="flex gap-3">
+            <button class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-xl text-xs transition-colors" onclick="closeConfirm()">Batal</button>
+            <button class="flex-1 text-white font-bold py-3 rounded-xl text-xs transition-colors" id="confirmOkBtn" onclick="executeAction()">
+                <div class="flex items-center justify-center gap-2"><i data-feather="check" class="w-4 h-4"></i> <span id="confirmOkLabel">Ya, Lanjutkan</span></div>
             </button>
         </div>
     </div>
 </div>
 
+<!-- Hidden Action Form -->
+<form id="actionForm" method="POST" style="display: none;">
+    @csrf
+</form>
+
 <script>
 feather.replace({ 'stroke-width': 2 });
 
-/* ── filter tabs ── */
-document.querySelectorAll('.ftab').forEach(b => b.addEventListener('click', function() {
-    document.querySelectorAll('.ftab').forEach(x => x.classList.remove('active'));
-    this.classList.add('active');
-}));
+/* ── search functionality ── */
+document.getElementById('portfolioSearch').addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('#portfolioList .product-row').forEach(row => {
+        const searchText = row.getAttribute('data-search');
+        if (!searchText || searchText.includes(term)) {
+            row.style.display = 'flex';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
 
 /* ── current detail product ── */
 let currentDetail = null;
@@ -501,20 +306,25 @@ let currentDetail = null;
 /* ── detail modal ── */
 function openDetail(p) {
     currentDetail = p;
-    document.getElementById('modalImg').src            = p.image;
-    document.getElementById('modalId').textContent     = p.id;
+    document.getElementById('modalImg').src            = p.image || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600';
+    document.getElementById('modalId').textContent     = 'PF-' + String(p.id).padStart(3, '0');
     document.getElementById('modalDesigner').textContent = p.designer;
     document.getElementById('modalTitle').textContent  = p.title;
     document.getElementById('modalStyle').textContent  = p.style;
-    document.getElementById('modalDesc').textContent   = '"' + p.description + '"';
+    document.getElementById('modalDesc').textContent   = p.description ? '"' + p.description + '"' : '-';
     document.getElementById('modalDim').textContent    = p.dimensions;
     document.getElementById('modalDuration').textContent = p.duration;
-    document.getElementById('modalMaterial').textContent = p.material;
     document.getElementById('modalDesignerSpec').textContent = p.designer;
 
     /* wire modal buttons */
     document.getElementById('modalApproveBtn').onclick = () => { closeDetail(); askConfirm('approve', p.id, p.title); };
     document.getElementById('modalRejectBtn').onclick  = () => { closeDetail(); askConfirm('reject',  p.id, p.title); };
+
+    if (p.status !== 'pending') {
+        document.getElementById('detailActionArea').style.display = 'none';
+    } else {
+        document.getElementById('detailActionArea').style.display = 'flex';
+    }
 
     document.getElementById('detailModal').classList.add('show');
     feather.replace({ 'stroke-width': 2 });
@@ -533,22 +343,22 @@ function askConfirm(type, id, title) {
     pendingAction = type;
     pendingId     = id;
 
-    const icon  = document.getElementById('confirmIcon');
+    const iconWrap  = document.getElementById('confirmIcon');
     const okBtn = document.getElementById('confirmOkBtn');
 
     if (type === 'approve') {
-        icon.className = 'confirm-icon approve';
-        icon.innerHTML = '<i data-feather="check-circle"></i>';
+        iconWrap.className = 'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-green-50 text-green-500';
+        iconWrap.innerHTML = '<i data-feather="check-circle" class="w-8 h-8"></i>';
         document.getElementById('confirmTitle').textContent = 'Approve Portofolio?';
         document.getElementById('confirmDesc').textContent  = 'Portofolio ini akan dipublikasikan dan dapat dilihat oleh semua pengguna platform.';
-        okBtn.className = 'btn-confirm-ok approve';
+        okBtn.className = 'flex-1 font-bold py-3 rounded-xl text-xs transition-colors bg-green-500 hover:bg-green-600 text-white';
         document.getElementById('confirmOkLabel').textContent = 'Ya, Approve';
     } else {
-        icon.className = 'confirm-icon reject';
-        icon.innerHTML = '<i data-feather="x-circle"></i>';
+        iconWrap.className = 'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-50 text-red-500';
+        iconWrap.innerHTML = '<i data-feather="x-circle" class="w-8 h-8"></i>';
         document.getElementById('confirmTitle').textContent = 'Tolak Portofolio?';
-        document.getElementById('confirmDesc').textContent  = 'Portofolio ini akan ditolak dan desainer akan menerima notifikasi beserta alasan penolakan.';
-        okBtn.className = 'btn-confirm-ok reject';
+        document.getElementById('confirmDesc').textContent  = 'Portofolio ini akan ditolak dan tidak akan ditampilkan ke customer.';
+        okBtn.className = 'flex-1 font-bold py-3 rounded-xl text-xs transition-colors bg-red-500 hover:bg-red-600 text-white';
         document.getElementById('confirmOkLabel').textContent = 'Ya, Tolak';
     }
 
@@ -566,35 +376,27 @@ function closeConfirm() {
 function executeAction() {
     if (!pendingAction || !pendingId) return;
 
-    const row  = document.getElementById('row-' + pendingId);
-    const pill = document.getElementById('pill-' + pendingId);
-
+    const form = document.getElementById('actionForm');
     if (pendingAction === 'approve') {
-        /* update accent bar & pill */
-        row.classList.remove('st-pending', 'st-review');
-        row.style.setProperty('--row-accent', 'var(--success)');
-        row.querySelector('::before');
-        row.style.cssText += '; --accent: var(--success)';
-        row.classList.add('decided');
-
-        pill.className = 'status-pill';
-        pill.style.background = 'var(--success-bg)';
-        pill.style.color = 'var(--success)';
-        pill.textContent = 'Published';
-
-        /* swap accent bar */
-        row.style.borderLeft = '4px solid var(--success)';
+        form.action = `/admin/portofolio-validation/${pendingId}/approve`;
     } else {
-        row.classList.add('decided');
-        pill.className = 'status-pill';
-        pill.style.background = 'var(--danger-bg)';
-        pill.style.color = 'var(--danger)';
-        pill.textContent = 'Rejected';
-        row.style.borderLeft = '4px solid var(--danger)';
+        form.action = `/admin/portofolio-validation/${pendingId}/reject`;
     }
-
+    form.submit();
     closeConfirm();
 }
+</script>
+
+<script>
+    const btn = document.getElementById("toggle-sidebar");
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main-content");
+    if(btn) {
+        btn.addEventListener("click", () => { 
+            sidebar.classList.toggle("sidebar-hidden"); 
+            main.classList.toggle("main-expanded"); 
+        });
+    }
 </script>
 </body>
 </html>

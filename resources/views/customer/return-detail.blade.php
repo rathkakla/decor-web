@@ -30,70 +30,11 @@
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    {{ $site_name }}
-                </a>
-            </div>
-
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-            </nav>
-
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200">
-                    <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <main class="flex-grow flex content-container w-full bg-white">
         <!-- SIDEBAR -->
-        <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20">
-            <div class="text-center mb-10">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100">
-                <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
-                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
-            </div>
-
-            <nav class="space-y-1">
-                <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
-                </a>
-                <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
-                </a>
-                <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
-                    <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
-                </a>
-                <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-regular fa-heart text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-                </a>
-                <div class="pt-6 mt-6 border-t border-gray-100">
-                    <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl text-gray-400 hover:text-primary">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl text-gray-400 hover:text-primary">
-                        <i class="fa-solid fa-shop text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Seller</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
+        @include('customer.partials.sidebar')
 
         <!-- CONTENT -->
         <section class="flex-1 p-10 bg-white">

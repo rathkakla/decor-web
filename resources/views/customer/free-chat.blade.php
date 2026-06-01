@@ -28,29 +28,7 @@
 <body class="text-gray-800 flex flex-col h-screen overflow-hidden">
 
     <!-- Header -->
-    <header class="bg-white border-b border-gray-100 flex-shrink-0">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('customer.designer.profile', $designer->id) }}" class="text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                        {{ strtoupper(substr($designer->user->full_name, 0, 1)) }}
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black uppercase tracking-wider">{{ $designer->user->full_name }}</h3>
-                        <p class="text-[10px] font-bold text-green-500 uppercase tracking-widest italic">Free Consultation</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-primary/10 px-4 py-2 rounded-2xl border border-primary/20 flex items-center space-x-2">
-                <i class="fa-regular fa-clock text-primary"></i>
-                <span id="countdown" class="text-primary font-black tracking-widest">{{ sprintf('%02d:%02d', max(0, floor($timeLeft / 60)), max(0, $timeLeft % 60)) }}</span>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <!-- Chat Area -->
     <main class="flex-grow flex flex-col max-w-4xl mx-auto w-full bg-white shadow-sm border-x border-gray-50 relative">

@@ -31,39 +31,7 @@
 <body class="text-gray-800">
 
     {{-- ─── HEADER ─────────────────────────────────────────────────────────── --}}
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    <?= $site_name ?>
-                </a>
-                <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-                </div>
-            </div>
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all text-primary font-bold">AI Studio</a>
-            </nav>
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <button class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-regular fa-bell text-lg"></i>
-                </button>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-                    <a href="{{ route('customer.profile') }}" class="block">
-                        <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full bg-slate-100">
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <main class="py-16 content-container px-6">
 
@@ -128,12 +96,49 @@
                     </div>
                 </div>
 
+                {{-- ─── STEP 2: Pilih Gaya Desain ──────────────────────────── --}}
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                        <h3 class="text-sm font-bold uppercase tracking-widest">Pilih Gaya Desain</h3>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-4">AI kami akan mengaplikasikan estetika desain yang kamu pilih ke struktur ruangan aslimu.</p>
+
+                    <div class="grid grid-cols-4 gap-2">
+                        <?php
+                        $styles = [
+                            ['name' => 'Scandinavian', 'desc' => 'Light & Organic',    'img' => 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400'],
+                            ['name' => 'Industrial',   'desc' => 'Raw & Structural',   'img' => 'https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?w=400'],
+                            ['name' => 'Minimalist',   'desc' => 'Pure & Essential',   'img' => 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?w=400'],
+                            ['name' => 'Modern',       'desc' => 'Sleek & Fluid',      'img' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400'],
+                            ['name' => 'Classic',      'desc' => 'Timeless & Ornate',  'img' => 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400'],
+                            ['name' => 'Bohemian',     'desc' => 'Free & Eclectic',    'img' => 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=400'],
+                            ['name' => 'Japanese',     'desc' => 'Zen & Natural',      'img' => 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=400'],
+                            ['name' => 'Mediterranean','desc' => 'Warm & Vibrant',     'img' => 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=400'],
+                        ];
+                        $default_style = 'Scandinavian';
+                        foreach($styles as $s):
+                            $isActive = ($s['name'] === $default_style) ? 'border-primary' : 'border-transparent';
+                        ?>
+                        <div class="group cursor-pointer style-card" data-style="<?= $s['name'] ?>">
+                            <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-1.5 border-2 <?= $isActive ?> card-border group-hover:border-primary transition-all">
+                                <img src="<?= $s['img'] ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <h4 class="text-[9px] font-bold leading-tight"><?= $s['name'] ?></h4>
+                            <p class="text-[8px] text-gray-400 uppercase tracking-widest leading-none mt-0.5"><?= $s['desc'] ?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
                 {{-- ─── Tombol Generate ─────────────────────────────────────── --}}
-                <button id="generate-btn" class="w-full bg-primary text-white font-bold text-sm py-4 rounded-2xl hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    Generate AI Design
-                </button>
-                <p class="text-[10px] text-gray-400 text-center">Upload foto untuk mengaktifkan tombol generate</p>
+                <div class="pt-4">
+                    <button id="generate-btn" class="w-full bg-primary text-white font-bold text-sm py-4 rounded-2xl hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Generate AI Design
+                    </button>
+                    <p class="text-[10px] text-gray-400 text-center mt-2">Upload foto untuk mengaktifkan tombol generate</p>
+                </div>
             </div>
 
             {{-- Kanan: Hasil AI ─────────────────────────────────────────────── --}}
@@ -180,40 +185,6 @@
             </div>
         </div>
 
-        {{-- ─── STEP 2: Pilih Style ─────────────────────────────────────────── --}}
-        <section class="mb-24">
-            <div class="flex items-center gap-2 mb-6">
-                <span class="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">2</span>
-                <h2 class="text-2xl font-bold tracking-tight">Pilih Gaya Desain</h2>
-            </div>
-            <p class="text-sm text-gray-400 mb-8 max-w-lg">AI kami akan mengaplikasikan estetika desain yang kamu pilih ke struktur ruangan aslimu.</p>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                <?php
-                $styles = [
-                    ['name' => 'Scandinavian', 'desc' => 'Light & Organic',    'img' => 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?w=400'],
-                    ['name' => 'Industrial',   'desc' => 'Raw & Structural',   'img' => 'https://images.unsplash.com/photo-1505015920881-0f83c2f7c95e?w=400'],
-                    ['name' => 'Minimalist',   'desc' => 'Pure & Essential',   'img' => 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=400'],
-                    ['name' => 'Modern',       'desc' => 'Sleek & Fluid',      'img' => 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400'],
-                    ['name' => 'Classic',      'desc' => 'Timeless & Ornate',  'img' => 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=400'],
-                    ['name' => 'Bohemian',     'desc' => 'Free & Eclectic',    'img' => 'https://images.unsplash.com/photo-1522444195799-478538b28823?w=400'],
-                    ['name' => 'Japanese',     'desc' => 'Zen & Natural',      'img' => 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400'],
-                    ['name' => 'Mediterranean','desc' => 'Warm & Vibrant',     'img' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400'],
-                ];
-                $default_style = 'Scandinavian';
-                foreach($styles as $s):
-                    $isActive = ($s['name'] === $default_style) ? 'border-primary' : 'border-transparent';
-                ?>
-                <div class="group cursor-pointer style-card" data-style="<?= $s['name'] ?>">
-                    <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 mb-2 border-2 <?= $isActive ?> card-border group-hover:border-primary transition-all">
-                        <img src="<?= $s['img'] ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                    </div>
-                    <h4 class="text-[10px] font-bold"><?= $s['name'] ?></h4>
-                    <p class="text-[9px] text-gray-400 uppercase tracking-widest"><?= $s['desc'] ?></p>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
 
         {{-- ─── SHOP THE LOOK ──────────────────────────────────────────────── --}}
         <section class="mb-20">
@@ -457,6 +428,9 @@
                     aiResultImage.src = data.output;
                     aiResultImage.onload = () => {
                         aiResultImage.style.transition = 'opacity 0.8s ease';
+                        aiResultImage.style.opacity = '1';
+                    };
+                    aiResultImage.onerror = () => {
                         aiResultImage.style.opacity = '1';
                     };
 

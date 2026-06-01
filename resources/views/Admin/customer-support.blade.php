@@ -28,320 +28,125 @@ $menu_items = [
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        :root {
-            --primary:       #B5733A;
-            --primary-hover: #8A5229;
-            --primary-light: #F7F0E8;
-            --primary-muted: #E8D4BC;
-            --bg:            #F5F2EE;
-            --surface:       #FFFFFF;
-            --surface-2:     #FAF8F5;
-            --border:        #E8E2DB;
-            --border-soft:   #EFE9E3;
-            --text:          #1C1410;
-            --text-soft:     #6B5F55;
-            --text-muted:    #A8998D;
-            --danger:        #C0392B;
-            --danger-bg:     #FEF1F0;
-            --success:       #1A7A4A;
-            --success-bg:    #EDF7F1;
-            --warning:       #B45309;
-            --warning-bg:    #FFFBEB;
-            --info:          #1565C0;
-            --info-bg:       #E3F2FD;
-            --sidebar-w:     256px;
-            --radius:        14px;
-            --radius-sm:     9px;
-            --shadow:        0 1px 4px rgba(28,20,16,.05), 0 4px 18px rgba(28,20,16,.04);
-            --shadow-card:   0 2px 8px rgba(28,20,16,.06), 0 8px 32px rgba(28,20,16,.05);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 13px; }
-
-        /* ─── SIDEBAR ─── */
-        aside { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; }
-        .brand { padding: 26px 22px 22px; border-bottom: 1px solid var(--border-soft); }
-        .brand-row { display: flex; align-items: center; gap: 10px; }
-        .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .brand-icon svg { width: 16px; height: 16px; stroke: #fff; }
-        .brand-name { font-size: 16px; font-weight: 800; letter-spacing: 3px; color: var(--primary); text-transform: uppercase; }
-        .brand-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; font-weight: 600; }
-        .nav-section { padding: 18px 14px 8px; flex: 1; overflow-y: auto; }
-        .nav-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); padding: 0 8px; margin-bottom: 6px; display: block; }
-        .menu-link { text-decoration: none; display: block; margin-bottom: 2px; }
-        .menu-item { padding: 9px 10px; display: flex; align-items: center; gap: 10px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 500; color: var(--text-soft); transition: all .15s ease; border: 1px solid transparent; }
-        .menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-        .menu-item:hover { background: var(--surface-2); color: var(--text); }
-        .menu-link.active .menu-item { background: var(--primary-light); color: var(--primary); font-weight: 700; border-color: var(--primary-muted); }
-        .sidebar-footer { padding: 16px 22px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; }
-        .s-avatar { width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--border-soft); object-fit: cover; }
-        .s-name { font-size: 12px; font-weight: 700; }
-        .s-role { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .s-dot { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-
-        /* ─── MAIN ─── */
-        main { margin-left: var(--sidebar-w); flex: 1; padding: 36px 40px 72px; }
-
-        /* ─── PAGE HEADER ─── */
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; animation: fadeUp 0.4s ease both; }
-        .page-eyebrow { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .16em; color: var(--primary); margin-bottom: 5px; }
-        .page-title { font-size: 24px; font-weight: 800; color: var(--text); }
-        .page-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-        /* ─── STATS ─── */
-        .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
-        .stat-mini { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; animation: fadeUp 0.4s ease both; }
-        .stat-mini:nth-child(1){ animation-delay:.05s } .stat-mini:nth-child(2){ animation-delay:.10s }
-        .stat-mini:nth-child(3){ animation-delay:.15s } .stat-mini:nth-child(4){ animation-delay:.20s }
-        .stat-mini::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background: var(--primary); }
-        .stat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .stat-icon svg { width: 16px; height: 16px; stroke: var(--primary); }
-        .stat-val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-        .stat-lbl { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
-        .stat-note { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
-        .stat-val.clr-danger  { color: var(--danger); }
-        .stat-val.clr-info    { color: var(--info); }
-        .stat-val.clr-success { color: var(--success); }
-        .stat-val.clr-primary { color: var(--primary); }
-
-        /* ─── TOOLBAR ─── */
-        .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; animation: fadeUp 0.4s ease 0.22s both; }
-        .search-wrap { position: relative; flex: 1; max-width: 320px; }
-        .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--text-muted); pointer-events: none; }
-        .search-input { width: 100%; padding: 9px 14px 9px 36px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text); outline: none; transition: 0.15s; }
-        .search-input:focus { border-color: var(--primary-muted); background: var(--primary-light); }
-        .search-input::placeholder { color: var(--text-muted); }
-        .filter-tabs { display: flex; gap: 4px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 4px; }
-        .ftab { padding: 6px 14px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: 0.15s; border: none; background: none; font-family: inherit; }
-        .ftab.active, .ftab:hover { background: var(--primary-light); color: var(--primary); }
-
-        /* ─── TICKET LIST ─── */
-        .ticket-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.4s ease 0.28s both; }
-
-        .ticket-row {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            display: grid; grid-template-columns: 130px 1fr 120px 110px 110px 130px;
-            align-items: center; gap: 0;
-            transition: transform 0.15s, box-shadow 0.15s;
-            overflow: hidden; position: relative;
-        }
-        .ticket-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
-
-        .ticket-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
-        .ticket-row.st-open::before     { background: var(--danger); }
-        .ticket-row.st-diproses::before { background: var(--info); }
-        .ticket-row.st-selesai::before  { background: var(--success); }
-
-        .tcell { padding: 16px 18px; border-right: 1px solid var(--border-soft); }
-        .tcell:last-child { border-right: none; }
-        .tcell:first-child { padding-left: 22px; }
-
-        .tkt-id { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--primary); display: block; }
-        .tkt-time { font-size: 9px; color: var(--text-muted); font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 3px; }
-        .tkt-time svg { width: 9px; height: 9px; }
-
-        .sender-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
-        .sender-cat { display: inline-flex; align-items: center; gap: 3px; margin-top: 3px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 4px; }
-        .cat-account   { background: var(--warning-bg);   color: var(--warning); }
-        .cat-technical { background: var(--info-bg);      color: var(--info); }
-        .cat-billing   { background: var(--primary-light); color: var(--primary); }
-
-        .tkt-subject { font-size: 12.5px; font-weight: 500; color: var(--text-soft); }
-
-        .priority { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-        .priority-high   { background: var(--danger-bg);  color: var(--danger); }
-        .priority-medium { background: var(--warning-bg); color: var(--warning); }
-        .priority-low    { background: var(--success-bg); color: var(--success); }
-
-        .status-select {
-            padding: 6px 10px; border-radius: 8px; font-size: 10px; font-weight: 800;
-            border: 1.5px solid; outline: none; cursor: pointer;
-            text-transform: uppercase; transition: 0.2s; font-family: inherit; width: 100%;
-        }
-        .status-open     { background: var(--danger-bg);  color: var(--danger);  border-color: #F5C6C1; }
-        .status-diproses { background: var(--info-bg);    color: var(--info);    border-color: #BBDEFB; }
-        .status-selesai  { background: var(--success-bg); color: var(--success); border-color: #B8DEC8; }
-
-        .btn-reply {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 14px; border-radius: 9px; font-size: 11px; font-weight: 700;
-            background: var(--primary); color: #fff; border: none; cursor: pointer;
-            transition: 0.15s; white-space: nowrap;
-        }
-        .btn-reply:hover { background: var(--primary-hover); }
-        .btn-reply svg { width: 12px; height: 12px; }
-
-        /* ─── CHAT MODAL ─── */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .bg-primary { background-color: #B5733A; }
+        .text-primary { color: #B5733A; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
+        .sidebar-hidden { transform: translateX(-100%); }
+        .main-expanded { margin-left: 0 !important; }
         .chat-modal { display: none; position: fixed; z-index: 2000; inset: 0; background: rgba(28,20,16,0.55); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
         .chat-modal.show { display: flex; }
-
-        .chat-content {
-            background: var(--surface); width: 480px; border-radius: 20px;
-            overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1) both;
-            display: flex; flex-direction: column; max-height: 90vh;
-        }
-        @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-        .chat-header {
-            padding: 18px 22px; background: var(--primary);
-            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-        }
-        .chat-header-left { display: flex; align-items: center; gap: 10px; }
-        .chat-header-icon { width: 34px; height: 34px; background: rgba(255,255,255,0.2); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
-        .chat-header-icon svg { width: 15px; height: 15px; stroke: #fff; }
-        .chat-title { font-size: 13px; font-weight: 800; color: #fff; }
-        .chat-sub { font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 1px; }
-        .chat-close { background: rgba(255,255,255,0.15); border: none; color: #fff; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
-        .chat-close:hover { background: rgba(255,255,255,0.3); }
-
-        .chat-body { flex: 1; padding: 20px; overflow-y: auto; background: var(--surface-2); display: flex; flex-direction: column; gap: 12px; min-height: 300px; max-height: 380px; }
-
-        .bubble-wrap { display: flex; flex-direction: column; }
-        .bubble-wrap.admin-wrap { align-items: flex-end; }
-        .bubble-meta { font-size: 9px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; padding: 0 4px; }
-
-        .bubble { max-width: 82%; padding: 11px 15px; border-radius: 14px; font-size: 12.5px; line-height: 1.55; }
-        .bubble.customer { background: var(--surface); border: 1px solid var(--border-soft); color: var(--text); border-bottom-left-radius: 4px; }
-        .bubble.admin    { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
-
-        .chat-footer { padding: 16px 18px; border-top: 1px solid var(--border-soft); background: var(--surface); display: flex; gap: 8px; flex-shrink: 0; }
-        .chat-input { flex: 1; padding: 10px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: 12.5px; color: var(--text); outline: none; transition: 0.15s; background: var(--surface-2); }
-        .chat-input:focus { border-color: var(--primary-muted); background: var(--primary-light); }
-        .btn-send { padding: 10px 16px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.15s; font-family: inherit; }
-        .btn-send:hover { background: var(--primary-hover); }
-        .btn-send svg { width: 13px; height: 13px; }
-
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        .chat-content { transform: scale(0.95); transition: 0.3s; }
+        .chat-modal.show .chat-content { transform: scale(1); }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #FAF8F5; }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="text-gray-800 bg-[#F8F6F4]">
 
-<!-- ══════════ SIDEBAR ══════════ -->
-<aside>
-    <div class="brand">
-        <div class="brand-row">
-            <div class="brand-icon"><i data-feather="layout"></i></div>
-            <div>
-                <div class="brand-name">DECOR</div>
-                
+@include("Admin.partials.sidebar")
+
+<main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
+    @include("Admin.partials.header", ["title" => "Customer Support"])
+    <div class="p-8 space-y-8 flex-1">
+
+    <div class="mb-8">
+        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Communication Hub</div>
+        <div class="text-2xl font-bold text-gray-900">Customer Support Center</div>
+        <div class="text-xs text-gray-500 mt-1">Tanggapi keluhan akses akun, verifikasi email, dan pertanyaan umum dari pelanggan.</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mb-4">
+                <i data-feather="alert-circle" class="w-5 h-5"></i>
             </div>
+            <h3 class="text-2xl font-bold text-gray-900 text-red-500"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Open</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">butuh respon</p>
         </div>
-    </div>
-    <div class="nav-section">
-        <span class="nav-label">Navigation</span>
-        <?php foreach ($menu_items as $item):
-            $active = (request()->url() === $item['path']) ? 'active' : '';
-        ?>
-        <a href="<?= $item['path'] ?>" class="menu-link <?= $active ?>">
-            <div class="menu-item" style="position: relative;">
-                <i data-feather="<?= $item['icon'] ?>"></i>
-                <span><?= $item['label'] ?></span>
-                @if(isset($item['badge']) && $item['badge'] > 0)
-                <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--danger); color: white; border-radius: 99px; font-size: 8px; font-weight: 800; padding: 2px 6px; box-shadow: 0 2px 8px rgba(192,57,43,0.3);"><?= $item['badge'] ?></span>
-                @endif
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-blue-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center mb-4">
+                <i data-feather="message-square" class="w-5 h-5"></i>
             </div>
-        </a>
-        <?php endforeach; ?>
-        <span class="nav-label" style="margin-top:20px;">System</span>
-        <a href="settings" class="menu-link"><div class="menu-item"><i data-feather="settings"></i><span>Settings</span></div></a>
-        <a href="logout"   class="menu-link"><div class="menu-item"><i data-feather="log-out"></i><span>Logout</span></div></a>
-    </div>
-    <div class="sidebar-footer">
-        <img src="https://ui-avatars.com/api/?name=Alex+Rivera&background=B5733A&color=fff&size=80" class="s-avatar">
-        <div>
-            <div class="s-name"><?= $admin_name ?></div>
-            <div class="s-role"><?= $admin_role ?></div>
+            <h3 class="text-2xl font-bold text-gray-900 text-blue-500"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Replied</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">sudah dibalas</p>
         </div>
-        <span class="s-dot"></span>
-    </div>
-</aside>
-
-<!-- ══════════ MAIN ══════════ -->
-<main>
-
-    <!-- Page Header -->
-    <div class="page-header">
-        <div>
-            <div class="page-eyebrow">Communication Hub</div>
-            <div class="page-title">Customer Support Center</div>
-            <div class="page-desc">Tanggapi keluhan akses akun, verifikasi email, dan pertanyaan umum dari pelanggan.</div>
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-green-500"></div>
+            <div class="w-10 h-10 rounded-lg bg-green-50 text-green-500 flex items-center justify-center mb-4">
+                <i data-feather="check-circle" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 text-green-500"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Resolved</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">selesai</p>
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row">
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="alert-circle"></i></div>
-            <div>
-                <div class="stat-val clr-danger"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-lbl">Open</div>
-                <div class="stat-note">butuh respon</div>
-            </div>
+    <div class="flex items-center gap-4 mb-6">
+        <div class="flex-1 relative">
+            <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <input type="text" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari tiket, customer, atau subjek…">
         </div>
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="message-square"></i></div>
-            <div>
-                <div class="stat-val clr-info"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-lbl">Replied</div>
-                <div class="stat-note">sudah dibalas</div>
-            </div>
-        </div>
-        <div class="stat-mini">
-            <div class="stat-icon"><i data-feather="check-circle"></i></div>
-            <div>
-                <div class="stat-val clr-success"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-lbl">Resolved</div>
-                <div class="stat-note">selesai</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <div class="search-wrap">
-            <i data-feather="search"></i>
-            <input class="search-input" type="text" placeholder="Cari tiket, customer, atau subjek…">
-        </div>
-        <div class="filter-tabs">
-            <button class="ftab active">Semua</button>
-            <button class="ftab">Open</button>
-            <button class="ftab">Diproses</button>
-            <button class="ftab">Selesai</button>
+        <div class="flex gap-1 bg-white border border-gray-100 shadow-sm rounded-xl p-1">
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors bg-orange-50 text-primary">Semua</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Open</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Diproses</button>
+            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Selesai</button>
         </div>
     </div>
 
     <!-- Ticket List -->
-    <div class="ticket-list">
+    <div class="space-y-4">
         @forelse ($tickets as $t)
         @php
-            $sl = $t->status;
-            $cat_cls = 'cat-account'; // Default
+            $sl = strtolower($t->status);
+            $leftBorder = match($sl) {
+                'pending' => 'border-l-4 border-red-500',
+                'replied' => 'border-l-4 border-blue-500',
+                'resolved' => 'border-l-4 border-green-500',
+                default => 'border-l-4 border-gray-500'
+            };
         @endphp
-        <div class="ticket-row st-{{ $sl }}">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow group {{ $leftBorder }} ticket-row" id="row-{{ $t->id }}">
 
             <!-- ID + Time -->
-            <div class="tcell">
-                <span class="tkt-id">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
-                <div class="tkt-time"><i data-feather="clock"></i>{{ $t->created_at->diffForHumans() }}</div>
+            <div class="w-[130px]">
+                <span class="inline-block px-2 py-1 bg-orange-50 text-primary text-[9px] font-black uppercase tracking-widest rounded-md mb-1.5 font-mono">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
+                <div class="flex items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">
+                    <i data-feather="clock" class="w-3 h-3 mr-1.5"></i> {{ $t->created_at->diffForHumans() }}
+                </div>
             </div>
 
             <!-- Sender -->
-            <div class="tcell">
-                <div class="sender-name">{{ $t->user->full_name }}</div>
-                <span class="sender-cat {{ $cat_cls }}">Support</span>
+            <div class="w-1/5">
+                <div class="text-sm font-bold text-gray-900 truncate">{{ $t->user->full_name }}</div>
+                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-amber-50 text-amber-600">
+                    Support
+                </span>
             </div>
 
             <!-- Subject -->
-            <div class="tcell">
-                <div class="tkt-subject">{{ $t->subject }}</div>
+            <div class="flex-1">
+                <div class="text-xs font-semibold text-gray-600 line-clamp-2">{{ $t->subject }}</div>
             </div>
 
             <!-- Status -->
-            <div class="tcell">
-                <select class="status-select status-{{ $sl }}" onchange="updateTicketStatus(this, {{ $t->id }})">
+            <div class="w-[140px]">
+                @php
+                    $selectCls = match($sl) {
+                        'pending' => 'bg-red-50 text-red-600 border-red-200',
+                        'replied' => 'bg-blue-50 text-blue-600 border-blue-200',
+                        'resolved' => 'bg-green-50 text-green-600 border-green-200',
+                        default => 'bg-gray-50 text-gray-600 border-gray-200'
+                    };
+                @endphp
+                <select class="w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer {{ $selectCls }}" onchange="updateTicketStatus(this, {{ $t->id }})">
                     <option value="pending" {{ $sl === 'pending' ? 'selected' : '' }}>Open</option>
                     <option value="replied" {{ $sl === 'replied' ? 'selected' : '' }}>Replied</option>
                     <option value="resolved" {{ $sl === 'resolved' ? 'selected' : '' }}>Resolved</option>
@@ -349,47 +154,52 @@ $menu_items = [
             </div>
 
             <!-- Action -->
-            <div class="tcell">
-                <button class="btn-reply"
-                        onclick="openChat('{{ $t->id }}', '{{ $t->user->full_name }}', '{{ $t->subject }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
-                    <i data-feather="message-circle"></i> View & Reply
+            <div class="w-[140px] flex justify-end">
+                <button class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-[10px] font-bold bg-primary text-white hover:bg-[#8A5229] transition-colors whitespace-nowrap w-full"
+                        onclick="openChat('{{ $t->id }}', '{{ addslashes($t->user->full_name) }}', '{{ addslashes($t->subject) }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
+                    <i data-feather="message-circle" class="w-3.5 h-3.5 mr-1.5"></i> View & Reply
                 </button>
             </div>
 
         </div>
         @empty
-        <div class="panel" style="padding: 40px; text-align: center; color: var(--text-muted);">
-            <i data-feather="inbox" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-            <p>Belum ada tiket bantuan dari pelanggan.</p>
+        <div class="text-center py-12 bg-white rounded-xl border border-gray-100 text-gray-400 shadow-sm">
+            <i data-feather="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p class="text-sm font-semibold">Belum ada tiket bantuan dari pelanggan.</p>
         </div>
         @endforelse
     </div>
 
+    </div>
 </main>
 
 <!-- ══════════ CHAT MODAL ══════════ -->
 <div id="chatModal" class="chat-modal">
-    <div class="chat-content">
-        <div class="chat-header">
-            <div class="chat-header-left">
-                <div class="chat-header-icon"><i data-feather="message-circle"></i></div>
+    <div class="chat-content bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-5 bg-primary flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3 text-white">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <i data-feather="message-circle" class="w-5 h-5"></i>
+                </div>
                 <div>
-                    <div class="chat-title" id="chatTitle">—</div>
-                    <div class="chat-sub" id="chatSub">—</div>
+                    <div class="text-sm font-bold" id="chatTitle">—</div>
+                    <div class="text-[10px] text-white/80 mt-0.5" id="chatSub">—</div>
                 </div>
             </div>
-            <button class="chat-close" onclick="closeChat()">×</button>
+            <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors" onclick="closeChat()">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
         </div>
 
         <div class="chat-body" id="chatWindow">
             <!-- Messages will be injected here -->
         </div>
 
-        <form id="replyForm" action="" method="POST" class="chat-footer">
+        <form id="replyForm" action="" method="POST" class="p-4 bg-white border-t border-gray-100 flex gap-2 shrink-0">
             @csrf
-            <input type="text" name="reply" id="chatInput" class="chat-input" placeholder="Tulis balasan…" required>
-            <button type="submit" class="btn-send">
-                <i data-feather="send"></i> Kirim
+            <input type="text" name="reply" id="chatInput" class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Tulis balasan…" required>
+            <button type="submit" class="px-5 py-3 bg-primary hover:bg-[#8A5229] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors">
+                <i data-feather="send" class="w-4 h-4"></i> Kirim
             </button>
         </form>
     </div>
@@ -399,9 +209,22 @@ $menu_items = [
     feather.replace({ 'stroke-width': 2 });
 
     function updateTicketStatus(sel, id) {
-        sel.className = 'status-select status-' + sel.value;
+        const val = sel.value;
+        const clsMap = {
+            'pending': 'bg-red-50 text-red-600 border-red-200',
+            'replied': 'bg-blue-50 text-blue-600 border-blue-200',
+            'resolved': 'bg-green-50 text-green-600 border-green-200'
+        };
+        const borderMap = {
+            'pending': 'border-l-4 border-red-500',
+            'replied': 'border-l-4 border-blue-500',
+            'resolved': 'border-l-4 border-green-500'
+        };
+        
+        sel.className = `w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer ${clsMap[val]}`;
+        
         const row = sel.closest('.ticket-row');
-        row.className = 'ticket-row st-' + sel.value;
+        row.className = row.className.replace(/border-l-4 border-\w+-500/, borderMap[val]);
 
         fetch(`{{ url('admin/support') }}/${id}/status`, {
             method: 'PATCH',
@@ -409,7 +232,7 @@ $menu_items = [
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ status: sel.value })
+            body: JSON.stringify({ status: val })
         });
     }
 
@@ -419,17 +242,17 @@ $menu_items = [
         
         const win = document.getElementById('chatWindow');
         win.innerHTML = `
-            <div class="bubble-wrap">
-                <div class="bubble-meta">${name} · Customer</div>
-                <div class="bubble customer">${message}</div>
+            <div class="flex flex-col items-start w-full mb-2">
+                <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 pl-1">${name} · Customer</div>
+                <div class="max-w-[85%] px-4 py-3 bg-white border border-gray-200 text-gray-800 text-xs rounded-2xl rounded-tl-sm shadow-sm leading-relaxed">${message}</div>
             </div>
         `;
 
         if(reply && reply !== '') {
             win.innerHTML += `
-                <div class="bubble-wrap admin-wrap">
-                    <div class="bubble-meta">Admin · Reply</div>
-                    <div class="bubble admin">${reply}</div>
+                <div class="flex flex-col items-end w-full mt-4">
+                    <div class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-1 pr-1">Admin · Reply</div>
+                    <div class="max-w-[85%] px-4 py-3 bg-primary text-white text-xs rounded-2xl rounded-tr-sm shadow-sm leading-relaxed">${reply}</div>
                 </div>
             `;
         }
@@ -446,6 +269,18 @@ $menu_items = [
     window.addEventListener('click', e => {
         if (e.target === document.getElementById('chatModal')) closeChat();
     });
+</script>
+
+<script>
+    const btn = document.getElementById("toggle-sidebar");
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main-content");
+    if(btn) {
+        btn.addEventListener("click", () => { 
+            sidebar.classList.toggle("sidebar-hidden"); 
+            main.classList.toggle("main-expanded"); 
+        });
+    }
 </script>
 </body>
 </html>

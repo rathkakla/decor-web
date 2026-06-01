@@ -39,26 +39,7 @@
 <body class="text-gray-800">
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-        <div class="p-8">
-            <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic font-bold">Designer Portal</p>
-        </div>
-        
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard</a>
-            <a href="{{ route('designer.portfolio.index') }}" class="flex items-center px-4 py-3 text-xs font-bold active-link transition-all rounded-lg"><i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio</a>
-            <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i>Konsultasi</a>
-            <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i>Chat</a>
-            <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating</a>
-            <a href="{{ route('designer.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan</a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-100 space-y-1">
-            <a href="{{ route('designer.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings</a>
-            <a href="{{ route('designer.support') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-circle-question mr-3 w-5 text-center"></i> Support</a>
-        </div>
-    </aside>
+    @include('designer.partials.sidebar')
 
     <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
         <!-- HEADER -->
@@ -152,9 +133,26 @@
                      data-description="{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}">
                     <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden cursor-pointer" onclick="openPortfolioModalFromCard({{ $portfolio->id }})">
                         <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                        <div class="absolute top-6 left-6">
-                            <span class="text-[8px] bg-white/90 backdrop-blur text-gray-900 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm">
+                        <div class="absolute top-6 left-6 flex flex-col gap-1.5">
+                            <span class="text-[8px] bg-white/90 backdrop-blur text-gray-900 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm w-fit">
                                 {{ $portfolio->category ?? 'Interior' }}
+                            </span>
+                            @php
+                                $statusColors = [
+                                    'pending' => 'bg-amber-500/90 text-white',
+                                    'approved' => 'bg-emerald-500/90 text-white',
+                                    'rejected' => 'bg-rose-500/90 text-white',
+                                ];
+                                $statusLabels = [
+                                    'pending' => 'PENDING',
+                                    'approved' => 'APPROVED',
+                                    'rejected' => 'REJECTED',
+                                ];
+                                $color = $statusColors[$portfolio->status] ?? 'bg-gray-500/90 text-white';
+                                $label = $statusLabels[$portfolio->status] ?? strtoupper($portfolio->status);
+                            @endphp
+                            <span class="text-[8px] {{ $color }} px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm w-fit">
+                                {{ $label }}
                             </span>
                         </div>
                         @if($portfolio->is_360)

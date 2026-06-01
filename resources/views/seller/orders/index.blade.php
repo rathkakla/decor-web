@@ -80,7 +80,13 @@
                     
                     <div class="space-y-1">
                         <div class="flex items-center space-x-3">
-                            <span class="text-sm font-bold text-gray-700">#ORD-{{ $order->id }}</span>
+                            <span class="text-sm font-bold text-gray-700">
+                                @if($order->return_code)
+                                    #DEC-{{ str_replace('RET-', '', $order->return_code) }}-RET
+                                @else
+                                    #ORD-{{ $order->id }}
+                                @endif
+                            </span>
                             <span class="{{ $badgeClass }} text-[8px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{ $order->status }}</span>
                         </div>
                         <h3 class="text-lg font-black text-gray-800">{{ $order->customer->user->full_name ?? 'Customer' }}</h3>

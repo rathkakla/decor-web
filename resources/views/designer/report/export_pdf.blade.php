@@ -1,115 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Report - {{ $start_date }} to {{ $end_date }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8">
+    <title>Laporan Pendapatan Desainer - {{ $designer->user->full_name }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { background-color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; color: #1a1a1a; }
-        .pdf-container { width: 21cm; min-height: 29.7cm; margin: 0 auto; padding: 2cm; }
-        .bg-primary { background-color: #B5733A; }
-        .text-primary { color: #B5733A; }
-        @media print {
-            body { background: none; padding: 0; }
-            .pdf-container { margin: 0; box-shadow: none; width: 100%; }
-        }
+        body { font-family: sans-serif; font-size: 12px; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #B5733A; padding-bottom: 20px; }
+        .header h1 { color: #B5733A; margin: 0; font-size: 24px; text-transform: uppercase; }
+        .header p { margin: 5px 0; color: #666; }
+        .summary { margin-bottom: 30px; width: 100%; border-collapse: collapse; }
+        .summary td { padding: 10px; background: #f9f9f9; border: 1px solid #eee; }
+        .summary .label { font-weight: bold; color: #666; font-size: 10px; text-transform: uppercase; }
+        .summary .value { font-size: 16px; font-weight: bold; color: #333; }
+        table.data { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table.data th { background: #B5733A; color: white; padding: 10px; text-align: left; text-transform: uppercase; font-size: 10px; }
+        table.data td { padding: 10px; border-bottom: 1px solid #eee; }
+        .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #999; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
-
-    <div class="pdf-container">
-        <!-- REPORT HEADER -->
-        <div class="flex justify-between items-start border-b-2 border-gray-100 pb-10 mb-10">
-            <div>
-                <h1 class="text-3xl font-black text-primary tracking-[0.2em] uppercase">DECOR</h1>
-                <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold italic tracking-widest">Official Financial Statement</p>
-            </div>
-            <div class="text-right">
-                <h2 class="text-sm font-black uppercase tracking-widest">Designer Report</h2>
-                <p class="text-xs text-gray-500 font-bold mt-1 uppercase italic">{{ $start_date }} — {{ $end_date }}</p>
-            </div>
-        </div>
-
-        <!-- DESIGNER IDENTITY -->
-        <div class="mb-12">
-            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 italic">Issued For:</p>
-            <h3 class="text-lg font-black uppercase">Elena Vance</h3>
-            <p class="text-xs text-gray-500 font-medium italic">ID: #DES-ELV2026</p>
-        </div>
-
-        <!-- FINANCIAL SUMMARY CARDS -->
-        <div class="grid grid-cols-3 gap-6 mb-12">
-            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
-                <p class="text-xl font-black text-primary">$8,450.00</p>
-            </div>
-            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Completed Projects</p>
-                <p class="text-xl font-black text-gray-900">24</p>
-            </div>
-            <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg. Project Value</p>
-                <p class="text-xl font-black text-gray-900">$352.00</p>
-            </div>
-        </div>
-
-        <!-- TRANSACTION TABLE -->
-        <div class="mb-12">
-            <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-6 border-l-4 border-primary pl-4">Transaction Details</h4>
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b border-gray-900">
-                        <th class="py-4 text-[9px] font-black uppercase tracking-widest">Date</th>
-                        <th class="py-4 text-[9px] font-black uppercase tracking-widest">ID</th>
-                        <th class="py-4 text-[9px] font-black uppercase tracking-widest">Description</th>
-                        <th class="py-4 text-right text-[9px] font-black uppercase tracking-widest">Amount</th>
-                    </tr>
-                </thead>
-                <tbody class="text-[10px] font-bold uppercase italic text-gray-700">
-                    <tr class="border-b border-gray-50">
-                        <td class="py-4 italic tracking-tighter">Apr 28, 2026</td>
-                        <td class="py-4 text-primary">#DEC-88219</td>
-                        <td class="py-4">Penthouse Interior - Elena Rodriguez</td>
-                        <td class="py-4 text-right">$1,250.00</td>
-                    </tr>
-                    <tr class="border-b border-gray-50">
-                        <td class="py-4 italic tracking-tighter">Apr 25, 2026</td>
-                        <td class="py-4 text-primary">#DEC-88102</td>
-                        <td class="py-4">Mid-Century Loft - Marcus Thorne</td>
-                        <td class="py-4 text-right">$2,400.00</td>
-                    </tr>
-                    <tr class="border-b border-gray-50">
-                        <td class="py-4 italic tracking-tighter">Apr 20, 2026</td>
-                        <td class="py-4 text-primary">#DEC-87944</td>
-                        <td class="py-4">Modern Office - Luminary Studios</td>
-                        <td class="py-4 text-right">$3,100.00</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- SIGNATURE AREA -->
-        <div class="mt-20 pt-10 flex justify-between items-end border-t border-gray-50">
-            <div class="text-[9px] text-gray-300 font-bold uppercase leading-relaxed">
-                Report generated on: May 4, 2026<br>
-                Official document of DECOR DESIGNER PORTAL
-            </div>
-            <div class="text-center w-48">
-                <p class="text-[10px] font-black uppercase tracking-widest mb-16 italic">Authorized Signature</p>
-                <div class="h-px bg-gray-900 mb-2"></div>
-                <p class="text-[9px] font-black uppercase tracking-widest text-primary leading-none">Finance Department</p>
-            </div>
-        </div>
-
-        <!-- PDF FOOTER -->
-        <div class="mt-40 text-center">
-            <p class="text-[8px] font-black text-gray-200 uppercase tracking-[0.5em]">
-                Excellence in curation. Excellence in design.
-            </p>
-        </div>
+    <div class="header">
+        <h1>Laporan Pendapatan Desainer</h1>
+        <p>{{ $designer->user->full_name }} - ID: #DES-{{ str_pad($designer->id, 4, '0', STR_PAD_LEFT) }}</p>
+        <p>Periode: {{ date('d F Y', strtotime($start_date)) }} - {{ date('d F Y', strtotime($end_date)) }}</p>
     </div>
 
+    <table class="summary">
+        <tr>
+            <td>
+                <div class="label">Total Pendapatan</div>
+                <div class="value">Rp {{ number_format($periodRevenue, 0, ',', '.') }}</div>
+            </td>
+            <td>
+                <div class="label">Proyek Selesai</div>
+                <div class="value">{{ $projectsCompleted }} Proyek</div>
+            </td>
+            <td>
+                <div class="label">Rata-rata Nilai Proyek</div>
+                <div class="value">Rp {{ number_format($avgProjectValue, 0, ',', '.') }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="data">
+        <thead>
+            <tr>
+                <th>Tanggal Selesai</th>
+                <th>Project ID</th>
+                <th>Nama Klien</th>
+                <th>Layanan</th>
+                <th class="text-right">Nominal Pendapatan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($consultations as $consult)
+            <tr>
+                <td>{{ $consult->updated_at->format('d/m/Y') }}</td>
+                <td>#DEC-{{ str_pad($consult->id, 5, '0', STR_PAD_LEFT) }}</td>
+                <td>{{ $consult->customer->user->full_name ?? 'Client' }}</td>
+                <td>Consultation & Quote</td>
+                <td class="text-right">Rp {{ number_format($consult->quotes->first()->amount ?? 0, 0, ',', '.') }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="text-center" style="padding: 10px; text-align: center;">Tidak ada proyek selesai pada periode ini.</td>
+            </tr>
+            @endforelse
+        </tbody>
+        <tfoot>
+            <tr style="background: #f9f9f9; font-weight: bold;">
+                <td colspan="4" class="text-right" style="padding: 10px;">TOTAL PENDAPATAN</td>
+                <td class="text-right" style="padding: 10px;">Rp {{ number_format($periodRevenue, 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="footer">
+        <p>Laporan dicetak pada: {{ date('d/m/Y H:i') }}</p>
+        <p>Dokumen ini dihasilkan secara otomatis oleh DECOR Designer Portal.</p>
+        <p>Â© 2026 DECOR - All Rights Reserved</p>
+    </div>
 </body>
 </html>

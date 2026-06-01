@@ -18,42 +18,86 @@ class Consultation extends Model
         'status',
         'cover_image',
         'consultation_type',
+        'payment_proof',
+        'chat_expires_at',
     ];
+
+    protected $casts = [
+        'chat_expires_at' => 'datetime',
+    ];
+
+    protected $appends = ['consultation_fee', 'final_amount', 'is_chat_expired'];
+
+    public function getConsultationFeeAttribute()
+    {
+        return $this->consultation_type === 'request_proposal' ? 250000 : 50000;
+    }
+
+    public function getFinalAmountAttribute()
+    {
+        $quote = $this->quotes()->where('status', 'accepted')->first();
+        return $quote ? (float)$quote->amount : null;
+    }
+
+    public function getIsChatExpiredAttribute()
+    {
+        if ($this->consultation_type === 'chat_consultation' && $this->chat_expires_at) {
+            return $this->chat_expires_at->isPast();
+        }
+        return false;
+    }
 
     protected static function boot()
     {
         parent::boot();
 
+        static::saving(function ($consultation) {
+            if ($consultation->isDirty('status') && $consultation->status == self::STATUS_ACTIVE) {
+                if ($consultation->consultation_type === 'chat_consultation' && is_null($consultation->chat_expires_at)) {
+                    $consultation->chat_expires_at = now()->addMinutes(30);
+                }
+            }
+        });
+
         static::updated(function ($consultation) {
             if ($consultation->wasChanged('status') && $consultation->status == self::STATUS_COMPLETED) {
-                $exists = \App\Models\DesignerPortfolio::where('consultation_id', $consultation->id)->exists();
-                if (!$exists) {
-                    $acceptedQuote = $consultation->quotes()->where('status', 'accepted')->first();
-                    $budget = $acceptedQuote 
-                        ? 'Rp ' . number_format($acceptedQuote->amount, 0, ',', '.') 
-                        : $consultation->budget_range;
+                // Hanya tipe request_proposal yang otomatis masuk portfolio
+                if ($consultation->consultation_type === 'request_proposal') {
+                    $exists = \App\Models\DesignerPortfolio::where('consultation_id', $consultation->id)->exists();
+                    if (!$exists) {
+                        $acceptedQuote = $consultation->quotes()->where('status', 'accepted')->first();
+                        $budget = $acceptedQuote 
+                            ? 'Rp ' . number_format($acceptedQuote->amount, 0, ',', '.') 
+                            : $consultation->budget_range;
 
-                    $coverImage = $consultation->getRawOriginal('cover_image');
-                    if (!$coverImage) {
-                        $firstImageAttachment = $consultation->attachments()
-                            ->where('file_type', 'image')
-                            ->first();
-                        if ($firstImageAttachment) {
-                            $coverImage = $firstImageAttachment->file_url;
+                        $coverImage = $consultation->getRawOriginal('cover_image');
+                        if (!$coverImage && $acceptedQuote && $acceptedQuote->design_image) {
+                            $designImages = json_decode($acceptedQuote->design_image, true);
+                            $coverImage = is_array($designImages) && count($designImages) > 0 ? $designImages[0] : $acceptedQuote->design_image;
                         }
-                    }
 
-                    \App\Models\DesignerPortfolio::create([
-                        'designer_id' => $consultation->designer_id,
-                        'consultation_id' => $consultation->id,
-                        'title' => $consultation->title,
-                        'image_url' => $coverImage ?? 'designers/portfolios/default.jpg',
-                        'description' => 'Project otomatis ditambahkan setelah menyelesaikan konsultasi dengan customer.',
-                        'category' => 'Completed Project',
-                        'budget' => $budget,
-                        'area' => '-',
-                        'duration' => '-',
-                    ]);
+                        if (!$coverImage) {
+                            $firstImageAttachment = $consultation->attachments()
+                                ->where('file_type', 'image')
+                                ->first();
+                            if ($firstImageAttachment) {
+                                $coverImage = $firstImageAttachment->file_url;
+                            }
+                        }
+
+                        \App\Models\DesignerPortfolio::create([
+                            'designer_id' => $consultation->designer_id,
+                            'consultation_id' => $consultation->id,
+                            'title' => $consultation->title,
+                            'image_url' => $coverImage ?? 'designers/portfolios/default.jpg',
+                            'description' => 'Project otomatis ditambahkan setelah menyelesaikan konsultasi dengan customer.',
+                            'category' => 'Completed Project',
+                            'budget' => $budget,
+                            'area' => '-',
+                            'duration' => '-',
+                            'status' => 'approved',
+                        ]);
+                    }
                 }
             }
         });
@@ -122,5 +166,10 @@ class Consultation extends Model
     public function quotes()
     {
         return $this->hasMany(ConsultationQuote::class)->latest();
+    }
+
+    public function review()
+    {
+        return $this->hasOne(ConsultationReview::class, 'consultation_id');
     }
 }

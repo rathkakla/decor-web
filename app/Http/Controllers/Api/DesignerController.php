@@ -10,8 +10,10 @@ class DesignerController extends Controller
 {
     public function index()
     {
-        // Get all designers with their user details
-        $designers = Designer::with(['user', 'portfolios'])->get();
+        // Get all designers with their user details and portfolios (including reviews)
+        $designers = Designer::with(['user', 'portfolios' => function ($q) {
+            $q->where('status', 'approved')->with('consultation.review.customer');
+        }])->get();
 
         return response()->json([
             'success' => true,
@@ -31,6 +33,7 @@ class DesignerController extends Controller
                     'linkedin_url' => $designer->linkedin_url,
                     'projects_completed' => $designer->consultations()->where('status', 4)->count(),
                     'average_project_duration' => $designer->average_project_duration,
+                    'rating' => (double) $designer->average_rating,
                     'image' => $designer->designer_image ? asset('storage/' . $designer->designer_image) : 'https://ui-avatars.com/api/?name='.urlencode($designer->user->full_name).'&background=B5733A&color=fff',
                     'banner' => $designer->banner_image ? asset('storage/' . $designer->banner_image) : null,
                     'portfolios' => $designer->portfolios->map(function($portfolio) {
@@ -44,6 +47,12 @@ class DesignerController extends Controller
                             'area' => $portfolio->area,
                             'duration' => $portfolio->duration,
                             'is_360' => $portfolio->is_360,
+                            'review' => ($portfolio->consultation && $portfolio->consultation->review) ? [
+                                'rating' => $portfolio->consultation->review->rating,
+                                'comment' => $portfolio->consultation->review->comment,
+                                'customer_name' => $portfolio->consultation->review->customer->full_name,
+                                'created_at' => $portfolio->consultation->review->created_at->format('d M Y')
+                            ] : null,
                         ];
                     })
                 ];
@@ -53,9 +62,12 @@ class DesignerController extends Controller
 
     public function show($id)
     {
-        $designer = Designer::with(['user', 'portfolios'])->findOrFail($id);
+        $designer = Designer::with(['user', 'portfolios' => function ($q) {
+            $q->where('status', 'approved')->with('consultation.review.customer');
+        }])->findOrFail($id);
 
         $freeConsultation = null;
+        $canFreeChat = true;
         if (\Illuminate\Support\Facades\Auth::guard('sanctum')->check()) {
             $user = \Illuminate\Support\Facades\Auth::guard('sanctum')->user();
             $customer = \App\Models\Customer::where('user_id', $user->id)->first();
@@ -71,6 +83,11 @@ class DesignerController extends Controller
                         'is_active' => !$fc->is_completed && !$fc->expires_at->isPast(),
                         'time_left' => !$fc->is_completed && !$fc->expires_at->isPast() ? (int) now()->diffInSeconds($fc->expires_at) : 0,
                     ];
+                } else {
+                    $totalFreeUsed = \App\Models\FreeConsultation::where('customer_id', $customer->id)->count();
+                    if ($totalFreeUsed >= 3) {
+                        $canFreeChat = false;
+                    }
                 }
             }
         }
@@ -93,6 +110,7 @@ class DesignerController extends Controller
                 'linkedin_url' => $designer->linkedin_url,
                 'projects_completed' => $designer->consultations()->where('status', 4)->count(),
                 'average_project_duration' => $designer->average_project_duration,
+                'rating' => (double) $designer->average_rating,
                 'image' => $designer->designer_image ? asset('storage/' . $designer->designer_image) : 'https://ui-avatars.com/api/?name='.urlencode($designer->user->full_name).'&background=B5733A&color=fff',
                 'banner' => $designer->banner_image ? asset('storage/' . $designer->banner_image) : null,
                 'portfolios' => $designer->portfolios->map(function($portfolio) {
@@ -106,9 +124,16 @@ class DesignerController extends Controller
                         'area' => $portfolio->area,
                         'duration' => $portfolio->duration,
                         'is_360' => $portfolio->is_360,
+                        'review' => ($portfolio->consultation && $portfolio->consultation->review) ? [
+                            'rating' => $portfolio->consultation->review->rating,
+                            'comment' => $portfolio->consultation->review->comment,
+                            'customer_name' => $portfolio->consultation->review->customer->full_name,
+                            'created_at' => $portfolio->consultation->review->created_at->format('d M Y')
+                        ] : null,
                     ];
                 }),
-                'free_consultation' => $freeConsultation
+                'free_consultation' => $freeConsultation,
+                'can_free_chat' => $canFreeChat
             ]
         ]);
     }

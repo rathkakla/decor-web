@@ -60,65 +60,7 @@
 <!-- ══════════════════════════════════════
      NAVBAR
 ══════════════════════════════════════ -->
-<header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                DECOR
-            </a>
-            
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-            </div>
-        </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-            <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-        </nav>
-
-       <div class="flex items-center space-x-6 flex-1 justify-end">
-    @auth
-        <div class="flex items-center gap-4 border-r pr-6 border-gray-100">
-            <div class="text-right hidden sm:block">
-                <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold leading-none mb-1">Welcome back</p>
-                <p class="text-xs font-bold text-primary capitalize">{{ Auth::user()->full_name }}</p>
-            </div>
-            
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors" title="Logout">
-                    <i class="fa-solid fa-power-off text-sm"></i>
-                </button>
-            </form>
-        </div>
-
-        <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-        </a>
-
-        <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-            <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
-            </a>
-        </div>
-    @else
-        <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
-            Sign In
-        </a>
-        
-        <a href="{{ route('role.selection') }}">
-            <button class="bg-primary text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-opacity-90 transition-all">
-                Join Us
-            </button>
-        </a>
-    @endauth
-</div>
-    </div>
-</header>
+@include('customer.partials.navbar')
 
 
 <!-- ══════════════════════════════════════
@@ -127,47 +69,7 @@
 <main class="flex-grow flex content-container w-full bg-white">
 
     <!-- ── Sidebar ── -->
-    <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0">
-        <div class="text-center mb-10">
-            <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
-            <h3 class="font-bold text-lg text-gray-900">{{ $user->full_name ?? 'User' }}</h3>
-            <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
-        </div>
-        <nav class="space-y-1">
-            <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                <i class="fa-regular fa-user text-xs"></i>
-                <span class="text-[11px] uppercase tracking-widest">Profile</span>
-            </a>
-            <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                <i class="fa-solid fa-box-archive text-xs"></i>
-                <span class="text-[11px] uppercase tracking-widest">Orders</span>
-            </a>
-            <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                <i class="fa-solid fa-rotate-left text-xs"></i>
-                <span class="text-[11px] uppercase tracking-widest">Returns</span>
-            </a>
-           
-            <!-- Active -->
-            <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
-                <i class="fa-regular fa-heart text-xs"></i>
-                <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-            </a>
-            <div class="pt-6 mt-6 border-t border-gray-100">
-                    <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/seller')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-shop text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Seller</span>
-                    </a>
-                </div>
-
-        </nav>
-    </aside>
+    @include('customer.partials.sidebar')
 
 
     <!-- ── Content ── -->

@@ -46,65 +46,7 @@
 </head>
 <body class="text-gray-800">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
-            
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-            </div>
-        </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-            <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-        </nav>
-
-       <div class="flex items-center space-x-6 flex-1 justify-end">
-    @auth
-        <div class="flex items-center gap-4 border-r pr-6 border-gray-100">
-            <div class="text-right hidden sm:block">
-                <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold leading-none mb-1">Welcome back</p>
-                <p class="text-xs font-bold text-primary capitalize">{{ Auth::user()->full_name }}</p>
-            </div>
-            
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors" title="Logout">
-                    <i class="fa-solid fa-power-off text-sm"></i>
-                </button>
-            </form>
-        </div>
-
-        <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-        </a>
-
-                    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                        <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                            <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
-                        </a>
-                    </div>
-    @else
-        <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
-            Sign In
-        </a>
-        
-        <a href="{{ route('role.selection') }}">
-            <button class="bg-primary text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-opacity-90 transition-all">
-                Join Us
-            </button>
-        </a>
-    @endauth
-</div>
-    </div>
-</header>
+    @include('customer.partials.navbar')
 
    <main class="py-16 content-container px-6">
         <form action="{{ route('customer.place-order') }}" method="POST">
@@ -232,18 +174,36 @@
 
                         <!-- Voucher Section -->
                         <div class="mb-8 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Have a Voucher?</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="voucher-code" placeholder="Enter code" class="flex-1 bg-gray-50 border-none rounded-lg px-4 py-2 text-xs font-bold focus:ring-1 focus:ring-primary/20">
-                                <button type="button" id="apply-voucher" class="bg-primary/10 text-primary px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Apply</button>
-                            </div>
-                            <p id="voucher-message" class="text-[9px] font-bold mt-2 hidden"></p>
-                            <div id="applied-voucher" class="hidden mt-3 p-3 bg-orange-50 rounded-lg border border-primary/20 flex justify-between items-center">
-                                <div>
-                                    <p class="text-[9px] font-black text-primary uppercase tracking-widest" id="applied-code"></p>
-                                    <p class="text-[10px] font-bold text-gray-700" id="applied-discount"></p>
+                            <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2">Voucher Toko</label>
+                            <button type="button" id="open-voucher-modal" class="w-full flex items-center justify-between bg-gray-50/50 hover:bg-gray-50 border border-gray-100 hover:border-primary/20 rounded-xl p-3.5 transition-all group">
+                                <div class="flex items-center space-x-3 text-left">
+                                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-ticket"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-800" id="selected-voucher-title">Pilih Voucher Toko</p>
+                                        <p class="text-[9px] text-gray-400" id="selected-voucher-desc">Hemat lebih banyak dengan voucher terklaim Anda</p>
+                                    </div>
                                 </div>
-                                <button type="button" id="remove-voucher" class="text-red-400 hover:text-red-500"><i class="fa-solid fa-circle-xmark"></i></button>
+                                <div class="flex items-center space-x-2">
+                                    @if(count($claimedVouchers) > 0)
+                                        <span class="bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{{ count($claimedVouchers) }} Voucher</span>
+                                    @endif
+                                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </button>
+
+                            <div id="applied-voucher" class="hidden mt-3 p-3.5 bg-orange-50/50 rounded-xl border border-primary/20 flex justify-between items-center">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] font-black text-primary uppercase tracking-widest" id="applied-code"></p>
+                                        <p class="text-[11px] font-bold text-gray-700 leading-tight" id="applied-discount"></p>
+                                    </div>
+                                </div>
+                                <button type="button" id="remove-voucher" class="text-red-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
                             </div>
                             <input type="hidden" name="voucher_id" id="voucher-id-input">
                         </div>
@@ -279,51 +239,286 @@
                     </div>
                 </aside>
             </div>
-        </form> </main>
+        </form>
+    </main>
+
+    <!-- Voucher Selection Modal (Shopee-Style) -->
+    <div id="voucher-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" id="close-voucher-backdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative z-10 flex flex-col max-h-[85vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="voucher-modal-container">
+            <!-- Style for Peer checking -->
+            <style>
+                input[type="radio"]:checked + div {
+                    border-color: #B5733A !important;
+                    background-color: rgb(254 243 199 / 0.15) !important;
+                }
+                input[type="radio"]:checked + div .w-5 {
+                    border-color: #B5733A !important;
+                }
+                input[type="radio"]:checked + div .scale-0 {
+                    transform: scale(1) !important;
+                }
+            </style>
+
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-ticket text-primary text-lg"></i>
+                    <h3 class="text-lg font-bold text-gray-800">Pilih Voucher Toko</h3>
+                </div>
+                <button type="button" id="close-voucher-modal" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-50 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+
+
+            <!-- Scrollable Voucher List -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-4 max-h-[50vh]">
+                @if(count($claimedVouchers) > 0)
+                    @php
+                        // Get all seller ids in the cart to check eligibility
+                        $cartSellerIds = [];
+                        if($cart && $cart->cartItems) {
+                            foreach($cart->cartItems as $item) {
+                                if($item->is_selected) {
+                                    $cartSellerIds[] = $item->product->seller_id;
+                                }
+                            }
+                        }
+                        $cartSellerIds = array_unique($cartSellerIds);
+                    @endphp
+
+                    <!-- Eligible Vouchers -->
+                    <div class="space-y-3">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Voucher Tersedia</h4>
+                        
+                        @php $hasVoucher = false; @endphp
+                        @foreach($claimedVouchers as $voucher)
+                            @php
+                                $inCart = in_array($voucher->seller_id, $cartSellerIds);
+                                // Get subtotal for this specific seller in the cart
+                                $sellerSubtotal = 0;
+                                if($cart && $cart->cartItems) {
+                                    foreach($cart->cartItems as $item) {
+                                        if($item->is_selected && $item->product->seller_id == $voucher->seller_id) {
+                                            $sellerSubtotal += ($item->product->price * $item->quantity);
+                                        }
+                                    }
+                                }
+                                $minPurchaseMet = $sellerSubtotal >= $voucher->min_purchase;
+                                $isEligible = $inCart && $minPurchaseMet;
+                            @endphp
+
+                            @if($isEligible)
+                                @php $hasVoucher = true; @endphp
+                                <!-- Voucher Card (Eligible) -->
+                                <label class="block relative cursor-pointer group">
+                                    <input type="radio" name="selected_modal_voucher" 
+                                           value="{{ $voucher->id }}" 
+                                           data-code="{{ $voucher->code }}" 
+                                           data-seller="{{ $voucher->seller_id }}"
+                                           class="peer sr-only">
+                                    
+                                    <div class="flex border border-gray-200 rounded-2xl overflow-hidden bg-white hover:border-primary/50 transition-all shadow-sm">
+                                        <!-- Left Accent Panel (Ticket shape) -->
+                                        <div class="bg-primary/5 text-primary w-24 flex flex-col items-center justify-center p-4 border-r border-dashed border-gray-200 relative">
+                                            <!-- Half circle notch top -->
+                                            <div class="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-white border border-gray-200"></div>
+                                            <!-- Half circle notch bottom -->
+                                            <div class="absolute -bottom-2 -right-2 w-4 h-4 rounded-full bg-white border border-gray-200"></div>
+                                            
+                                            <i class="fa-solid fa-ticket text-xl mb-1.5 opacity-80"></i>
+                                            <span class="text-[9px] font-black uppercase tracking-widest text-center line-clamp-2 leading-tight">{{ $voucher->seller->user->full_name ?? 'Seller' }}</span>
+                                        </div>
+                                        
+                                        <!-- Voucher Details -->
+                                        <div class="flex-1 p-5 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex justify-between items-start">
+                                                    <h5 class="text-sm font-bold text-gray-800 group-hover:text-primary transition-colors">
+                                                        @if($voucher->discount_type === 'percentage')
+                                                            Diskon {{ number_format($voucher->discount_value, 0) }}%
+                                                        @else
+                                                            Potongan Rp {{ number_format($voucher->discount_value, 0, ',', '.') }}
+                                                        @endif
+                                                    </h5>
+                                                    <!-- Custom Radio Circle -->
+                                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center transition-all">
+                                                        <div class="w-2.5 h-2.5 rounded-full bg-primary scale-0 transition-transform"></div>
+                                                    </div>
+                                                </div>
+                                                <p class="text-[10px] text-gray-500 font-medium mt-1">Min. Belanja: Rp {{ number_format($voucher->min_purchase, 0, ',', '.') }}</p>
+                                                @if($voucher->max_discount)
+                                                    <p class="text-[9px] text-gray-400 font-medium">Maks. Potongan: Rp {{ number_format($voucher->max_discount, 0, ',', '.') }}</p>
+                                                @endif
+                                            </div>
+                                            <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                                                <span class="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">{{ $voucher->code }}</span>
+                                                <span class="text-[9px] text-gray-400 font-medium">Berlaku s/d {{ \Carbon\Carbon::parse($voucher->end_date)->translatedFormat('d M Y') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            @endif
+                        @endforeach
+
+                        @if(!$hasVoucher)
+                            <p class="text-xs text-gray-400 font-medium text-center py-4 bg-gray-50 rounded-2xl border border-dashed border-gray-150">Tidak ada voucher yang dapat langsung digunakan.</p>
+                        @endif
+                    </div>
+
+                    <!-- Ineligible Vouchers -->
+                    <div class="space-y-3 pt-4 border-t border-gray-100">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Voucher Tidak Memenuhi Syarat</h4>
+                        
+                        @php $hasIneligible = false; @endphp
+                        @foreach($claimedVouchers as $voucher)
+                            @php
+                                $inCart = in_array($voucher->seller_id, $cartSellerIds);
+                                // Get subtotal for this specific seller in the cart
+                                $sellerSubtotal = 0;
+                                if($cart && $cart->cartItems) {
+                                    foreach($cart->cartItems as $item) {
+                                        if($item->is_selected && $item->product->seller_id == $voucher->seller_id) {
+                                            $sellerSubtotal += ($item->product->price * $item->quantity);
+                                        }
+                                    }
+                                }
+                                $minPurchaseMet = $sellerSubtotal >= $voucher->min_purchase;
+                                $isEligible = $inCart && $minPurchaseMet;
+                            @endphp
+
+                            @if(!$isEligible)
+                                @php $hasIneligible = true; @endphp
+                                <!-- Voucher Card (Ineligible) -->
+                                <div class="flex border border-gray-100 rounded-2xl overflow-hidden bg-gray-50/50 opacity-60">
+                                    <!-- Left Accent Panel (Ticket shape) -->
+                                    <div class="bg-gray-100 text-gray-400 w-24 flex flex-col items-center justify-center p-4 border-r border-dashed border-gray-200 relative">
+                                        <!-- Half circle notch top -->
+                                        <div class="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-white border border-gray-100"></div>
+                                        <!-- Half circle notch bottom -->
+                                        <div class="absolute -bottom-2 -right-2 w-4 h-4 rounded-full bg-white border border-gray-100"></div>
+                                        
+                                        <i class="fa-solid fa-ticket text-xl mb-1.5"></i>
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-center line-clamp-2 leading-tight">{{ $voucher->seller->user->full_name ?? 'Seller' }}</span>
+                                    </div>
+                                    
+                                    <!-- Voucher Details -->
+                                    <div class="flex-1 p-5 flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex justify-between items-start">
+                                                <h5 class="text-sm font-bold text-gray-400">
+                                                    @if($voucher->discount_type === 'percentage')
+                                                        Diskon {{ number_format($voucher->discount_value, 0) }}%
+                                                    @else
+                                                        Potongan Rp {{ number_format($voucher->discount_value, 0, ',', '.') }}
+                                                    @endif
+                                                </h5>
+                                                <span class="text-[8px] font-black uppercase bg-gray-200 text-gray-500 px-2 py-0.5 rounded tracking-wide leading-none">
+                                                    @if(!$inCart)
+                                                        Beda Toko
+                                                    @elseif(!$minPurchaseMet)
+                                                        Kurang Rp {{ number_format($voucher->min_purchase - $sellerSubtotal, 0, ',', '.') }}
+                                                    @endif
+                                                </span>
+                                            </div>
+                                            <p class="text-[10px] text-gray-400 font-medium mt-1">Min. Belanja: Rp {{ number_format($voucher->min_purchase, 0, ',', '.') }}</p>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-150">
+                                            <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400 bg-gray-200 px-2 py-0.5 rounded">{{ $voucher->code }}</span>
+                                            <span class="text-[9px] text-gray-400 font-medium">Berlaku s/d {{ \Carbon\Carbon::parse($voucher->end_date)->translatedFormat('d M Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+
+                        @if(!$hasIneligible)
+                            <p class="text-xs text-gray-400 font-medium text-center py-4 bg-gray-50 rounded-2xl border border-dashed border-gray-150">Semua voucher memenuhi syarat belanja!</p>
+                        @endif
+                    </div>
+                @else
+                    <div class="p-10 text-center">
+                        <i class="fa-solid fa-ticket text-5xl text-gray-200 mb-4 block"></i>
+                        <p class="text-sm text-gray-500 font-medium mb-1">Anda belum mengklaim voucher apa pun.</p>
+                        <p class="text-[10px] text-gray-400">Klaim voucher di profil toko desainer/seller kesayangan Anda!</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Footer Action -->
+            <div class="p-6 border-t border-gray-100 bg-gray-50/50 flex space-x-3">
+                <button type="button" id="cancel-voucher-selection" class="flex-1 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">Batal</button>
+                <button type="button" id="confirm-voucher-selection" class="flex-1 bg-primary text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/95 transition-all shadow-lg shadow-primary/20">Gunakan Voucher</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('apply-voucher').addEventListener('click', function() {
-            const code = document.getElementById('voucher-code').value;
-            const sellerIds = Array.from(document.querySelectorAll('.seller-id')).map(el => el.value);
-            const msgEl = document.getElementById('voucher-message');
-
-            if (!code) return;
-
-            // Kita coba apply satu per satu seller id yang ada di cart
-            let voucherApplied = false;
-            
-            const uniqueSellers = [...new Set(sellerIds)];
-            
-            const tryApply = async () => {
-                for (let sellerId of uniqueSellers) {
-                    const response = await fetch("{{ route('customer.vouchers.apply') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({ code: code, seller_id: sellerId })
-                    });
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        applyDiscount(data);
-                        voucherApplied = true;
-                        break;
-                    }
-                }
-
-                if (!voucherApplied) {
-                    msgEl.textContent = "Voucher tidak valid atau seller tidak ditemukan di keranjang.";
-                    msgEl.classList.remove('hidden', 'text-green-500');
-                    msgEl.classList.add('text-red-500');
-                }
-            };
-
-            tryApply();
+        // Modal Event Listeners
+        const voucherModal = document.getElementById('voucher-modal');
+        const voucherModalContainer = document.getElementById('voucher-modal-container');
+        
+        document.getElementById('open-voucher-modal').addEventListener('click', function() {
+            voucherModal.classList.remove('hidden');
+            setTimeout(() => {
+                voucherModalContainer.classList.remove('scale-95', 'opacity-0');
+                voucherModalContainer.classList.add('scale-100', 'opacity-100');
+            }, 10);
         });
 
-        function applyDiscount(data) {
+        function hideVoucherModal() {
+            voucherModalContainer.classList.remove('scale-100', 'opacity-100');
+            voucherModalContainer.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                voucherModal.classList.add('hidden');
+            }, 300);
+        }
+
+        document.getElementById('close-voucher-modal').addEventListener('click', hideVoucherModal);
+        document.getElementById('close-voucher-backdrop').addEventListener('click', hideVoucherModal);
+        document.getElementById('cancel-voucher-selection').addEventListener('click', hideVoucherModal);
+
+        // Confirm Selection
+        document.getElementById('confirm-voucher-selection').addEventListener('click', async function() {
+            const selectedRadio = document.querySelector('input[name="selected_modal_voucher"]:checked');
+            if (!selectedRadio) {
+                hideVoucherModal();
+                return;
+            }
+            
+            const code = selectedRadio.getAttribute('data-code');
+            const sellerId = selectedRadio.getAttribute('data-seller');
+            
+            await applySelectedVoucher(code, sellerId);
+            hideVoucherModal();
+        });
+
+
+
+        async function applySelectedVoucher(code, sellerId) {
+            const response = await fetch("{{ route('customer.vouchers.apply') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ code: code, seller_id: sellerId })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                applyDiscount(data, code);
+            } else {
+                alert(data.message || "Gagal menerapkan voucher.");
+            }
+        }
+
+        function applyDiscount(data, code) {
             const subtotal = {{ $subtotal }};
             const shipping = {{ $shipping }};
             const taxes = {{ $taxes }};
@@ -339,10 +534,7 @@
             }
 
             if (subtotal < data.min_purchase) {
-                const msgEl = document.getElementById('voucher-message');
-                msgEl.textContent = "Minimal belanja Rp " + new Intl.NumberFormat('id-ID').format(data.min_purchase) + " tidak terpenuhi.";
-                msgEl.classList.remove('hidden', 'text-green-500');
-                msgEl.classList.add('text-red-500');
+                alert("Minimal belanja Rp " + new Intl.NumberFormat('id-ID').format(data.min_purchase) + " tidak terpenuhi.");
                 return;
             }
 
@@ -355,11 +547,12 @@
             document.getElementById('final-total').textContent = "Rp " + new Intl.NumberFormat('id-ID').format(newTotal);
 
             document.getElementById('applied-voucher').classList.remove('hidden');
-            document.getElementById('applied-code').textContent = document.getElementById('voucher-code').value.toUpperCase();
+            document.getElementById('applied-code').textContent = code.toUpperCase();
             document.getElementById('applied-discount').textContent = data.discount_type === 'percentage' ? data.discount_value + "% OFF" : "Rp " + new Intl.NumberFormat('id-ID').format(data.discount_value) + " OFF";
             
-            document.getElementById('voucher-code').value = '';
-            document.getElementById('voucher-message').classList.add('hidden');
+            // Update trigger card text
+            document.getElementById('selected-voucher-title').textContent = code.toUpperCase() + " Terpasang";
+            document.getElementById('selected-voucher-desc').textContent = "Diskon Rp " + new Intl.NumberFormat('id-ID').format(discount) + " berhasil dipasang";
         }
 
         document.getElementById('remove-voucher').addEventListener('click', function() {
@@ -367,6 +560,14 @@
             document.getElementById('voucher-id-input').value = '';
             document.getElementById('final-total').textContent = "Rp {{ number_format($total_amount, 0, ',', '.') }}";
             document.getElementById('applied-voucher').classList.add('hidden');
+            
+            // Reset trigger card text
+            document.getElementById('selected-voucher-title').textContent = "Pilih Voucher Toko";
+            document.getElementById('selected-voucher-desc').textContent = "Hemat lebih banyak dengan voucher terklaim Anda";
+            
+            // Uncheck all radios in modal
+            const checkedRadio = document.querySelector('input[name="selected_modal_voucher"]:checked');
+            if (checkedRadio) checkedRadio.checked = false;
         });
     </script>
 

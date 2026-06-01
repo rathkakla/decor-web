@@ -12,10 +12,11 @@ use App\Models\Support;
 
 class DesignerController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $user = Auth::user();
         $designer = Designer::where('user_id', $user->id)->firstOrFail();
+        $selectedYear = $request->get('year', date('Y'));
 
         // 1. Stats Utama
         $activeConsultations = Consultation::where('designer_id', $designer->id)
@@ -33,9 +34,8 @@ class DesignerController extends Controller
             ->where('status', 'accepted')
             ->sum('amount');
 
-        // Rating (Contoh dummy karena review designer mungkin belum ada tabelnya atau pakai relasi review produk)
-        // Kita asumsikan ada relasi reviews ke designer atau produk yang dikerjakan designer
-        $avgRating = 4.9; // Default if no reviews
+        // Rating
+        $avgRating = \App\Models\ConsultationReview::where('designer_id', $designer->id)->avg('rating') ?: 4.9;
 
         // 2. Transaksi Terbaru
         $recentTransactions = \App\Models\ConsultationQuote::with(['consultation.customer.user'])
@@ -47,8 +47,39 @@ class DesignerController extends Controller
             ->take(5)
             ->get();
 
-        // 3. Data Grafik (Dummy 6 bulan terakhir)
-        $revenueData = [2100, 1800, 3200, 2900, 4250, 3800];
+        // 3. Data Grafik Berdasarkan Tahun
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        $revenueData = [];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $start = "$selectedYear-" . str_pad($m, 2, '0', STR_PAD_LEFT) . "-01 00:00:00";
+            $end = date("Y-m-t 23:59:59", strtotime($start));
+
+            $rev = \App\Models\ConsultationQuote::whereHas('consultation', function($q) use ($designer) {
+                    $q->where('designer_id', $designer->id);
+                })
+                ->where('status', 'accepted')
+                ->whereBetween('updated_at', [$start, $end])
+                ->sum('amount');
+
+            $revenueData[] = (float) $rev;
+        }
+
+        // Ambil daftar tahun dari quotes
+        $dbYears = \App\Models\ConsultationQuote::selectRaw('YEAR(updated_at) as year')
+            ->whereHas('consultation', function($q) use ($designer) {
+                $q->where('designer_id', $designer->id);
+            })
+            ->where('status', 'accepted')
+            ->distinct()
+            ->pluck('year')
+            ->toArray();
+            
+        $currentYear = (int)date('Y');
+        $defaultYears = [$currentYear, $currentYear - 1, $currentYear - 2];
+        
+        $availableYears = array_unique(array_merge($dbYears, $defaultYears));
+        rsort($availableYears);
 
         return view('designer.dashboard', compact(
             'designer',
@@ -57,7 +88,10 @@ class DesignerController extends Controller
             'monthlyEarnings', 
             'avgRating', 
             'recentTransactions',
-            'revenueData'
+            'months',
+            'revenueData',
+            'selectedYear',
+            'availableYears'
         ));
     }
 
@@ -157,10 +191,17 @@ class DesignerController extends Controller
 
     public function sendQuote(Request $request, $id)
     {
+        $consultation = Consultation::findOrFail($id);
+        if ($consultation->consultation_type == 'chat_consultation') {
+            return back()->with('error', 'Anda tidak dapat mengirimkan RAB/Project Agreement untuk tipe Chat Consultation.');
+        }
+
         $request->validate([
             'amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
             'rab_file' => 'required|file|mimes:pdf,xlsx,xls,csv,doc,docx,jpg,jpeg,png|max:10240',
+            'design_image' => 'nullable|array',
+            'design_image.*' => 'image|max:10240',
         ]);
 
         $filePath = null;
@@ -171,6 +212,39 @@ class DesignerController extends Controller
             $fileName = $file->getClientOriginalName();
         }
 
+        $designImagePaths = [];
+        if ($request->hasFile('design_image')) {
+            $files = $request->file('design_image');
+            if (!is_array($files)) $files = [$files];
+            
+            // Use same timestamp so blade groups them into one collage
+            $groupTime = now();
+            
+            foreach ($files as $file) {
+                $path = $file->store('consultations/designs', 'public');
+                $designImagePaths[] = $path;
+
+                // Create attachment with identical created_at so collage logic groups them
+                $attachment = \App\Models\ConsultationAttachment::create([
+                    'consultation_id' => $id,
+                    'uploaded_by' => Auth::id(),
+                    'file_url' => $path,
+                    'file_type' => 'image',
+                ]);
+                // Force same timestamp for collage grouping
+                $attachment->created_at = $groupTime;
+                $attachment->updated_at = $groupTime;
+                $attachment->saveQuietly();
+            }
+
+            // Add an accompanying message
+            \App\Models\ConsultationMessage::create([
+                'consultation_id' => $id,
+                'sender_id' => Auth::id(),
+                'message' => "🖼️ Berikut adalah " . count($designImagePaths) . " gambar hasil desain terbaru untuk proyek kita.",
+            ]);
+        }
+
         $quote = \App\Models\ConsultationQuote::create([
             'consultation_id' => $id,
             'amount' => $request->amount,
@@ -179,14 +253,22 @@ class DesignerController extends Controller
                 'file_path' => $filePath,
                 'file_name' => $fileName,
             ]),
+            'design_image' => !empty($designImagePaths) ? json_encode($designImagePaths) : null,
             'status' => 'pending',
         ]);
 
-        // Set status to Under Review (2) so client sees it's being negotiated
+        // Set status to Offer Received (8) so client sees it's being negotiated
         $consultation = Consultation::find($id);
         if ($consultation) {
-            $consultation->update(['status' => Consultation::STATUS_UNDER_REVIEW]);
+            $consultation->update(['status' => Consultation::STATUS_OFFER_RECEIVED]);
         }
+
+        // Send a message to chat about RAB
+        \App\Models\ConsultationMessage::create([
+            'consultation_id' => $id,
+            'sender_id' => Auth::id(),
+            'message' => "📄 RAB & Project Agreement telah dikirim. Silakan cek di Halaman Track Consultation.",
+        ]);
 
         return back()->with('success', 'RAB dan Project Agreement berhasil dikirim ke customer');
     }
@@ -208,8 +290,70 @@ class DesignerController extends Controller
             'status' => $request->status,
         ]);
 
+        if ($request->status == Consultation::STATUS_COMPLETED) {
+            $latestQuote = $consultation->quotes()->whereNotNull('design_image')->latest()->first();
+            if ($latestQuote) {
+                // Decode JSON array to get the first image
+                $designImages = json_decode($latestQuote->design_image, true);
+                $firstImage = is_array($designImages) && count($designImages) > 0 ? $designImages[0] : $latestQuote->design_image;
+
+                $existingPortfolio = \App\Models\DesignerPortfolio::where('consultation_id', $consultation->id)->first();
+                if (!$existingPortfolio) {
+                    \App\Models\DesignerPortfolio::create([
+                        'designer_id' => $consultation->designer_id,
+                        'consultation_id' => $consultation->id,
+                        'title' => $consultation->title,
+                        'image_url' => $firstImage,
+                        'description' => $consultation->description,
+                        'status' => 'approved',
+                    ]);
+                } else {
+                    $existingPortfolio->update([
+                        'image_url' => $firstImage,
+                        'status' => 'approved',
+                    ]);
+                }
+            }
+        }
+
         $statusLabel = Consultation::getStatusLabel($request->status);
         return back()->with('success', "Status konsultasi berhasil diperbarui menjadi: $statusLabel");
+    }
+
+    public function validatePayment(Request $request, $id)
+    {
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+        ]);
+
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+        $consultation = Consultation::where('id', $id)
+            ->where('designer_id', $designer->id)
+            ->firstOrFail();
+
+        if ($request->action === 'approve') {
+            if ($consultation->status == Consultation::STATUS_WAITING_CONSULTATION_FEE) {
+                // Initial Consultation Fee approved
+                if (empty($consultation->description)) {
+                    $consultation->status = Consultation::STATUS_WAITING_BRIEF;
+                } else {
+                    $consultation->status = Consultation::STATUS_ACTIVE;
+                }
+            } elseif ($consultation->status == Consultation::STATUS_WAITING_FINAL_PAYMENT) {
+                // Final Payment approved
+                $consultation->status = Consultation::STATUS_ACTIVE;
+            }
+            $consultation->payment_proof = null; // Clear payment proof on approval
+            $consultation->save();
+
+            return back()->with('success', 'Pembayaran berhasil disetujui!');
+        } else {
+            // Rejected
+            $consultation->payment_proof = null; // Reset payment proof so they can upload again
+            $consultation->save();
+
+            return back()->with('error', 'Pembayaran ditolak.');
+        }
     }
 
     public function sendConsultationMessage(Request $request, $id)
@@ -218,6 +362,11 @@ class DesignerController extends Controller
             'message' => 'nullable|string',
             'attachment' => 'nullable|file|max:10240',
         ]);
+
+        $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_expired) {
+            return back()->with('error', 'Waktu chat konsultasi telah habis.');
+        }
 
         if ($request->hasFile('attachment')) {
             $path = $request->file('attachment')->store('consultations/attachments', 'public');
@@ -368,9 +517,67 @@ class DesignerController extends Controller
         ]);
     }
 
-    public function reviews()
+    public function reviews(Request $request)
     {
-        return view('designer.reviews');
+        $user = Auth::user();
+        $designer = Designer::where('user_id', $user->id)->firstOrFail();
+
+        $query = \App\Models\ConsultationReview::with(['customer', 'consultation'])
+            ->where('designer_id', $designer->id)
+            ->latest();
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('comment', 'like', "%{$search}%")
+                  ->orWhereHas('customer', fn($q2) => $q2->where('full_name', 'like', "%{$search}%"));
+            });
+        }
+
+        // Rating filter
+        if ($request->filled('rating')) {
+            $query->where('rating', $request->rating);
+        }
+
+        $reviews = $query->get();
+
+        $totalReviews   = $reviews->count();
+        $avgRating      = $totalReviews > 0 ? round($reviews->avg('rating'), 1) : 0;
+        $ratingCounts   = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $cnt = $reviews->where('rating', $i)->count();
+            $ratingCounts[$i] = [
+                'count'   => $cnt,
+                'percent' => $totalReviews > 0 ? round(($cnt / $totalReviews) * 100) : 0,
+            ];
+        }
+        $repliedCount   = $reviews->whereNotNull('designer_reply')->count();
+        $responseRate   = $totalReviews > 0 ? round(($repliedCount / $totalReviews) * 100, 1) : 0;
+
+        return view('designer.reviews', compact(
+            'designer', 'reviews', 'totalReviews', 'avgRating',
+            'ratingCounts', 'responseRate'
+        ));
+    }
+
+    public function replyReview(Request $request, $reviewId)
+    {
+        $request->validate([
+            'reply' => 'required|string|max:1000',
+        ]);
+
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+        $review   = \App\Models\ConsultationReview::where('id', $reviewId)
+                        ->where('designer_id', $designer->id)
+                        ->firstOrFail();
+
+        $review->update([
+            'designer_reply'      => $request->reply,
+            'designer_replied_at' => now(),
+        ]);
+
+        return back()->with('success', 'Balasan Anda berhasil dikirim!');
     }
 
     public function chatIndex($userId = null)
@@ -503,6 +710,45 @@ class DesignerController extends Controller
         return $pdf->download('invoice-consultation-' . $id . '.pdf');
     }
 
+    public function downloadDesignImages($quoteId)
+    {
+        $quote = \App\Models\ConsultationQuote::findOrFail($quoteId);
+
+        if (!$quote->design_image) {
+            return back()->with('error', 'Tidak ada gambar desain untuk diunduh.');
+        }
+
+        $images = json_decode($quote->design_image, true);
+        if (!is_array($images)) $images = [$quote->design_image];
+        $images = array_filter($images); // remove nulls
+
+        if (count($images) === 1) {
+            // Single image — stream directly
+            $path = Storage::disk('public')->path($images[0]);
+            if (!file_exists($path)) abort(404);
+            return response()->download($path, 'design-' . basename($images[0]));
+        }
+
+        // Multiple images — zip them
+        $zipFileName = 'design-images-quote-' . $quoteId . '.zip';
+        $zipPath = storage_path('app/' . $zipFileName);
+
+        if (file_exists($zipPath)) @unlink($zipPath);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($images as $idx => $img) {
+                $filePath = Storage::disk('public')->path($img);
+                if (file_exists($filePath)) {
+                    $zip->addFile($filePath, 'design-' . ($idx + 1) . '-' . basename($img));
+                }
+            }
+            $zip->close();
+        }
+
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
     public function submitSupport(Request $request)
     {
         $request->validate([
@@ -518,5 +764,99 @@ class DesignerController extends Controller
         ]);
 
         return back()->with('success', 'Komplain Anda telah dikirim ke Admin. Mohon tunggu respon kami.');
+    }
+
+    public function reportIndex(Request $request)
+    {
+        $designer = \App\Models\Designer::where('user_id', Auth::id())->firstOrFail();
+        
+        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        $consultations = \App\Models\Consultation::with(['quotes' => function($q) {
+                $q->where('status', 'accepted');
+            }, 'customer.user'])
+            ->where('designer_id', $designer->id)
+            ->whereBetween('updated_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->where('status', \App\Models\Consultation::STATUS_COMPLETED)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+            
+        $periodRevenue = 0;
+        foreach($consultations as $c) {
+            $quote = $c->quotes->first();
+            if ($quote) $periodRevenue += $quote->amount;
+        }
+
+        $projectsCompleted = $consultations->count();
+        $avgProjectValue = $projectsCompleted > 0 ? $periodRevenue / $projectsCompleted : 0;
+
+        $totalConsultationsPeriod = \App\Models\Consultation::where('designer_id', $designer->id)
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->count();
+            
+        $leadConversion = $totalConsultationsPeriod > 0 ? round(($projectsCompleted / $totalConsultationsPeriod) * 100) : 0;
+
+        // Group by day for simple line chart
+        $chartLabels = [];
+        $chartData = [];
+        $grouped = $consultations->groupBy(function($item) {
+            return $item->updated_at->format('M d');
+        });
+
+        if ($consultations->count() > 0) {
+            foreach ($grouped->sortBy(function($val, $key) { return \Carbon\Carbon::parse($key)->timestamp; }) as $key => $items) {
+                $chartLabels[] = $key;
+                $dailySum = 0;
+                foreach($items as $item) {
+                    $q = $item->quotes->first();
+                    if ($q) $dailySum += $q->amount;
+                }
+                $chartData[] = $dailySum;
+            }
+        } else {
+            $chartLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            $chartData = [0, 0, 0, 0];
+        }
+
+        return view('designer.report.index', compact('startDate', 'endDate', 'consultations', 'periodRevenue', 'projectsCompleted', 'avgProjectValue', 'leadConversion', 'chartLabels', 'chartData', 'designer'));
+    }
+
+    public function reportExport(Request $request)
+    {
+        $designer = \App\Models\Designer::where('user_id', Auth::id())->firstOrFail();
+        
+        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        $consultations = \App\Models\Consultation::with(['quotes' => function($q) {
+                $q->where('status', 'accepted');
+            }, 'customer.user'])
+            ->where('designer_id', $designer->id)
+            ->whereBetween('updated_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->where('status', \App\Models\Consultation::STATUS_COMPLETED)
+            ->orderBy('updated_at', 'desc')
+            ->get();
+            
+        $periodRevenue = 0;
+        foreach($consultations as $c) {
+            $quote = $c->quotes->first();
+            if ($quote) $periodRevenue += $quote->amount;
+        }
+
+        $projectsCompleted = $consultations->count();
+        $avgProjectValue = $projectsCompleted > 0 ? $periodRevenue / $projectsCompleted : 0;
+        
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('designer.report.export_pdf', [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'consultations' => $consultations,
+            'periodRevenue' => $periodRevenue,
+            'projectsCompleted' => $projectsCompleted,
+            'avgProjectValue' => $avgProjectValue,
+            'designer' => $designer
+        ]);
+        
+        return $pdf->download('report_' . $startDate . '_to_' . $endDate . '.pdf');
     }
 }

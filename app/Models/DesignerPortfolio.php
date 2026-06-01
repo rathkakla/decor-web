@@ -21,6 +21,7 @@ class DesignerPortfolio extends Model
         'budget',
         'area',
         'duration',
+        'status',
     ];
 
     public function designer()

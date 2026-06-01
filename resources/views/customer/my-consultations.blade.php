@@ -24,23 +24,7 @@
 </head>
 <body class="text-gray-800">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                 <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-            </nav>
-            <div class="flex items-center space-x-6">
-                <a href="{{ route('customer.profile') }}" class="w-9 h-9 rounded-md overflow-hidden border border-gray-200">
-                    <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full object-cover">
-                </a>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <main class="py-16 content-container px-6">
         <div class="mb-12">
@@ -79,11 +63,18 @@
                     <h3 class="text-xl font-bold mb-3 tracking-tight group-hover:text-primary transition-colors line-clamp-1">{{ $c->title }}</h3>
                     <p class="text-xs text-gray-400 line-clamp-2 leading-relaxed mb-8 italic">"{{ $c->description }}"</p>
                     
-                    <a href="{{ route('customer.chat', $c->id) }}" class="block">
-                        <button class="w-full bg-gray-50 text-gray-900 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all">
-                            Workspace & Chat
-                        </button>
-                    </a>
+                    <div class="flex gap-3 mt-4">
+                        <a href="{{ route('customer.chat', $c->id) }}" class="flex-1">
+                            <button class="w-full bg-gray-50 text-gray-900 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                Chat
+                            </button>
+                        </a>
+                        <a href="{{ route('customer.track-consultation.list') }}" class="flex-1">
+                            <button class="w-full bg-gray-50 text-gray-900 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 hover:bg-primary hover:text-white hover:border-primary transition-all">
+                                Track
+                            </button>
+                        </a>
+                    </div>
                 </div>
             </div>
             @empty

@@ -11,7 +11,12 @@
     <title>Workspace — {{ $site_name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Fancybox.bind('[data-fancybox]', {});
+        });
         tailwind.config = {
             theme: {
                 extend: {
@@ -27,7 +32,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
     </style>
 </head>
-<body class="text-gray-800 flex flex-col min-h-screen">
+<body class="text-gray-800 flex flex-col h-screen overflow-hidden">
 
     @if(!$activeConsultation)
         <div class="flex-grow flex flex-col items-center justify-center bg-gray-50/30 min-h-screen">
@@ -49,40 +54,33 @@
             <h2 class="font-bold text-[10px] uppercase tracking-widest leading-none text-gray-900">Workspace <span class="text-gray-400 ml-4 font-black">#{{ $consultation_id }}</span></h2>
         </div>
         
-        <!-- STEPS LOGIC -->
-        <div class="flex items-center space-x-10 text-gray-400">
-            <div class="flex items-center space-x-3 {{ in_array($status, [0, 5, 7]) ? 'text-primary' : ( $status > 0 ? 'text-green-500' : 'opacity-50') }}">
-                <span class="w-6 h-6 rounded-full {{ in_array($status, [0, 5, 7]) ? 'bg-primary text-white' : ( $status > 0 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
-                    @if($status > 0 && !in_array($status, [5,7])) <i class="fa-solid fa-check"></i> @else 1 @endif
-                </span>
-                <span class="text-[10px] font-black uppercase tracking-widest">Setup</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
-            <div class="flex items-center space-x-3 {{ $status == 1 ? 'text-primary' : ( $status > 1 ? 'text-green-500' : 'opacity-50') }}">
-                <span class="w-6 h-6 rounded-full {{ $status == 1 ? 'bg-primary text-white' : ( $status > 1 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
-                    @if($status > 1) <i class="fa-solid fa-check"></i> @else 2 @endif
-                </span>
-                <span class="text-[10px] font-black uppercase tracking-widest">Active</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
-            <div class="flex items-center space-x-3 {{ in_array($status, [2, 3]) ? 'text-primary' : ( $status == 4 ? 'text-green-500' : 'opacity-50') }}">
-                <span class="w-6 h-6 rounded-full {{ in_array($status, [2, 3]) ? 'bg-primary text-white' : ( $status == 4 ? 'bg-green-500 text-white' : 'border border-gray-300') }} flex items-center justify-center text-[10px] font-black">
-                    @if($status == 4) <i class="fa-solid fa-check"></i> @else 3 @endif
-                </span>
-                <span class="text-[10px] font-black uppercase tracking-widest">Review</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-[10px] text-gray-200"></i>
-            <div class="flex items-center space-x-3 {{ $status == 4 ? 'text-green-500' : 'opacity-50' }}">
-                <span class="w-6 h-6 rounded-full {{ $status == 4 ? 'bg-green-500 text-white' : 'border border-gray-300' }} flex items-center justify-center text-[10px] font-black">4</span>
-                <span class="text-[10px] font-black uppercase tracking-widest">Done</span>
-            </div>
-            
+        <!-- TRACK BUTTON -->
+        @if($activeConsultation->consultation_type != 'chat_consultation')
+        <div class="flex items-center space-x-4">
+            <a href="{{ route('customer.track-consultation.list') }}" class="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center space-x-2">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Track Status</span>
+            </a>
             <div class="h-8 w-px bg-gray-200 mx-2"></div>
             <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">{{ Auth::user()->full_name }}</span>
                 <img src="{{ Auth::user()->avatar_url }}" class="w-8 h-8 rounded-lg object-cover">
             </div>
         </div>
+        @else
+        <div class="flex items-center space-x-4">
+            @if($activeConsultation->consultation_type == 'chat_consultation' && $activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired && $status == 1)
+                <div id="chat-countdown" class="flex items-center space-x-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-xl border border-red-100 font-mono text-xs font-black shrink-0">
+                    <i class="fa-solid fa-clock animate-pulse"></i>
+                    <span id="countdown-timer">--:--</span>
+                </div>
+            @endif
+            <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">{{ Auth::user()->full_name }}</span>
+                <img src="{{ Auth::user()->avatar_url }}" class="w-8 h-8 rounded-lg object-cover">
+            </div>
+        </div>
+        @endif
     </header>
 
     <div class="flex-1 flex overflow-hidden">
@@ -114,7 +112,13 @@
                     </div>
                     <div>
                         <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Status</p>
-                        <p class="text-[11px] font-black text-primary">{{ \App\Models\Consultation::getStatusLabel($status) }}</p>
+                        <p class="text-[11px] font-black {{ $activeConsultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
+                            @if($activeConsultation->is_chat_expired)
+                                Expired
+                            @else
+                                {{ \App\Models\Consultation::getStatusLabel($status) }}
+                            @endif
+                        </p>
                     </div>
                 </div>
             </div>
@@ -123,67 +127,64 @@
 
         <!-- CANVAS AREA: PROJECT WORKSPACE -->
         <section class="flex-1 bg-[#FDFCFB] flex flex-col overflow-hidden relative">
-            <!-- Project Details Header -->
-            <div class="p-8 border-b border-gray-100 bg-white/80 backdrop-blur-sm z-10 flex justify-between items-center">
-                <div class="max-w-2xl">
-                    <h3 class="text-2xl font-black text-gray-900 uppercase tracking-tight">{{ $activeConsultation->title }}</h3>
-                    <p class="text-xs text-gray-500 leading-relaxed mt-2 line-clamp-2">{{ $activeConsultation->description ?? 'No brief description provided.' }}</p>
-                </div>
-                
-                @if($status == \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE)
-                    @php $fee = $activeConsultation->consultation_type == 'request_proposal' ? 250000 : 50000; @endphp
-                    <form action="{{ route('customer.consultation.pay-fee', $activeConsultation->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="bg-primary text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all flex items-center gap-3">
-                            <span>Bayar Fee: Rp {{ number_format($fee, 0, ',', '.') }}</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </form>
-                @endif
-            </div>
 
-            <!-- Overlays -->
-            @if($status == \App\Models\Consultation::STATUS_WAITING_APPROVAL)
-            <div class="absolute inset-0 z-20 bg-white/60 backdrop-blur-md flex items-center justify-center p-6">
-                <div class="max-w-sm w-full bg-white border border-gray-100 rounded-[3rem] p-12 shadow-2xl text-center">
-                    <div class="w-20 h-20 bg-orange-50 rounded-[2rem] flex items-center justify-center text-orange-400 mx-auto mb-8 animate-pulse">
-                        <i class="fa-solid fa-hourglass-half text-3xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold italic mb-3">Menunggu Approval</h3>
-                    <p class="text-[11px] text-gray-400 leading-relaxed italic">Desainer sedang meninjau permintaan konsultasi Anda. Mohon tunggu sebentar.</p>
+            <!-- Chat Header -->
+            <header class="bg-white px-8 py-4 border-b border-gray-100 flex justify-between items-center z-10 shadow-sm relative">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">{{ $activeConsultation->title }}</h2>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Workspace</p>
                 </div>
-            </div>
-            @endif
-
-            @if($status == \App\Models\Consultation::STATUS_WAITING_BRIEF)
-            <div class="absolute inset-0 z-20 bg-white/80 backdrop-blur-lg flex items-center justify-center p-6">
-                <div class="max-w-md w-full bg-white border border-gray-100 rounded-[3rem] p-12 shadow-2xl">
-                    <h3 class="text-2xl font-bold italic mb-3 text-center">Isi Brief Proyek</h3>
-                    <p class="text-[11px] text-gray-400 leading-relaxed mb-8 text-center italic">Berikan detail ruangan agar desainer bisa memberikan penawaran harga yang sesuai.</p>
-                    <form action="{{ route('customer.consultation.submit-brief', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                        @csrf
-                        <div>
-                            <textarea name="description" rows="4" placeholder="Detail ruangan, ukuran, preferensi warna..." required class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-sm font-medium focus:border-primary/30 outline-none transition-all"></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-primary text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all">Submit Brief</button>
-                    </form>
-                </div>
-            </div>
-            @endif
+                <button onclick="document.getElementById('media-drawer').classList.remove('translate-x-full');" class="text-[10px] font-black text-gray-600 bg-gray-50 hover:bg-primary/10 hover:text-primary px-5 py-2.5 rounded-xl border border-gray-200 hover:border-primary/20 uppercase tracking-widest flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-folder-open"></i>
+                    Media & Assets
+                </button>
+            </header>
 
             <!-- Chat Area -->
-            <div class="flex-1 overflow-y-auto p-8 custom-scroll bg-gray-50/30 {{ in_array($status, [0, 5, 6, 7]) ? 'blur-md opacity-20 pointer-events-none' : '' }}">
+            <div class="flex-1 overflow-y-auto p-8 pb-28 custom-scroll bg-gray-50/30 {{ in_array($status, [0, 5, 6, 7]) ? 'blur-md opacity-20 pointer-events-none' : '' }}">
                 <div class="max-w-4xl mx-auto space-y-8">
                     
                     @php
-                        $chatItems = collect();
+                        $rawItems = collect();
                         foreach($activeConsultation->messages as $m) {
-                            $chatItems->push((object)['type' => 'message', 'data' => $m, 'time' => $m->created_at]);
+                            $rawItems->push((object)['type' => 'message', 'data' => $m, 'time' => $m->created_at, 'sender_id' => $m->sender_id]);
                         }
                         foreach($activeConsultation->attachments as $a) {
-                            $chatItems->push((object)['type' => 'attachment', 'data' => $a, 'time' => $a->created_at]);
+                            $rawItems->push((object)['type' => 'attachment', 'data' => $a, 'time' => $a->created_at, 'sender_id' => $a->uploaded_by]);
                         }
-                        $chatItems = $chatItems->sortBy('time');
+                        $rawItems = $rawItems->sortBy('time')->values();
+
+                        $chatItems = collect();
+                        $currentCollage = null;
+
+                        foreach ($rawItems as $item) {
+                            if ($item->type == 'attachment' && $item->data->file_type == 'image') {
+                                if ($currentCollage && 
+                                    $currentCollage->sender_id == $item->sender_id && 
+                                    $currentCollage->time->diffInMinutes($item->time) < 2) {
+                                    $currentCollage->images[] = $item->data;
+                                } else {
+                                    if ($currentCollage) {
+                                        $chatItems->push($currentCollage);
+                                    }
+                                    $currentCollage = (object)[
+                                        'type' => 'collage',
+                                        'sender_id' => $item->sender_id,
+                                        'time' => $item->time,
+                                        'images' => [$item->data]
+                                    ];
+                                }
+                            } else {
+                                if ($currentCollage) {
+                                    $chatItems->push($currentCollage);
+                                    $currentCollage = null;
+                                }
+                                $chatItems->push($item);
+                            }
+                        }
+                        if ($currentCollage) {
+                            $chatItems->push($currentCollage);
+                        }
                     @endphp
 
                     @forelse($chatItems as $item)
@@ -194,19 +195,28 @@
                                     <span class="block text-[8px] font-black uppercase tracking-widest mt-2 {{ $item->data->sender_id == Auth::id() ? 'text-white/60' : 'text-gray-400' }}">{{ $item->data->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
+                        @elseif($item->type == 'collage')
+                            <div class="flex {{ $item->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
+                                <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->sender_id == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col gap-2">
+                                    <div class="grid {{ count($item->images) > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-1 overflow-hidden rounded-xl">
+                                        @foreach($item->images as $img)
+                                            @php $fileUrl = str_starts_with($img->file_url, 'http') ? $img->file_url : asset('storage/' . $img->file_url); @endphp
+                                            <a href="{{ $fileUrl }}" data-fancybox="gallery-{{ $item->time->timestamp }}" class="block {{ count($item->images) > 1 ? 'aspect-square' : '' }}">
+                                                <img src="{{ $fileUrl }}" class="w-full h-full object-cover hover:opacity-90 transition-opacity {{ count($item->images) == 1 ? 'max-w-xs max-h-60 rounded-xl' : '' }}">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                    <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->time->format('H:i') }}</span>
+                                </div>
+                            </div>
                         @elseif($item->type == 'attachment')
                             <div class="flex {{ $item->data->uploaded_by == Auth::id() ? 'justify-end' : 'justify-start' }}">
                                 <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->data->uploaded_by == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col items-center gap-2">
-                                    @if($item->data->file_type == 'image')
-                                        <a href="{{ $item->data->file_url }}" target="_blank">
-                                            <img src="{{ $item->data->file_url }}" class="max-w-xs max-h-60 rounded-xl object-cover">
-                                        </a>
-                                    @else
-                                        <div class="flex items-center gap-3 px-4 py-2">
-                                            <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
-                                            <a href="{{ $item->data->file_url }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
-                                        </div>
-                                    @endif
+                                    @php $fileUrl = str_starts_with($item->data->file_url, 'http') ? $item->data->file_url : asset('storage/' . $item->data->file_url); @endphp
+                                    <div class="flex items-center gap-3 px-4 py-2">
+                                        <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
+                                        <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
+                                    </div>
                                     <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->data->created_at->format('H:i') }}</span>
                                 </div>
                             </div>
@@ -218,89 +228,187 @@
                         </div>
                     @endforelse
 
-                    {{-- Handle Offers --}}
-                    @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW || $status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT)
-                        @php $quote = $activeConsultation->quotes->first(); @endphp
-                        @if($quote && $quote->status !== 'revision')
-                        <div class="flex justify-center my-10">
-                            <div class="max-w-2xl w-full bg-white border-2 border-primary/20 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
-                                <div class="absolute top-0 right-0 p-4"><span class="text-[8px] font-black uppercase tracking-widest bg-primary text-white px-3 py-1 rounded-full">New RAB / Agreement</span></div>
-                                <h4 class="text-[12px] font-black uppercase tracking-[0.3em] text-primary mb-6 text-center">Project Agreement & RAB</h4>
-                                
-                                @if($quote->items)
-                                    <div class="mb-6 flex justify-center">
-                                        <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-amber-50 text-amber-700 px-6 py-3 rounded-xl border border-amber-200 hover:bg-amber-100 transition-colors">
-                                            <i class="fa-solid fa-file-arrow-down text-xl"></i>
-                                            <span class="text-[11px] font-black uppercase tracking-widest">Download RAB File</span>
-                                        </a>
-                                    </div>
-                                @endif
 
-                                <div class="text-center mb-6 border-t border-gray-100 pt-6">
-                                    <h4 class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Total Design Fee</h4>
-                                    <h3 class="text-3xl font-black italic text-primary mt-2">Rp {{ number_format($quote->amount, 0, ',', '.') }}</h3>
-                                </div>
+                </div>
+            </div>
 
-                                @if($quote->notes)
-                                    <div class="bg-gray-50 p-4 rounded-xl mb-8">
-                                        <p class="text-[11px] text-gray-600 leading-relaxed italic">"{{ $quote->notes }}"</p>
-                                    </div>
-                                @endif
+            <!-- Action Footer: Flying Chat Input -->
+            @if($status == 4)
+                <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
+                    <div class="bg-green-50/90 backdrop-blur-md border border-green-200 rounded-2xl px-6 py-3 shadow-lg">
+                        <p class="text-xs font-black text-green-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Proyek Selesai. Chat telah dinonaktifkan.</p>
+                    </div>
+                </div>
+            @elseif($activeConsultation->is_chat_expired)
+                <div class="absolute bottom-0 left-0 right-0 p-4 flex flex-col items-center gap-3">
+                    <div class="bg-red-50/90 backdrop-blur-md border border-red-200 rounded-2xl px-6 py-3 shadow-lg flex flex-col items-center gap-3">
+                        <p class="text-xs font-black text-red-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Waktu Konsultasi Habis. Chat telah dinonaktifkan.</p>
+                        <a href="{{ route('customer.designers.book', $activeConsultation->designer_id) }}" class="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Book Consultation Lagi</a>
+                    </div>
+                </div>
+            @else
+                <div class="absolute bottom-0 left-0 right-0 p-4 {{ in_array($status, [0, 5, 6, 7]) ? 'opacity-20 pointer-events-none' : '' }}">
+                    <div class="max-w-4xl mx-auto">
+                        <form action="{{ route('customer.consultation.messages.send', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="bg-white/80 backdrop-blur-xl rounded-[2rem] flex items-center px-4 py-2 border border-gray-200/60 focus-within:border-primary/40 focus-within:bg-white/95 transition-all shadow-xl shadow-black/5">
+                            @csrf
+                            <label for="chat-attachment" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-gray-100">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </label>
+                            <input type="file" id="chat-attachment" name="attachment" class="hidden" onchange="this.form.submit()">
+                            <input type="text" name="message" placeholder="Tulis pesan atau instruksi untuk desainer..." class="flex-grow bg-transparent border-none outline-none px-4 py-3 text-xs font-medium">
+                            <button type="submit" class="bg-primary text-white px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
+                                Kirim
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+            @php
+                $actionRequiredStatuses = [
+                    \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE,
+                    \App\Models\Consultation::STATUS_WAITING_BRIEF,
+                    \App\Models\Consultation::STATUS_OFFER_RECEIVED,
+                    \App\Models\Consultation::STATUS_UNDER_REVIEW,
+                    \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT
+                ];
+                $popupMessage = "";
+                if ($status == \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE) {
+                    $popupMessage = "Harap unggah bukti pembayaran fee konsultasi.";
+                } elseif ($status == \App\Models\Consultation::STATUS_WAITING_BRIEF) {
+                    $popupMessage = "Pembayaran divalidasi! Harap isi brief ruangan Anda.";
+                } elseif ($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW) {
+                    $popupMessage = "Desainer telah mengirimkan RAB (Penawaran Harga) untuk direview.";
+                } elseif ($status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT) {
+                    $popupMessage = "RAB disetujui! Harap unggah bukti pembayaran akhir.";
+                }
+            @endphp
 
-                                @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW)
-                                <div class="flex gap-4 mb-4">
-                                    <form action="{{ route('customer.consultation.reject-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
-                                        @csrf
-                                        <button type="submit" class="w-full py-4 rounded-xl border border-gray-100 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all">Reject Project</button>
-                                    </form>
-                                    <form action="{{ route('customer.consultation.accept-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
-                                        @csrf
-                                        <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20">Accept Project</button>
-                                    </form>
-                                </div>
-                                <div class="mt-4 border-t border-gray-100 pt-4">
-                                    <button type="button" onclick="document.getElementById('revision-form-container').classList.toggle('hidden')" class="w-full py-3 rounded-xl border border-dashed border-gray-300 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-all">
-                                        <i class="fa-solid fa-pen-to-square mr-2"></i> Request Revision
-                                    </button>
-                                    <div id="revision-form-container" class="hidden mt-4 bg-gray-50 p-4 rounded-xl">
-                                        <form action="{{ route('customer.consultation.request-revision', $activeConsultation->id) }}" method="POST">
-                                            @csrf
-                                            <textarea name="revision_notes" rows="3" required placeholder="Tuliskan bagian mana yang perlu direvisi..." class="w-full bg-white border border-gray-200 rounded-lg p-3 text-xs font-medium outline-none focus:border-primary mb-3"></textarea>
-                                            <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded-lg text-[10px] font-black uppercase tracking-widest">Kirim Revisi</button>
-                                        </form>
-                                    </div>
-                                </div>
-                                @else
-                                <form action="{{ route('customer.consultation.pay-final', $activeConsultation->id) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-green-500 text-white py-5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/20">Pay Now</button>
-                                </form>
-                                @endif
-                            </div>
+            @if(in_array($status, $actionRequiredStatuses))
+                <div class="absolute inset-0 z-50 bg-white/70 backdrop-blur-sm flex items-center justify-center p-6">
+                    <div class="max-w-sm w-full bg-white border border-gray-100 rounded-3xl p-10 shadow-2xl text-center">
+                        <div class="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6 animate-bounce">
+                            <i class="fa-solid fa-bell text-3xl"></i>
                         </div>
-                        @endif
-                    @endif
-                </div>
-            </div>
-
-            <!-- Action Footer -->
-            <div class="p-6 bg-white border-t border-gray-100 {{ in_array($status, [0, 5, 6, 7]) ? 'opacity-20 pointer-events-none' : '' }}">
-                <div class="max-w-4xl mx-auto">
-                    <form action="{{ route('customer.consultation.messages.send', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="bg-gray-50 rounded-[2rem] flex items-center px-4 py-2 border border-gray-100 focus-within:border-primary/30 focus-within:bg-white transition-all shadow-sm">
-                        @csrf
-                        <label for="chat-attachment" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary transition-colors cursor-pointer rounded-full hover:bg-gray-100">
-                            <i class="fa-solid fa-paperclip"></i>
-                        </label>
-                        <input type="file" id="chat-attachment" name="attachment" class="hidden" onchange="this.form.submit()">
-                        <input type="text" name="message" placeholder="Tulis pesan atau instruksi untuk desainer..." class="flex-grow bg-transparent border-none outline-none px-4 py-3 text-xs font-medium">
-                        <button type="submit" class="bg-primary text-white px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
-                            Kirim
+                        <h3 class="text-xl font-bold mb-2">Tindakan Diperlukan</h3>
+                        <p class="text-xs text-gray-500 leading-relaxed mb-8">
+                            {{ $popupMessage }}
+                        </p>
+                        <a href="{{ route('customer.track-consultation.list') }}" class="inline-block bg-primary text-white w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+                            Buka Track Consultation
+                        </a>
+                        <button onclick="this.closest('.absolute').remove()" class="w-full mt-3 py-3 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 hover:text-gray-600 transition-colors">
+                            Nanti Saja
                         </button>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            @endif
         </section>
     </div>
     @endif
+
+    @if($activeConsultation && $activeConsultation->consultation_type == 'chat_consultation' && $activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired && $status == 1)
+    <script>
+        (function() {
+            const expiresAt = new Date("{{ $activeConsultation->chat_expires_at->toIso8601String() }}").getTime();
+            const timerSpan = document.getElementById('countdown-timer');
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = expiresAt - now;
+                
+                if (distance < 0) {
+                    clearInterval(x);
+                    if (timerSpan) timerSpan.innerHTML = "00:00";
+                    window.location.reload();
+                    return;
+                }
+                
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                if (timerSpan) {
+                    timerSpan.innerHTML = 
+                        String(minutes).padStart(2, '0') + ":" + 
+                        String(seconds).padStart(2, '0');
+                }
+            }
+            
+            updateTimer();
+            const x = setInterval(updateTimer, 1000);
+        })();
+    </script>
+    @endif
+
+    @if($activeConsultation)
+    <!-- MEDIA DRAWER (WHATSAPP STYLE) -->
+    <div id="media-drawer" class="fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-2xl z-[60] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div>
+                <h3 class="font-bold text-gray-900 text-lg">Media & Assets</h3>
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Files shared in this project</p>
+            </div>
+            <button onclick="document.getElementById('media-drawer').classList.add('translate-x-full');" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
+            @forelse($activeConsultation->attachments as $attachment)
+                @php 
+                    $fileUrl = str_starts_with($attachment->file_url, 'http') ? $attachment->file_url : asset('storage/'.$attachment->file_url); 
+                @endphp
+                <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {{ $attachment->file_type == 'image' || str_contains($attachment->file_url, 'image') ? 'bg-black overflow-hidden' : 'bg-red-50 text-red-500' }}">
+                        @if($attachment->file_type == 'image' || str_contains($attachment->file_url, 'image'))
+                            <img src="{{ $fileUrl }}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
+                        @else
+                            <i class="fa-solid fa-file-pdf text-xl"></i>
+                        @endif
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-primary truncate block mb-1">
+                            {{ basename($attachment->file_url) }}
+                        </a>
+                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                            {{ $attachment->created_at->format('d M Y, H:i') }} • 
+                            {{ $attachment->uploaded_by == Auth::id() ? 'You' : 'Designer' }}
+                        </p>
+                    </div>
+                </div>
+            @empty
+                @if($activeConsultation->quotes->isEmpty())
+                <div class="flex flex-col items-center justify-center py-12 text-center opacity-50">
+                    <i class="fa-solid fa-folder-open text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">No media shared yet</p>
+                </div>
+                @endif
+            @endforelse
+            
+            <!-- RAB Quotes as assets -->
+            @foreach($activeConsultation->quotes as $quote)
+                @if($quote->items)
+                    @php 
+                        $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items; 
+                    @endphp
+                    @if(isset($items['file_path']))
+                        <div class="flex items-start gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100 hover:border-amber-300 transition-colors group">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 text-amber-600">
+                                <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-amber-600 truncate block mb-1">
+                                    {{ $items['file_name'] ?? 'RAB_Project.pdf' }}
+                                </a>
+                                <p class="text-[9px] text-amber-600/60 font-bold uppercase tracking-widest">
+                                    {{ $quote->created_at->format('d M Y, H:i') }} • Designer
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </body>
 </html>

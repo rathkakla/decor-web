@@ -83,9 +83,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/consultations/{id}/invoice', [ConsultationController::class, 'downloadInvoice']);
     Route::get('/quotes/{id}/download-rab', [ConsultationController::class, 'downloadRab']);
     Route::post('/quotes/{id}/respond', [ConsultationController::class, 'respondToQuote']);
+    Route::post('/consultations/{id}/review', [ConsultationController::class, 'submitReview']);
 
     // Vouchers
     Route::get('/vouchers/seller/{id}', [VoucherController::class, 'sellerVouchers']);
     Route::post('/vouchers/claim/{id}', [VoucherController::class, 'claim']);
     Route::post('/vouchers/apply', [VoucherController::class, 'apply']);
+
+    // Supports (Help Center)
+    Route::get('/supports', [\App\Http\Controllers\Api\SupportController::class, 'index']);
+    Route::post('/supports', [\App\Http\Controllers\Api\SupportController::class, 'store']);
 });

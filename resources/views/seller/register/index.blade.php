@@ -90,8 +90,24 @@
                             </div>
                             <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Business Email</label><input type="email" name="email" value="{{ old('email') }}" placeholder="curate@studio.com" required class="input-underline text-sm font-bold"></div>
                             <div class="grid grid-cols-2 gap-6">
-                                <div class="flex flex-col relative"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Password</label><input type="password" name="password" placeholder="••••••••••••" required class="input-underline text-sm font-bold"></div>
-                                <div class="flex flex-col relative"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Confirm Password</label><input type="password" name="password_confirmation" placeholder="••••••••••••" required class="input-underline text-sm font-bold"></div>
+                                <div class="flex flex-col relative">
+                                    <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Password</label>
+                                    <div class="relative">
+                                        <input type="password" id="password" name="password" placeholder="••••••••••••" required class="input-underline text-sm font-bold w-full pr-8">
+                                        <button type="button" onclick="togglePasswordVisibility('password', 'password-toggle-icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none">
+                                            <i id="password-toggle-icon" class="fa-solid fa-eye-slash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col relative">
+                                    <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Confirm Password</label>
+                                    <div class="relative">
+                                        <input type="password" id="password_confirmation" name="password_confirmation" placeholder="••••••••••••" required class="input-underline text-sm font-bold w-full pr-8">
+                                        <button type="button" onclick="togglePasswordVisibility('password_confirmation', 'confirm-password-toggle-icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none">
+                                            <i id="confirm-password-toggle-icon" class="fa-solid fa-eye-slash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <button type="button" onclick="nextStep(2)" class="w-full bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
@@ -189,6 +205,20 @@
     </div>
 
     <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        }
+
         function openTerms() {
             document.getElementById('terms-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';

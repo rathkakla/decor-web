@@ -28,40 +28,7 @@
 </head>
 <body class="text-gray-800 bg-white">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
-            
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-            </div>
-        </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-             <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-           
-        </nav>
-
-        <div class="flex items-center space-x-6 flex-1 justify-end">
-            <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-solid fa-bag-shopping text-lg"></i>
-            </a>
-            <button class="text-primary hover:scale-110 transition-transform">
-                <i class="fa-regular fa-bell text-lg"></i>
-            </button>
-            <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer">
-                <img src="{{ Auth::user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover bg-slate-100">
-            </div>
-        </div>
-    </div>
-</header>
+    @include('customer.partials.navbar')
 
     <main>
         <section class="py-24 px-6 content-container">

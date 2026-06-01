@@ -21,51 +21,7 @@
 </head>
 <body class="text-gray-800">
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-        <div class="p-8">
-            <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic font-bold">Designer Portal</p>
-        </div>
-        
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-            </a>
-            <a href="{{ route('designer.portfolio.index') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.portfolio.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio
-            </a>
-            <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.consultations.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i>Konsultasi
-            </a>
-            <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i>Chat
-            </a>
-            <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.reviews') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-            </a>
-            <a href="{{ route('designer.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('designer.reports') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-            </a>
-            <a href="{{ route('notifications') }}" class="flex items-center px-4 py-3 text-xs font-bold {{ request()->routeIs('notifications') ? 'active-link' : 'text-gray-400 hover:text-primary' }} transition-all rounded-lg">
-                <i class="fa-solid fa-bell mr-3 w-5 text-center"></i> Notifikasi
-                @if(Auth::user()->unreadNotifications->count() > 0)
-                    <span class="ml-auto bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
-                        {{ Auth::user()->unreadNotifications->count() }}
-                    </span>
-                @endif
-            </a>
-        </nav>
-        <div class="p-4 border-t border-gray-100 space-y-1">
-            <a href="{{ route('designer.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings</a>
-            <a href="{{ route('designer.support') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-circle-question mr-3 w-5 text-center"></i> Support</a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center px-4 py-3 text-xs font-bold text-red-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-lg">
-                    <i class="fa-solid fa-right-from-bracket mr-3 w-5 text-center"></i> Logout
-                </button>
-            </form>
-        </div>
-    </aside>
+    @include('designer.partials.sidebar')
 
     <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
         <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
@@ -101,7 +57,7 @@
                 
                 $filteredConsultations = $consultations->filter(function($item) use ($tab) {
                     if ($tab == 'needs_action') return in_array($item->status, [0, 3, 5]);
-                    if ($tab == 'on_progress') return in_array($item->status, [1, 2, 7]);
+                    if ($tab == 'on_progress') return in_array($item->status, [1, 2, 7, 8, 9]);
                     if ($tab == 'completed') return $item->status == 4;
                     return true;
                 });
@@ -139,6 +95,8 @@
                                     5 => 'bg-gray-100 text-gray-600',   // Pending Approval
                                     6 => 'bg-red-100 text-red-700',     // Rejected
                                     7 => 'bg-amber-100 text-amber-700',  // Waiting Payment
+                                    8 => 'bg-indigo-50 text-indigo-600', // Offer Received
+                                    9 => 'bg-emerald-50 text-emerald-600', // Waiting Final Payment
                                 ];
                                 $color = $statusColors[$consultation->status] ?? 'bg-gray-50 text-gray-600';
                             @endphp
@@ -173,7 +131,7 @@
         </div>
 
         <footer class="p-8 border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white mt-auto text-center">
-            © 2026 DECOR DESIGNER PORTAL. ALL RIGHTS RESERVED.
+            Â© 2026 DECOR DESIGNER PORTAL. ALL RIGHTS RESERVED.
         </footer>
     </main>
 

@@ -28,105 +28,11 @@
 <body class="text-gray-800 flex flex-col min-h-screen">
 
     <!-- HEADER (Sama seperti halaman profil) -->
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-        
-        <div class="flex items-center space-x-8 flex-1">
-            <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                <?= $site_name ?>
-            </a>
-            
-            <div class="hidden lg:flex items-center bg-gray-50 border border-gray-100 rounded-md px-4 py-2 w-full max-w-[180px] group focus-within:bg-white focus-within:border-primary/30 transition-all">
-                <i class="fa-solid fa-magnifying-glass text-gray-400 text-[10px] mr-2"></i>
-                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-[10px] w-full placeholder:text-gray-400">
-            </div>
-        </div>
-
-        <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-            <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-            <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-            <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-        </nav>
-
-       <div class="flex items-center space-x-6 flex-1 justify-end">
-    @auth
-        <div class="flex items-center gap-4 border-r pr-6 border-gray-100">
-            <div class="text-right hidden sm:block">
-                <p class="text-[9px] uppercase tracking-widest text-gray-400 font-bold leading-none mb-1">Welcome back</p>
-                <p class="text-xs font-bold text-primary capitalize">{{ Auth::user()->full_name }}</p>
-            </div>
-            
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors" title="Logout">
-                    <i class="fa-solid fa-power-off text-sm"></i>
-                </button>
-            </form>
-        </div>
-
-        <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-        </a>
-
-        <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-            <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
-            </a>
-        </div>
-    @else
-        <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">
-            Sign In
-        </a>
-        
-        <a href="{{ route('role.selection') }}">
-            <button class="bg-primary text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:bg-opacity-90 transition-all">
-                Join Us
-            </button>
-        </a>
-    @endauth
-</div>
-    </div>
-</header>
+    @include('customer.partials.navbar')
 
     <main class="flex-grow flex content-container w-full bg-white">
         <!-- SIDEBAR (TETAP SAMA) -->
-        <aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0">
-            <div class="text-center mb-10">
-                <img src="{{ Auth::user()->avatar_url }}" class="w-20 h-20 rounded-2xl mx-auto mb-4 bg-white shadow-sm border border-gray-100 object-cover">
-                <h3 class="font-bold text-lg">{{ $user->full_name }}</h3>
-                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Member since {{ $user->created_at->format('Y') }}</p>
-            </div>
-
-            <nav class="space-y-1">
-                <a href="{{ route('customer.profile') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-regular fa-user text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Profile</span>
-                </a>
-                <a href="{{ route('customer.orders') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-primary font-bold rounded-xl shadow-sm border border-gray-100">
-                    <i class="fa-solid fa-box-archive text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Orders</span>
-                </a>
-                <a href="{{ route('customer.return-request') }}" class="flex items-center space-x-4 px-4 py-3 text-gray-400 hover:text-primary transition-colors">
-                    <i class="fa-solid fa-rotate-left text-xs"></i> <span class="text-[11px] uppercase tracking-widest">Returns</span>
-                </a>
-                
-                <a href="{{ route('customer.product-favorite') }}" class="flex items-center space-x-4 px-4 py-3 bg-white text-gray-400 font-medium rounded-xl hover:text-primary transition-colors">
-                    <i class="fa-regular fa-heart text-xs"></i>
-                    <span class="text-[11px] uppercase tracking-widest">Product Favorite</span>
-                </a>
-                <div class="pt-6 mt-6 border-t border-gray-100">
-                    <p class="px-4 text-[9px] font-black text-gray-300 uppercase tracking-widest mb-2">Chat History</p>
-                    
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/designer')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Designer</span>
-                    </a>
-
-                    <a href="{{ route('customer.riwayat-chat') }}" class="flex items-center space-x-4 px-4 py-3 rounded-xl {{ (request()->is('messages/seller')) ? 'bg-white text-primary font-bold shadow-sm border border-gray-100' : 'text-gray-400 hover:text-primary' }}">
-                        <i class="fa-solid fa-shop text-xs"></i> 
-                        <span class="text-[11px] uppercase tracking-widest">Seller</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
+        @include('customer.partials.sidebar')
 
         <!-- MAIN CONTENT: NEW LAYOUT -->
         <div class="flex-grow p-12 bg-[#fafafa]/30">
@@ -161,7 +67,7 @@
                                     {{ $order->status == 'shipped' ? 'In Transit' : ($order->status == 'completed' ? 'Delivered' : $order->status) }}
                                 @endif
                             </span>
-                            <h2 class="text-xl font-bold text-gray-900 mt-1">Order #DEC-{{ $order->id }}</h2>
+                            <h2 class="text-xl font-bold text-gray-900 mt-1">Order @if($order->return_code) #DEC-{{ str_replace('RET-', '', $order->return_code) }}-RET @else #DEC-{{ $order->id }} @endif</h2>
                             <p class="text-xs text-gray-500 mt-1 font-medium">
                                 Ordered on {{ $order->created_at->format('M d, Y') }} <span class="mx-2">&bull;</span> Total: <span class="font-bold text-gray-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                             </p>
@@ -414,5 +320,160 @@
             }, 1000);
         });
     </script>
+    <!-- REVIEW MODAL -->
+    @if(session('show_review_modal') && session('completed_order_id'))
+        @php
+            $completedOrder = \App\Models\Order::with('orderItems.product.images')->find(session('completed_order_id'));
+        @endphp
+        @if($completedOrder)
+            <div id="reviewModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+                <!-- Overlay with backdrop blur -->
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" onclick="closeReviewModal()"></div>
+                
+                <!-- Modal container -->
+                <div class="relative bg-white rounded-2xl w-full max-w-lg mx-4 p-8 shadow-2xl transition-all transform scale-95 opacity-0 duration-300 z-10 border border-gray-100" id="reviewModalContainer">
+                    <button onclick="closeReviewModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100">
+                            <i class="fa-solid fa-star text-2xl text-primary animate-pulse"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 tracking-tight">Bagaimana Kualitas Produk Kami?</h3>
+                        <p class="text-xs text-gray-500 mt-1">Ulasan Anda sangat berharga untuk penjual & pelanggan lain.</p>
+                    </div>
+
+                    <form action="{{ route('customer.orders.submit-reviews') }}" method="POST" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="order_id" value="{{ $completedOrder->id }}">
+                        
+                        <div class="max-h-[320px] overflow-y-auto pr-2 space-y-6">
+                            @foreach($completedOrder->orderItems as $index => $item)
+                                <div class="border-b border-gray-100 pb-5 last:border-0 last:pb-0">
+                                    <div class="flex items-center gap-4 mb-4">
+                                        <img src="{{ $item->product->images->first()->img_url ?? 'https://via.placeholder.com/200' }}" class="w-14 h-14 object-cover rounded-xl border border-gray-100 shadow-sm shrink-0">
+                                        <div class="flex-grow">
+                                            <h4 class="font-bold text-xs text-gray-900 line-clamp-1">{{ $item->product->name }}</h4>
+                                            <p class="text-[10px] text-gray-400 mt-0.5">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rating inputs & Star selector -->
+                                    <input type="hidden" name="reviews[{{ $index }}][product_id]" value="{{ $item->product_id }}">
+                                    <input type="hidden" name="reviews[{{ $index }}][rating]" id="rating-{{ $index }}" value="">
+
+                                    <div class="flex flex-col items-center mb-4" id="stars-container-{{ $index }}">
+                                        <div class="flex gap-2" id="stars-wrapper-{{ $index }}">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="fa-solid fa-star text-3xl cursor-pointer text-gray-200 hover:scale-110 hover:text-primary transition-all duration-100" id="star-{{ $index }}-{{ $i }}" onclick="setStarRating({{ $index }}, {{ $i }})"></i>
+                                            @endfor
+                                        </div>
+                                        <p class="text-[10px] text-gray-400 mt-2 font-medium" id="rating-text-{{ $index }}">Sentuh bintang untuk menilai</p>
+                                    </div>
+
+                                    <!-- Comment Textarea -->
+                                    <textarea name="reviews[{{ $index }}][comment]" placeholder="Tulis komentar ulasan Anda (opsional)..." class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs outline-none focus:border-primary focus:bg-white transition-all resize-none h-20 placeholder:text-gray-400"></textarea>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="flex flex-col gap-2 border-t border-gray-100 pt-4 mt-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <button type="button" onclick="closeReviewModal()" class="px-5 py-3 text-[10px] font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-wider">
+                                    Ulas Nanti
+                                </button>
+                                <button type="submit" id="submitReviewsBtn" disabled class="flex-grow py-3 bg-primary text-white text-[10px] font-bold rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider text-center">
+                                    Kirim Ulasan
+                                </button>
+                            </div>
+                            <a href="{{ route('customer.review', $completedOrder->orderItems->first()->product_id) }}" class="w-full py-2.5 border border-primary text-primary text-[10px] font-bold rounded-xl hover:bg-primary hover:text-white transition-all uppercase tracking-wider text-center block">
+                                Ulas Selengkapnya di Halaman Review
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    showReviewModal();
+                });
+
+                function showReviewModal() {
+                    const modal = document.getElementById('reviewModal');
+                    const container = document.getElementById('reviewModalContainer');
+                    if (modal && container) {
+                        modal.classList.remove('hidden');
+                        setTimeout(() => {
+                            container.classList.remove('scale-95', 'opacity-0');
+                            container.classList.add('scale-100', 'opacity-100');
+                        }, 50);
+                    }
+                }
+
+                function closeReviewModal() {
+                    const modal = document.getElementById('reviewModal');
+                    const container = document.getElementById('reviewModalContainer');
+                    if (modal && container) {
+                        container.classList.remove('scale-100', 'opacity-100');
+                        container.classList.add('scale-95', 'opacity-0');
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                        }, 300);
+                    }
+                }
+
+                function setStarRating(index, rating) {
+                    const ratingInput = document.getElementById(`rating-${index}`);
+                    ratingInput.value = rating;
+
+                    const ratingText = document.getElementById(`rating-text-${index}`);
+                    const labels = {
+                        1: "Sangat Buruk 😠",
+                        2: "Buruk 😞",
+                        3: "Cukup 😐",
+                        4: "Baik 😊",
+                        5: "Sangat Baik 😍"
+                    };
+                    ratingText.innerText = labels[rating] || "";
+                    ratingText.classList.remove('text-gray-400');
+                    ratingText.classList.add('text-primary', 'font-bold');
+
+                    updateStarsVisual(index, rating);
+                    validateForm();
+                }
+
+                function updateStarsVisual(index, rating) {
+                    for (let i = 1; i <= 5; i++) {
+                        const star = document.getElementById(`star-${index}-${i}`);
+                        if (i <= rating) {
+                            star.classList.remove('text-gray-200');
+                            star.classList.add('text-primary');
+                        } else {
+                            star.classList.remove('text-primary');
+                            star.classList.add('text-gray-200');
+                        }
+                    }
+                }
+
+                function validateForm() {
+                    const ratingInputs = document.querySelectorAll('input[id^="rating-"]');
+                    let allRated = true;
+                    ratingInputs.forEach(input => {
+                        if (!input.value) {
+                            allRated = false;
+                        }
+                    });
+
+                    const submitBtn = document.getElementById('submitReviewsBtn');
+                    if (submitBtn) {
+                        submitBtn.disabled = !allRated;
+                    }
+                }
+            </script>
+        @endif
+    @endif
 </body>
 </html>

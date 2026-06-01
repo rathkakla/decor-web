@@ -22,44 +22,7 @@
 </head>
 <body class="text-gray-800">
 
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-        <div class="p-8">
-            <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
-            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic font-bold">Designer Portal</p>
-        </div>
-
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
-            </a>
-            <a href="{{ route('designer.portfolio.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.portfolio.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio
-            </a>
-            <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.consultations.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i> Konsultasi
-            </a>
-            <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i> Chat
-            </a>
-            <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.reviews') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
-            </a>
-            <a href="{{ route('designer.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.reports') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-                <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-100 space-y-1">
-            <a href="{{ route('designer.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings</a>
-            <a href="{{ route('designer.support') }}" class="flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-primary transition-all rounded-lg"><i class="fa-solid fa-circle-question mr-3 w-5 text-center"></i> Support</a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full flex items-center px-4 py-3 text-xs font-bold text-gray-400 hover:text-red-500 transition-all rounded-lg">
-                    <i class="fa-solid fa-right-from-bracket mr-3 w-5 text-center"></i> Logout
-                </button>
-            </form>
-        </div>
-    </aside>
+    @include('designer.partials.sidebar')
 
     <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
         <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
@@ -135,7 +98,20 @@
 
             <div class="bg-white p-10 rounded-[48px] border border-gray-100 shadow-sm">
                 <div class="flex justify-between items-center mb-8">
-                    <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight italic">Monthly Revenue Overview</h3>
+                    <div>
+                        <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight italic">Annual Revenue Overview</h3>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Performance in {{ $selectedYear }}</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <form action="{{ route('designer.dashboard') }}" method="GET" id="yearFilterForm">
+                            <select name="year" onchange="document.getElementById('yearFilterForm').submit()" class="bg-gray-50 border-none text-[10px] font-black uppercase tracking-widest text-primary px-4 py-2 rounded-lg focus:ring-2 focus:ring-primary/20 cursor-pointer outline-none">
+                                @foreach($availableYears as $year)
+                                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>Year {{ $year }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                        <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
+                    </div>
                 </div>
                 <div class="h-80">
                     <canvas id="revenueChart"></canvas>
@@ -213,29 +189,66 @@
 
         // CHART LOGIC
         const ctx = document.getElementById('revenueChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(181, 115, 58, 0.2)');
+        gradient.addColorStop(1, 'rgba(181, 115, 58, 0)');
+
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: @json($months),
                 datasets: [{
-                    label: 'Monthly Earnings (Rp)',
+                    label: 'Revenue',
                     data: @json($revenueData),
                     borderColor: '#B5733A',
-                    backgroundColor: 'rgba(181, 115, 58, 0.1)',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
                     fill: true,
                     tension: 0.4,
-                    borderWidth: 3,
+                    pointBackgroundColor: '#B5733A',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
                     pointRadius: 4,
-                    pointBackgroundColor: '#B5733A'
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        padding: 12,
+                        titleFont: { size: 10, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: 'bold' } }
+                    }
                 }
             }
         });

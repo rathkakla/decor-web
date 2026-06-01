@@ -45,31 +45,7 @@
 </head>
 <body class="text-gray-800">
 
-     <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    <?= $site_name ?>
-                </a>
-            </div>
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                 <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-            </nav>
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                @auth
-                    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                        <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                            <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
-                        </a>
-                    </div>
-                @else
-                    <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">Sign In</a>
-                @endauth
-            </div>
-        </div>
-    </header>
+     @include('customer.partials.navbar')
 
     <main class="py-20 content-container px-6">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-20">

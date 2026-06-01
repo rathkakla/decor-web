@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decor Seller - Detail Pesanan #DEC-{{ $order->id }}</title>
+    <title>Decor Seller - Detail Pesanan @if($order->return_code) #DEC-{{ str_replace('RET-', '', $order->return_code) }}-RET @else #DEC-{{ $order->id }} @endif</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -27,7 +27,7 @@
         @php
             $extraAction = '<a href="'.route('seller.orders').'" class="hover:opacity-70 transition-colors text-[10px] font-bold uppercase tracking-widest">Back to List</a>';
         @endphp
-        @include('seller.partials.header', ['title' => 'Order Details #DEC-'.$order->id, 'extra_action' => $extraAction])
+        @include('seller.partials.header', ['title' => 'Order Details ' . ($order->return_code ? '#DEC-'.str_replace('RET-', '', $order->return_code).'-RET' : '#DEC-'.$order->id), 'extra_action' => $extraAction])
 
         <div class="p-8 grid grid-cols-1 md:grid-cols-12 gap-8 flex-1 pb-32">
             

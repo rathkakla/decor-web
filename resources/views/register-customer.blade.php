@@ -104,14 +104,24 @@
         <input type="email" name="email" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
     </div>
 
-    <div class="mb-6">
+    <div class="mb-6 relative">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password</label>
-        <input type="password" name="password" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
+        <div class="relative">
+            <input type="password" id="password" name="password" required class="w-full border-b border-gray-200 py-2 pr-10 focus:outline-none focus:border-primary text-sm">
+            <button type="button" onclick="togglePasswordVisibility('password', 'password-toggle-icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none">
+                <i id="password-toggle-icon" class="fa-solid fa-eye-slash"></i>
+            </button>
+        </div>
     </div>
 
-    <div class="mb-10">
+    <div class="mb-10 relative">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Confirm Password</label>
-        <input type="password" name="password_confirmation" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
+        <div class="relative">
+            <input type="password" id="password_confirmation" name="password_confirmation" required class="w-full border-b border-gray-200 py-2 pr-10 focus:outline-none focus:border-primary text-sm">
+            <button type="button" onclick="togglePasswordVisibility('password_confirmation', 'confirm-password-toggle-icon')" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none">
+                <i id="confirm-password-toggle-icon" class="fa-solid fa-eye-slash"></i>
+            </button>
+        </div>
     </div>
 
     <div class="flex items-start space-x-3 mb-8">
@@ -175,6 +185,20 @@
 </div>
 
 <script>
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+
     function openTerms() {
         document.getElementById('terms-modal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';

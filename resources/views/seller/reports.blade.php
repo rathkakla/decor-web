@@ -122,7 +122,13 @@
                                     <span class="text-xs font-bold text-gray-400 italic">{{ $item->order->created_at->format('d F Y') }}</span>
                                 </td>
                                 <td class="px-8 py-5">
-                                    <span class="text-xs font-black text-primary uppercase">#ORD-{{ $item->order->id }}</span>
+                                    <span class="text-xs font-black text-primary uppercase">
+                                        @if($item->order->return_code)
+                                            #DEC-{{ str_replace('RET-', '', $item->order->return_code) }}-RET
+                                        @else
+                                            #ORD-{{ $item->order->id }}
+                                        @endif
+                                    </span>
                                 </td>
                                 <td class="px-8 py-5">
                                     <span class="text-xs font-bold text-gray-700">{{ $item->product->name }}</span>

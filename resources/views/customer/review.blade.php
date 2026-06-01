@@ -36,25 +36,7 @@
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('customer.homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    {{ $site_name }}
-                </a>
-            </div>
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                <a href="{{ route('customer.cart') }}" class="text-primary hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-bag-shopping text-lg"></i>
-                </a>
-                <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                    <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ urlencode($user->username) }}" class="w-full h-full object-cover bg-slate-100">
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    @include('customer.partials.navbar')
 
     <main class="flex-grow flex content-container w-full bg-white">
         <div class="flex-grow p-12">

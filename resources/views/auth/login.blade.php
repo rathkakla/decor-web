@@ -81,8 +81,11 @@
                             <i class="fa-solid fa-key text-gray-400 text-sm"></i>
                         </div>
                         <input type="password" id="password" name="password" 
-                            class="bg-secondary/40 w-full pl-10 pr-4 py-3 rounded-md border-none focus:ring-2 focus:ring-primary/50 text-sm tracking-[0.2em] transition-all" 
+                            class="bg-secondary/40 w-full pl-10 pr-10 py-3 rounded-md border-none focus:ring-2 focus:ring-primary/50 text-sm tracking-[0.2em] transition-all" 
                             placeholder="••••••••••" required>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400 hover:text-primary transition-colors" onclick="togglePassword()">
+                            <i class="fa-solid fa-eye-slash" id="togglePasswordIcon"></i>
+                        </div>
                     </div>
                 </div>
 
@@ -163,5 +166,23 @@
         </div>
     </footer>
 
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordInput.classList.remove('tracking-[0.2em]');
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                passwordInput.classList.add('tracking-[0.2em]');
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            }
+        }
+    </script>
 </body>
 </html>

@@ -45,31 +45,7 @@
 </head>
 <body class="text-gray-800">
 
-     <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div class="content-container flex justify-between items-center py-4 px-6">
-            <div class="flex items-center space-x-8 flex-1">
-                <a href="{{ route('homepage') }}" class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
-                    <?= $site_name ?>
-                </a>
-            </div>
-            <nav class="hidden md:flex items-center space-x-10 text-[13px] font-medium text-gray-500 tracking-wide">
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
-                <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
-                 <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
-            </nav>
-            <div class="flex items-center space-x-6 flex-1 justify-end">
-                @auth
-                    <div class="w-9 h-9 rounded-md overflow-hidden border border-gray-200 cursor-pointer hover:border-primary transition-all">
-                        <a href="{{ route('customer.profile') }}" class="block w-full h-full">
-                            <img src="{{ Auth::user()->avatar_url }}" class="w-full h-full bg-slate-100 object-cover">
-                        </a>
-                    </div>
-                @else
-                    <a href="{{ route('login') }}" class="text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-primary transition-all">Sign In</a>
-                @endauth
-            </div>
-        </div>
-    </header>
+     @include('customer.partials.navbar')
 
     <!-- Studio Cover Banner -->
     <div class="content-container px-6 mt-10">
@@ -110,11 +86,11 @@
                             <p class="text-[7px] font-black uppercase tracking-widest text-gray-400 mt-1 leading-tight">Completed Projects</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-2xl text-center">
-                            <p class="text-xl font-bold text-primary">4.9</p>
+                            <p class="text-xl font-bold text-primary">{{ $overallRating }}</p>
                             <p class="text-[7px] font-black uppercase tracking-widest text-gray-400 mt-1 leading-tight">Overall Rating</p>
                         </div>
                         <div class="bg-gray-50 p-4 rounded-2xl text-center">
-                            <p class="text-xl font-bold text-primary">{{ $designer->average_project_duration }}</p>
+                            <p class="text-xl font-bold text-primary">{{ $avgDuration }}</p>
                             <p class="text-[7px] font-black uppercase tracking-widest text-gray-400 mt-1 leading-tight">Avg. Duration</p>
                         </div>
                     </div>
@@ -148,32 +124,37 @@
                     </div>
                     @endif
 
+                    @if($canFreeChat)
                     <a href="{{ route('customer.designers.free-chat', $designer->id) }}" class="block w-full">
                         <button class="w-full bg-primary text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                            Start Consultation
+                            Start Consultation (Free 10 Min)
                         </button>
                     </a>
+                    @else
+                    <a href="{{ route('customer.designers.book', $designer->id) }}" class="block w-full">
+                        <button class="w-full bg-primary text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                            Book Consultation
+                        </button>
+                    </a>
+                    @endif
                 </div>
             </div>
 
             <!-- Main Content: Portfolios -->
             <div class="lg:col-span-2">
-                <header class="mb-12 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold mb-1">Portfolio Highlights</h2>
-                        <p class="text-gray-400 text-xs">Curated masterpieces by {{ $designer->user->full_name }}.</p>
-                    </div>
-                    @if($designer->instagram_url || $designer->linkedin_url)
-                    <div class="flex items-center space-x-2 text-[10px] font-black uppercase tracking-wider text-primary bg-primary/5 px-4 py-2.5 rounded-xl border border-primary/10">
-                        <i class="fa-solid fa-circle-info text-xs"></i>
-                        <span>Lihat Portofolio Lengkap di Media Sosial</span>
-                    </div>
-                    @endif
-                </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @forelse($designer->portfolios as $portfolio)
-                    <div class="group cursor-pointer" onclick="openPortfolioModal('{{ addslashes($portfolio->title) }}', '{{ asset('storage/' . $portfolio->image_url) }}', {{ $portfolio->is_360 ? 'true' : 'false' }}, '{{ $portfolio->category ?? 'Interior' }}', '{{ $portfolio->area ?? '-' }}', '{{ $portfolio->duration ?? '-' }}', '{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}')">
+                    <div class="group cursor-pointer" 
+                         data-title="{{ $portfolio->title }}"
+                         data-image="{{ asset('storage/' . $portfolio->image_url) }}"
+                         data-is360="{{ $portfolio->is_360 ? 'true' : 'false' }}"
+                         data-category="{{ $portfolio->category ?? 'Interior' }}"
+                         data-area="{{ $portfolio->area ?? '-' }}"
+                         data-duration="{{ $portfolio->duration ?? '-' }}"
+                         data-description="{{ $portfolio->description ?? 'No description.' }}"
+                         data-review="{{ $portfolio->consultation && $portfolio->consultation->review ? json_encode(['rating' => $portfolio->consultation->review->rating, 'comment' => $portfolio->consultation->review->comment, 'reviewer_name' => $portfolio->consultation->review->customer->full_name ?? 'Customer', 'designer_reply' => $portfolio->consultation->review->designer_reply]) : '' }}"
+                         onclick="openPortfolioFromElement(this)">
                         <div class="aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-50 mb-6 relative shadow-sm border border-gray-100">
                             <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                             <div class="absolute bottom-6 left-6">
@@ -261,15 +242,37 @@
                             Description goes here...
                         </p>
                     </div>
+
+                    <!-- Review Section -->
+                    <div id="modalReviewSection" class="hidden mt-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                        <h4 class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Customer Review</h4>
+                        <div class="flex items-center gap-1 text-yellow-400 text-xs mb-2" id="modalReviewStars">
+                        </div>
+                        <p id="modalReviewComment" class="text-xs text-gray-700 font-medium italic mb-2">"..."</p>
+                        <p id="modalReviewerName" class="text-[10px] text-gray-400 font-bold">- </p>
+
+                        <div id="modalDesignerReplySection" class="hidden mt-4 pl-3 border-l-2 border-primary/30">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-primary mb-1">Designer's Reply</h4>
+                            <p id="modalDesignerReply" class="text-[11px] text-gray-600">...</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Action Button -->
                 <div class="pt-6 border-t border-gray-100 mt-8">
+                    @if($canFreeChat)
                     <a href="{{ route('customer.designers.free-chat', $designer->id) }}" class="block w-full">
                         <button class="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                            Tanyakan Tentang Desain Ini
+                            Tanyakan Tentang Desain Ini (Free 10 Min)
                         </button>
                     </a>
+                    @else
+                    <a href="{{ route('customer.designers.book', $designer->id) }}" class="block w-full">
+                        <button class="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                            Book Consultation
+                        </button>
+                    </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -286,7 +289,28 @@
     <script>
         let activeViewer = null;
 
-        function openPortfolioModal(title, imageUrl, is360, category, area, duration, description) {
+        function openPortfolioFromElement(el) {
+            const title = el.dataset.title;
+            const imageUrl = el.dataset.image;
+            const is360 = el.dataset.is360 === 'true';
+            const category = el.dataset.category;
+            const area = el.dataset.area;
+            const duration = el.dataset.duration;
+            const description = el.dataset.description;
+            
+            let reviewData = null;
+            if (el.dataset.review) {
+                try {
+                    reviewData = JSON.parse(el.dataset.review);
+                } catch (e) {
+                    console.error("Failed to parse review data", e);
+                }
+            }
+            
+            openPortfolioModal(title, imageUrl, is360, category, area, duration, description, reviewData);
+        }
+
+        function openPortfolioModal(title, imageUrl, is360, category, area, duration, description, reviewData = null) {
             // Destroy existing viewer if any to prevent memory leaks and issues
             if (activeViewer) {
                 try {
@@ -301,6 +325,32 @@
             document.getElementById('modalArea').innerHTML = `<i class="fa-solid fa-vector-square text-primary mr-1 text-[10px]"></i> ${area}`;
             document.getElementById('modalDuration').innerHTML = `<i class="fa-solid fa-clock text-primary mr-1 text-[10px]"></i> ${duration}`;
             document.getElementById('modalDescription').innerText = description;
+
+            // Update Review
+            const reviewSection = document.getElementById('modalReviewSection');
+            if (reviewData) {
+                reviewSection.classList.remove('hidden');
+                
+                // Stars
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHtml += `<i class="fa-${i <= reviewData.rating ? 'solid' : 'regular'} fa-star"></i>`;
+                }
+                document.getElementById('modalReviewStars').innerHTML = starsHtml;
+                
+                document.getElementById('modalReviewComment').innerText = '"' + (reviewData.comment || 'No comment provided.') + '"';
+                document.getElementById('modalReviewerName').innerText = '- ' + reviewData.reviewer_name;
+
+                const replySection = document.getElementById('modalDesignerReplySection');
+                if (reviewData.designer_reply) {
+                    replySection.classList.remove('hidden');
+                    document.getElementById('modalDesignerReply').innerText = reviewData.designer_reply;
+                } else {
+                    replySection.classList.add('hidden');
+                }
+            } else {
+                reviewSection.classList.add('hidden');
+            }
 
             const staticImg = document.getElementById('modalStaticImage');
             const viewer360 = document.getElementById('modal360Viewer');

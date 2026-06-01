@@ -13,6 +13,7 @@ class ConsultationQuote extends Model
         'status',
         'items',
         'revision_notes',
+        'design_image',
     ];
 
     public function consultation()
