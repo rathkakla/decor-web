@@ -30,7 +30,7 @@
         <div class="text-primary font-bold text-xl tracking-widest uppercase">DECOR</div>
        
         <div class="text-sm font-semibold text-gray-600">
-            <a href="" class="hover:text-primary transition">Sign In</a>
+            <a href="" class="hover:text-primary transition"></a>
         </div>
     </header>
 

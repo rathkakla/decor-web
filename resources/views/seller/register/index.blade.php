@@ -77,18 +77,23 @@
                     </div>
                 @endif
 
-                <form action="{{ route('register') }}" method="POST" class="space-y-12">
+                <form action="{{ route('register') }}" method="POST" class="space-y-12" novalidate>
                     @csrf
                     
                     <div id="section-1" class="space-y-8">
->
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">01 — Identity</span>
                         <div class="grid gap-6">
                             <div class="grid grid-cols-2 gap-6">
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Username</label><input type="text" name="username" value="{{ old('username') }}" placeholder="atelier_luxe" required class="input-underline text-sm font-bold"></div>
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Store Name</label><input type="text" name="store_name" value="{{ old('store_name') }}" placeholder="Atelier de Luxe" required class="input-underline text-sm font-bold"></div>
                             </div>
-                            <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Business Email</label><input type="email" name="email" value="{{ old('email') }}" placeholder="curate@studio.com" required class="input-underline text-sm font-bold"></div>
+                            <div class="flex flex-col">
+                                <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Business Email</label>
+                                <input type="email" name="email" value="{{ old('email') }}" placeholder="curate@studio.com" required class="input-underline text-sm font-bold @error('email') !border-red-500 text-red-500 @enderror">
+                                @error('email')
+                                    <span class="text-red-500 text-[10px] font-bold mt-1 tracking-wide">{{ $message }}</span>
+                                @enderror
+                            </div>
                             <div class="grid grid-cols-2 gap-6">
                                 <div class="flex flex-col relative">
                                     <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Password</label>

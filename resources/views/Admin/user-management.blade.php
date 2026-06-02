@@ -60,6 +60,18 @@ $stats_view = [
         <div class="text-xs text-gray-500 mt-1">Kelola akun pengguna, role, dan status di seluruh platform.</div>
     </div>
 
+    @if(session('success'))
+    <div class="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
+        <i data-feather="check-circle" class="w-5 h-5 text-green-500"></i>
+        <div class="flex-1">
+            <p class="text-sm font-bold">{{ session('success') }}</p>
+        </div>
+        <button onclick="this.parentElement.style.display='none'" class="text-green-500 hover:text-green-700 transition-colors focus:outline-none">
+            <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         @foreach ($stats_view as $s)
         <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">

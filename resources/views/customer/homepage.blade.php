@@ -133,25 +133,40 @@ foreach ($cats as $c) {
         </section>
 
         <section class="content-container px-6 mb-24">
-            <h2 class="text-2xl font-bold mb-1">Curated Arrivals</h2>
+            <h2 class="text-2xl font-bold mb-1">New Arrivals</h2>
             <p class="text-gray-400 text-xs mb-10 tracking-wide">Freshly sourced pieces for the discerning collector.
             </p>
+            @php
+                if (!isset($newProducts)) {
+                    $newProducts = \App\Models\Product::with('images')
+                        ->where('status', 'approved')
+                        ->latest()
+                        ->take(3)
+                        ->get();
+                }
+            @endphp
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-                <div class="group cursor-pointer">
+                @foreach($newProducts as $product)
+                <div onclick="window.location='{{ route('customer.product-detail', $product->id) }}'" class="group cursor-pointer">
                     <div class="bg-gray-100 aspect-[4/5] rounded-2xl overflow-hidden mb-5">
-                        <img src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&q=80&w=600"
-                            class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                        @if($product->images && $product->images->count() > 0)
+                            <img src="{{ asset('storage/' . $product->images->first()->image_path) }}"
+                                class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="{{ $product->name }}">
+                        @else
+                            <img src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&q=80&w=600"
+                                class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="{{ $product->name }}">
+                        @endif
                     </div>
                     <div class="flex justify-between items-center px-1">
                         <div>
-                            <h4 class="font-bold text-gray-900 group-hover:text-primary transition-colors">Terraform
-                                Vase</h4>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">Ceramic •
-                                Limited</p>
+                            <h4 class="font-bold text-gray-900 group-hover:text-primary transition-colors">{{ $product->name }}</h4>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-0.5">{{ $product->material ?? 'Ceramic' }} •
+                                {{ $product->style ?? 'Limited' }}</p>
                         </div>
-                        <span class="font-bold text-sm bg-secondary/40 px-3 py-1 rounded-full">$180</span>
+                        <span class="font-bold text-sm bg-secondary/40 px-3 py-1 rounded-full">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
                     </div>
                 </div>
+                @endforeach
             </div>
         </section>
     </main>
