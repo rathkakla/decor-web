@@ -427,6 +427,18 @@ class SellerController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhere('return_code', 'like', "%{$search}%")
+                  ->orWhereHas('customer.user', function($qUser) use ($search) {
+                      $qUser->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('username', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         $orders = $query->get();
         $currentStatus = $request->query('status', 'all');
 

@@ -37,10 +37,18 @@
                 <h2 class="text-3xl font-bold tracking-tight text-gray-800">Daftar Pesanan</h2>
                 <p class="text-xs text-gray-400 mt-1 font-medium italic">Manage and track your customer orders with precision.</p>
             </div>
-            <div class="relative w-1/3">
+            <form action="{{ route('seller.orders') }}" method="GET" class="relative w-1/3">
+                @if($currentStatus !== 'all')
+                    <input type="hidden" name="status" value="{{ $currentStatus }}">
+                @endif
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
-                <input type="text" placeholder="Search orders..." class="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:border-primary outline-none transition-all">
-            </div>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search orders..." class="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:border-primary outline-none transition-all">
+                @if(request('search'))
+                    <a href="{{ route('seller.orders', ['status' => $currentStatus]) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </a>
+                @endif
+            </form>
         </div>
 
         <!-- NAVIGASI FILTER -->
