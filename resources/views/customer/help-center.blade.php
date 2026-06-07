@@ -70,49 +70,82 @@
                     <p class="text-sm text-gray-400">Silakan isi formulir di bawah ini, tim kurasi kami akan merespon dalam 1x24 jam.</p>
                 </div>
 
-                <form class="space-y-6">
+                @if(session('success'))
+                    <div class="mb-6 bg-green-50 text-green-700 border border-green-200 p-4 rounded-xl text-sm font-bold text-center">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                <form action="{{ route('customer.support.submit') }}" method="POST" class="space-y-6">
+                    @csrf
+                    @auth
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Nama Lengkap</label>
-                            <input type="text" placeholder="Keisya Azahra" class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm">
+                            <input type="text" value="{{ Auth::user()->full_name }}" readonly class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-gray-500 cursor-not-allowed text-sm">
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Email Aktif</label>
-                            <input type="email" placeholder="example@mail.com" class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm">
+                            <input type="email" value="{{ Auth::user()->email }}" readonly class="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none text-gray-500 cursor-not-allowed text-sm">
                         </div>
                     </div>
+                    @else
+                    <div class="bg-amber-50 text-amber-700 border border-amber-200 p-4 rounded-xl text-sm text-center mb-6">
+                        Silakan <a href="{{ route('login') }}" class="font-bold underline hover:text-amber-800">Login</a> terlebih dahulu untuk mengirim pesan bantuan.
+                    </div>
+                    @endauth
 
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Subjek Masalah</label>
-                        <select class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm appearance-none">
-                            <option>Keluhan Pembayaran</option>
-                            <option>Kendala Fitur AI</option>
-                            <option>Pertanyaan Kemitraan</option>
-                            <option>Masalah Teknis Lainnya</option>
+                        <select name="subject" required class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm appearance-none @error('subject') border-red-500 @enderror">
+                            <option value="Keluhan Pembayaran">Keluhan Pembayaran</option>
+                            <option value="Masalah Pesanan">Masalah Pesanan</option>
+                            <option value="Kendala Fitur Konsultasi & AI">Kendala Fitur Konsultasi & AI</option>
+                            <option value="Masalah Teknis Lainnya">Masalah Teknis Lainnya</option>
                         </select>
+                        @error('subject') <span class="text-xs text-red-500 ml-2">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Detail Pesan</label>
-                        <textarea rows="5" placeholder="Ceritakan kendala Anda secara detail..." class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm resize-none"></textarea>
+                        <textarea name="message" rows="5" required placeholder="Ceritakan kendala Anda secara detail..." class="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:border-primary transition-all text-sm resize-none @error('message') border-red-500 @enderror">{{ old('message') }}</textarea>
+                        @error('message') <span class="text-xs text-red-500 ml-2">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Lampiran File (Opsional)</label>
-                        <div class="relative group">
-                            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div class="w-full bg-white border border-dashed border-gray-200 p-6 rounded-2xl flex flex-col items-center justify-center group-hover:border-primary transition-all">
-                                <i class="fa-solid fa-cloud-arrow-up text-gray-300 text-2xl mb-2 group-hover:text-primary transition-all"></i>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-primary transition-all">Klik untuk upload foto atau dokumen</p>
-                                <p class="text-[9px] text-gray-300 mt-1">PNG, JPG, PDF (Max 5MB)</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full bg-primary text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all">
+                    <button type="submit" @guest disabled @endguest class="w-full {{ auth()->check() ? 'bg-primary hover:scale-[1.01] active:scale-[0.99] shadow-xl shadow-primary/20' : 'bg-gray-300 cursor-not-allowed' }} text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all">
                         Kirim Pesan Sekarang
                     </button>
                 </form>
+
+                @auth
+                @if(isset($supports) && $supports->count() > 0)
+                <div class="mt-16 pt-12 border-t border-gray-200">
+                    <h3 class="text-2xl font-bold italic mb-8 text-gray-900 text-center">Riwayat Bantuan Anda</h3>
+                    <div class="space-y-4">
+                        @foreach($supports as $support)
+                        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:border-primary transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full {{ $support->status == 'resolved' ? 'bg-green-50 text-green-600' : ($support->status == 'replied' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600') }}">
+                                        {{ $support->status }}
+                                    </span>
+                                    <p class="text-[10px] text-gray-400 mt-2 font-medium">{{ $support->created_at->format('d M Y, H:i') }}</p>
+                                </div>
+                                <h4 class="font-bold text-sm text-gray-900 text-right max-w-[50%]">{{ $support->subject }}</h4>
+                            </div>
+                            <p class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">{{ $support->message }}</p>
+                            
+                            @if($support->admin_reply)
+                            <div class="mt-4 pl-4 border-l-2 border-primary">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Balasan Admin:</p>
+                                <p class="text-xs text-gray-700 leading-relaxed">{{ $support->admin_reply }}</p>
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+                @endauth
 
                 <div class="mt-12 flex flex-col md:flex-row items-center justify-center gap-8 border-t border-gray-200 pt-10">
                     <div class="text-center">

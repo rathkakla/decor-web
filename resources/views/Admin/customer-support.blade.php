@@ -89,15 +89,19 @@ $menu_items = [
     </div>
 
     <div class="flex items-center gap-4 mb-6">
-        <div class="flex-1 relative">
+        <form action="{{ route('admin.customer-support') }}" method="GET" class="flex-1 relative">
+            @if(request('status'))
+                <input type="hidden" name="status" value="{{ request('status') }}">
+            @endif
             <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            <input type="text" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari tiket, customer, atau subjek…">
-        </div>
+            <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari tiket, customer, atau subjek…">
+            <button type="submit" class="hidden"></button>
+        </form>
         <div class="flex gap-1 bg-white border border-gray-100 shadow-sm rounded-xl p-1">
-            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors bg-orange-50 text-primary">Semua</button>
-            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Open</button>
-            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Diproses</button>
-            <button class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors text-gray-500 hover:bg-gray-50">Selesai</button>
+            <a href="{{ route('admin.customer-support', ['status' => 'semua']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'semua' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Semua</a>
+            <a href="{{ route('admin.customer-support', ['status' => 'pending']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'pending' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Open</a>
+            <a href="{{ route('admin.customer-support', ['status' => 'replied']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'replied' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Diproses</a>
+            <a href="{{ route('admin.customer-support', ['status' => 'resolved']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'resolved' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Selesai</a>
         </div>
     </div>
 

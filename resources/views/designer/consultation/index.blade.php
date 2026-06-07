@@ -55,6 +55,10 @@
             @php
                 $tab = request('tab', 'needs_action');
                 
+                $needsActionCount = $consultations->whereIn('status', [0, 3, 5])->count();
+                $onProgressCount = $consultations->whereIn('status', [1, 2, 7, 8, 9])->count();
+                $completedCount = $consultations->where('status', 4)->count();
+
                 $filteredConsultations = $consultations->filter(function($item) use ($tab) {
                     if ($tab == 'needs_action') return in_array($item->status, [0, 3, 5]);
                     if ($tab == 'on_progress') return in_array($item->status, [1, 2, 7, 8, 9]);
@@ -65,16 +69,25 @@
 
             <div class="flex items-center space-x-4 border-b border-gray-100 pb-4">
                 <a href="{{ route('designer.consultations.index', ['tab' => 'needs_action']) }}" 
-                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'needs_action' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'needs_action' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     Needs Action
+                    @if($needsActionCount > 0)
+                        <span class="{{ $tab == 'needs_action' ? 'bg-white text-primary' : 'bg-primary text-white' }} px-2 py-0.5 rounded-full text-[9px]">{{ $needsActionCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('designer.consultations.index', ['tab' => 'on_progress']) }}" 
-                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'on_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'on_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     On-Progress
+                    @if($onProgressCount > 0)
+                        <span class="{{ $tab == 'on_progress' ? 'bg-white text-primary' : 'bg-primary text-white' }} px-2 py-0.5 rounded-full text-[9px]">{{ $onProgressCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('designer.consultations.index', ['tab' => 'completed']) }}" 
-                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all {{ $tab == 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
+                   class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     Completed
+                    @if($completedCount > 0)
+                        <span class="{{ $tab == 'completed' ? 'bg-white text-primary' : 'bg-primary text-white' }} px-2 py-0.5 rounded-full text-[9px]">{{ $completedCount }}</span>
+                    @endif
                 </a>
             </div>
 

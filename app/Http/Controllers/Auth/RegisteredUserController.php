@@ -61,7 +61,11 @@ class RegisteredUserController extends Controller
             $rules['account_number'] = ['nullable', 'string', 'max:50'];
         }
 
-        $request->validate($rules);
+        $messages = [
+            'email.email' => 'Format email tidak valid. Pastikan menggunakan format yang benar (contoh: nama@domain.com).'
+        ];
+
+        $request->validate($rules, $messages);
 
         // 1. Simpan ke tabel USERS
         $user = User::create([

@@ -12,7 +12,20 @@
             <i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio
         </a>
         <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.consultations.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-            <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i> Konsultasi
+            <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i> 
+            <span class="flex-1">Konsultasi</span>
+            @php
+                $sidebarDesigner = \App\Models\Designer::where('user_id', Auth::id())->first();
+                $sidebarConsultationNotif = 0;
+                if ($sidebarDesigner) {
+                    $sidebarConsultationNotif = \App\Models\Consultation::where('designer_id', $sidebarDesigner->id)
+                        ->whereIn('status', [0, 3, 5]) // Needs action statuses
+                        ->count();
+                }
+            @endphp
+            @if($sidebarConsultationNotif > 0)
+                <span class="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ $sidebarConsultationNotif }}</span>
+            @endif
         </a>
         <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
             <i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i> Chat

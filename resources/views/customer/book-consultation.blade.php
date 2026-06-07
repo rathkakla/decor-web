@@ -42,40 +42,40 @@
     @include('customer.partials.navbar')
 
     <main class="flex-grow flex items-center justify-center py-20 px-6">
-        <div class="max-w-2xl w-full bg-white border border-gray-100 rounded-[3rem] p-16 shadow-[0_30px_100px_rgba(0,0,0,0.05)] text-center">
-            <div class="mb-12">
-                <span class="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-4 block italic">Phase 1: Request Approval</span>
-                <h1 class="text-5xl font-black tracking-tighter mb-4 italic">Start Your Project</h1>
-                <p class="text-gray-400 text-sm italic">Kirim permintaan konsultasi ke desainer. Setelah disetujui, Anda dapat melanjutkan ke pembayaran consultation fee.</p>
+        <div class="max-w-xl w-full bg-white border border-gray-100 rounded-2xl p-10 shadow-sm text-left">
+            <div class="mb-8 text-center">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-[#B5733A] mb-2 block">REQUEST PROPOSAL</span>
+                <h1 class="text-3xl font-bold tracking-tight mb-2 text-gray-900">Form Pengajuan Konsultasi</h1>
+                <p class="text-gray-500 text-sm">Isi formulir berikut untuk mengirimkan request kepada desainer.</p>
             </div>
 
-            <form action="{{ route('customer.designers.book.store', $designer->id) }}" method="POST" enctype="multipart/form-data" class="space-y-10 text-left">
+            <form action="{{ route('customer.designers.book.store', $designer->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
-                <div class="space-y-4">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4 italic">Nama Proyek</label>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Nama Proyek</label>
                     <input type="text" name="title" required placeholder="Contoh: Renovasi Ruang Tamu Minimalis" 
-                           class="w-full bg-gray-50 border-none rounded-3xl px-8 py-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all">
+                           class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#B5733A] transition-colors">
                 </div>
 
-                <div class="space-y-4">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4 italic">Jenis Konsultasi</label>
-                    <select id="consultation-type" name="consultation_type" required class="w-full bg-gray-50 border-none rounded-3xl px-8 py-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Jenis Konsultasi</label>
+                    <select id="consultation-type" name="consultation_type" required class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#B5733A] transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:20px_20px] bg-no-repeat bg-[position:right_1rem_center]">
                         <option value="" disabled selected>Pilih Jenis Konsultasi</option>
                         <option value="chat_consultation">Chat Consultation (Rp 50.000)</option>
                         <option value="request_proposal">Request Proposal (Rp 250.000)</option>
                     </select>
                 </div>
 
-                <div class="space-y-4" id="brief-container" style="display: none;">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4 italic">Project Brief</label>
-                    <textarea name="description" rows="3" placeholder="Deskripsikan detail ruangan, preferensi warna, dan gaya desain yang Anda inginkan." 
-                              class="w-full bg-gray-50 border-none rounded-3xl px-8 py-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"></textarea>
+                <div id="brief-container" style="display: none;">
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Deskripsi Brief</label>
+                    <textarea name="description" rows="4" placeholder="Tuliskan ukuran ruangan, nuansa warna, dan perabot yang Anda inginkan..." 
+                              class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#B5733A] transition-colors"></textarea>
                 </div>
 
-                <div class="space-y-4" id="budget-container" style="display: none;">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4 italic">Estimasi Budget</label>
-                    <select id="budget-select" name="budget_range" class="w-full bg-gray-50 border-none rounded-3xl px-8 py-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none">
-                        <option value="" disabled selected>Pilih Estimasi Budget</option>
+                <div id="budget-container" style="display: none;">
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Estimasi Budget Renovasi</label>
+                    <select id="budget-select" name="budget_range" class="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-[#B5733A] transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:20px_20px] bg-no-repeat bg-[position:right_1rem_center]">
+                        <option value="" disabled selected>Pilih Budget</option>
                         <option value="Rp 5jt - 10jt">Rp 5jt - 10jt</option>
                         <option value="Rp 10jt - 50jt">Rp 10jt - 50jt</option>
                         <option value="Rp 50jt - 100jt">Rp 50jt - 100jt</option>
@@ -84,22 +84,18 @@
                 </div>
 
                 <!-- Terms & Conditions Section (Dynamic) -->
-                <div id="terms-section" class="space-y-4" style="display: none;">
-                    <div class="flex items-start space-x-3 p-5 bg-gray-50 rounded-3xl border border-gray-100/50">
-                        <input type="checkbox" id="terms-checkbox" disabled class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-not-allowed">
-                        <label for="terms-checkbox" class="text-[10px] text-gray-400 leading-relaxed uppercase font-bold tracking-wider">
-                            Saya menyetujui <button type="button" onclick="openTerms()" class="text-primary underline font-black">Syarat & Ketentuan Booking Konsultasi</button> yang berlaku.
+                <div id="terms-section" style="display: none;">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="terms-checkbox" disabled class="w-4 h-4 text-[#B5733A] border-gray-300 rounded focus:ring-[#B5733A] cursor-not-allowed">
+                        <label for="terms-checkbox" class="text-sm text-gray-500">
+                            Saya menyetujui <button type="button" onclick="openTerms()" class="text-[#B5733A] hover:underline font-medium">Syarat & Ketentuan Konsultasi</button>.
                         </label>
                     </div>
                 </div>
 
-                <button type="submit" id="submit-btn" class="w-full bg-primary text-white py-6 rounded-3xl text-[11px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    Kirim Request Konsultasi
+                <button type="submit" id="submit-btn" class="w-full bg-[#B5733A] text-white py-3.5 rounded-lg text-sm font-bold shadow-sm hover:bg-[#9a6130] transition-colors mt-2">
+                    Kirim Permintaan Konsultasi
                 </button>
-
-                <p class="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest italic mt-8">
-                    <i class="fa-solid fa-shield-halved mr-2"></i> Aman & Terpercaya di DECOR
-                </p>
             </form>
         </div>
     </main>

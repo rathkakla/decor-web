@@ -90,8 +90,11 @@
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price (IDR)</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">Rp</span>
-                                    <input type="number" name="price" required placeholder="0" class="w-full bg-gray-50 rounded-lg p-3 pl-10 text-sm border-transparent border-2">
+                                    <input type="number" name="price" required min="0" placeholder="0" class="w-full bg-gray-50 rounded-lg p-3 pl-10 text-sm border-2 @error('price') border-red-500 @else border-transparent @enderror">
                                 </div>
+                                @error('price')
+                                    <p class="text-red-500 text-xs font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="space-y-2">

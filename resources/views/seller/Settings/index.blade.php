@@ -55,6 +55,20 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                
+                @if($errors->any())
+                    <div class="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl text-xs font-bold flex flex-col justify-center">
+                        <div class="flex items-center mb-2">
+                            <i class="fa-solid fa-circle-exclamation mr-3"></i>
+                            <span>Terdapat beberapa kesalahan:</span>
+                        </div>
+                        <ul class="list-disc list-inside ml-6">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div>
                     <h2 class="text-3xl font-extrabold tracking-tight text-gray-800">Pengaturan Toko</h2>

@@ -72,32 +72,35 @@
                 @endphp
 
                 <!-- CARD TRACKING KONSULTASI -->
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] mb-8 overflow-hidden">
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] mb-8 p-8">
                     
                     <!-- Header Card -->
-                    <div class="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                         <div>
-                            <span class="text-[10px] font-black text-primary uppercase tracking-widest">{{ \App\Models\Consultation::getStatusLabel($status) }}</span>
-                            <h2 class="text-xl font-bold text-gray-900 mt-1">Konsultasi #{{ $activeConsultation->id }}</h2>
-                            <p class="text-xs text-gray-500 mt-1 font-medium">
-                                Designer: <span class="font-bold text-gray-900">{{ $activeConsultation->designer->user->full_name }}</span>
+                            <span class="inline-block px-3 py-1 bg-[#FDF8F4] text-[#B5733A] text-[10px] font-black uppercase tracking-widest rounded mb-3">{{ \App\Models\Consultation::getStatusLabel($status) }}</span>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ $activeConsultation->title }}</h2>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Desainer: <span class="text-gray-900 font-medium">{{ $activeConsultation->designer->user->full_name }}</span>
                             </p>
+                            @if($activeConsultation->description)
+                                <p class="text-xs text-gray-500 mt-2 line-clamp-2 max-w-2xl">{{ $activeConsultation->description }}</p>
+                            @endif
                         </div>
-                        <div class="flex gap-3 flex-wrap">
+                        <div class="flex gap-3 flex-wrap shrink-0">
                             <a href="{{ route('customer.chat', $activeConsultation->id) }}" 
-                               class="px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide transition-colors shadow-sm inline-flex items-center {{ $canChat ? 'bg-[#1a1a1a] text-white hover:bg-black' : 'bg-gray-100 text-gray-400 cursor-not-allowed' }}"
+                               class="px-6 py-3 rounded-xl text-sm font-bold tracking-wide transition-colors inline-flex items-center {{ $canChat ? 'bg-[#B5733A] text-white hover:bg-[#9a6130]' : 'bg-gray-50 border border-gray-100 text-gray-400 cursor-not-allowed' }}"
                                @if(!$canChat) onclick="event.preventDefault(); alert('Chat belum tersedia di tahap ini.');" @endif>
-                                <i class="fa-solid fa-comment-dots mr-2"></i> Chat Designer
+                                Buka Obrolan
                             </a>
                             @if($isCompleted)
                                 @if($existingReview)
-                                    <div class="px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide bg-green-50 text-green-700 border border-green-200 inline-flex items-center gap-2">
-                                        <i class="fa-solid fa-star text-amber-400"></i>
+                                    <div class="px-5 py-3 rounded-xl text-sm font-bold tracking-wide bg-gray-50 text-gray-600 border border-gray-200 inline-flex items-center gap-2">
+                                        <i class="fa-solid fa-star text-[#B5733A]"></i>
                                         <span>Sudah Diulas ({{ $existingReview->rating }}/5)</span>
                                     </div>
                                 @else
                                     <button onclick="document.getElementById('review-modal-{{ $activeConsultation->id }}').classList.remove('hidden')" 
-                                            class="px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide bg-amber-500 hover:bg-amber-600 text-white transition-colors shadow-sm inline-flex items-center gap-2">
+                                            class="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-[#B5733A] text-[#B5733A] hover:bg-[#B5733A] hover:text-white transition-colors inline-flex items-center gap-2">
                                         <i class="fa-solid fa-star"></i> Beri Ulasan
                                     </button>
                                 @endif
@@ -105,183 +108,244 @@
                         </div>
                     </div>
 
-                    <!-- Body Card (2 Kolom) -->
-                    <div class="p-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    @php
+                        // Determine 6 steps based on current status for timeline UI
+                        $st = $activeConsultation->status;
+                        $stepActive = 1;
+                        if ($st == \App\Models\Consultation::STATUS_COMPLETED) $stepActive = 6;
+                        elseif ($st == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT) $stepActive = 5;
+                        elseif (in_array($st, [\App\Models\Consultation::STATUS_OFFER_RECEIVED, \App\Models\Consultation::STATUS_UNDER_REVIEW, \App\Models\Consultation::STATUS_REVISION_REQUESTED])) $stepActive = 4;
+                        elseif ($st == \App\Models\Consultation::STATUS_ACTIVE) $stepActive = 3;
+                        elseif ($st == \App\Models\Consultation::STATUS_WAITING_BRIEF) $stepActive = 2;
                         
-                        <!-- Kolom Kiri: Tracking Timeline -->
-                        <div class="lg:col-span-4">
-                            <h3 class="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-8">Consultation Status</h3>
-                            
-                            <div class="relative pl-3 space-y-8">
-                                <div class="absolute left-[17px] top-2 bottom-2 w-[2px] {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }}"></div>
+                        $getProgressWidth = function($active) {
+                            if($active == 1) return '0%';
+                            if($active == 2) return '20%';
+                            if($active == 3) return '40%';
+                            if($active == 4) return '60%';
+                            if($active == 5) return '80%';
+                            return '100%';
+                        };
+                    @endphp
 
-                                <!-- Step 1: Setup -->
-                                <div class="relative flex items-start gap-5">
-                                    <div class="z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center ring-[6px] ring-white">
-                                        <i class="fa-solid fa-check text-[9px] text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-sm text-gray-900">Setup</h4>
-                                        <p class="text-xs text-gray-400 mt-0.5">Permintaan dibuat</p>
-                                    </div>
+                    <!-- Horizontal Timeline -->
+                    <div class="border border-gray-100 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
+                        <!-- Line backgrounds -->
+                        <div class="hidden md:block absolute left-[8%] right-[8%] top-[3.25rem] h-[2px] bg-gray-200 z-0"></div>
+                        <div class="hidden md:block absolute left-[8%] top-[3.25rem] h-[2px] bg-[#B5733A] z-0 transition-all duration-500" style="width: {{ $getProgressWidth($stepActive) }};"></div>
+                        
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-8 md:gap-0">
+                            <!-- Step 1: Setup -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 1 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive > 1 ? 'bg-[#B5733A] text-white' : ($stepActive == 1 ? 'bg-white border-2 border-[#B5733A] text-[#B5733A]' : 'bg-white text-gray-300 border-2 border-gray-200') }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive > 1)
+                                        <i class="fa-solid fa-check text-sm"></i>
+                                    @else
+                                        <span class="text-sm font-bold">1</span>
+                                    @endif
                                 </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 1 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Setup</h4>
+                                <p class="text-[11px] {{ $stepActive == 1 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive > 1 ? 'Selesai' : ($stepActive == 1 ? 'Aktif' : 'Menunggu') }}</p>
+                            </div>
 
-                                <!-- Step 2: Active -->
-                                <div class="relative flex items-start gap-5 {{ !$isActive ? 'opacity-40' : '' }}">
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isActive ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
-                                        <i class="fa-solid fa-check text-[9px] {{ $isActive ? 'text-white' : 'text-transparent' }}"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-sm text-gray-900">Active</h4>
-                                        <p class="text-xs text-gray-400 mt-0.5">Sedang berjalan</p>
-                                    </div>
+                            <!-- Step 2: Briefing -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 2 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive > 2 ? 'bg-[#B5733A] text-white' : ($stepActive == 2 ? 'bg-white border-2 border-[#B5733A] text-[#B5733A]' : 'bg-white text-gray-300 border-2 border-gray-200') }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive > 2)
+                                        <i class="fa-solid fa-check text-sm"></i>
+                                    @else
+                                        <span class="text-sm font-bold">2</span>
+                                    @endif
                                 </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 2 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Briefing</h4>
+                                <p class="text-[11px] {{ $stepActive == 2 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive > 2 ? 'Selesai' : ($stepActive == 2 ? 'Aktif' : 'Menunggu') }}</p>
+                            </div>
 
-                                <!-- Step 3: Review -->
-                                <div class="relative flex items-start gap-5 {{ !$isReview ? 'opacity-40' : '' }}">
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isReview ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
-                                        <i class="fa-solid fa-check text-[9px] {{ $isReview ? 'text-white' : 'text-transparent' }}"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-sm text-gray-900">Review</h4>
-                                        <p class="text-xs text-gray-400 mt-0.5">Penawaran RAB & Review</p>
-                                    </div>
+                            <!-- Step 3: Drafting -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 3 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive > 3 ? 'bg-[#B5733A] text-white' : ($stepActive == 3 ? 'bg-white border-2 border-[#B5733A] text-[#B5733A]' : 'bg-white text-gray-300 border-2 border-gray-200') }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive > 3)
+                                        <i class="fa-solid fa-check text-sm"></i>
+                                    @else
+                                        <span class="text-sm font-bold">3</span>
+                                    @endif
                                 </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 3 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Drafting</h4>
+                                <p class="text-[11px] {{ $stepActive == 3 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive > 3 ? 'Selesai' : ($stepActive == 3 ? 'Aktif' : 'Menunggu') }}</p>
+                            </div>
 
-                                <!-- Step 4: Done -->
-                                <div class="relative flex items-start gap-5 {{ !$isCompleted ? 'opacity-40' : '' }}">
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }} flex items-center justify-center ring-[6px] ring-white">
-                                        <i class="fa-solid fa-check text-[9px] {{ $isCompleted ? 'text-white' : 'text-transparent' }}"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-sm text-gray-900">Done</h4>
-                                        <p class="text-xs text-gray-400 mt-0.5">Proyek Selesai</p>
-                                    </div>
+                            <!-- Step 4: Review RAB -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 4 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive > 4 ? 'bg-[#B5733A] text-white' : ($stepActive == 4 ? 'bg-white border-2 border-[#B5733A] text-[#B5733A]' : 'bg-white text-gray-300 border-2 border-gray-200') }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive > 4)
+                                        <i class="fa-solid fa-check text-sm"></i>
+                                    @else
+                                        <span class="text-sm font-bold">4</span>
+                                    @endif
                                 </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 4 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Review RAB</h4>
+                                <p class="text-[11px] {{ $stepActive == 4 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive > 4 ? 'Selesai' : ($stepActive == 4 ? 'Aktif' : 'Menunggu') }}</p>
+                            </div>
+
+                            <!-- Step 5: Pembayaran Akhir -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 5 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive > 5 ? 'bg-[#B5733A] text-white' : ($stepActive == 5 ? 'bg-white border-2 border-[#B5733A] text-[#B5733A]' : 'bg-white text-gray-300 border-2 border-gray-200') }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive > 5)
+                                        <i class="fa-solid fa-check text-sm"></i>
+                                    @else
+                                        <span class="text-sm font-bold">5</span>
+                                    @endif
+                                </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 5 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Pembayaran Akhir</h4>
+                                <p class="text-[11px] {{ $stepActive == 5 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive > 5 ? 'Selesai' : ($stepActive == 5 ? 'Aktif' : 'Menunggu') }}</p>
+                            </div>
+
+                            <!-- Step 6: Selesai -->
+                            <div class="flex flex-col items-center bg-white px-2 w-full md:w-auto {{ $stepActive < 6 ? 'opacity-40' : '' }}">
+                                <div class="w-12 h-12 rounded-full {{ $stepActive == 6 ? 'bg-[#B5733A] text-white' : 'bg-white text-gray-300 border-2 border-gray-200' }} flex items-center justify-center ring-[10px] ring-white transition-colors">
+                                    @if($stepActive == 6)
+                                        <i class="fa-solid fa-check text-sm text-white"></i>
+                                    @else
+                                        <span class="text-sm font-bold">6</span>
+                                    @endif
+                                </div>
+                                <h4 class="font-bold text-sm {{ $stepActive == 6 ? 'text-[#B5733A]' : 'text-gray-900' }} mt-4">Selesai</h4>
+                                <p class="text-[11px] {{ $stepActive == 6 ? 'text-[#B5733A]' : 'text-gray-400' }} mt-1 text-center">{{ $stepActive == 6 ? 'Selesai' : 'Menunggu' }}</p>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Kolom Kanan: Actions & Summary -->
-                        <div class="lg:col-span-8">
-                            <h3 class="text-[10px] font-black text-gray-400 tracking-widest uppercase mb-6">Action & Details</h3>
-                            
-                            <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                                <h4 class="font-bold text-sm text-gray-900">{{ $activeConsultation->title }}</h4>
-                                <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ $activeConsultation->description ?? 'No brief description provided.' }}</p>
-                            </div>
-
-                            <!-- ACTIONS BERDASARKAN STATUS -->
-                            @if($status == \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE)
-                                @if($activeConsultation->payment_proof)
-                                    <div class="bg-amber-50 text-amber-700 px-6 py-4 rounded-xl border border-amber-200 flex items-center gap-3">
-                                        <i class="fa-solid fa-clock animate-pulse"></i>
-                                        <span class="text-[10px] font-black uppercase tracking-widest">Bukti Pembayaran Fee Dikirim. Menunggu Verifikasi.</span>
-                                    </div>
-                                @else
-                                    <form action="{{ route('customer.consultation.pay-fee', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="bg-white border border-primary/20 p-6 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                                        @csrf
-                                        <div>
-                                            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Upload Bukti Transfer Fee</span>
-                                            <span class="font-bold text-primary">Rp {{ number_format($activeConsultation->consultation_fee, 0, ',', '.') }}</span>
-                                        </div>
-                                        <input type="file" name="payment_proof" accept="image/*" required class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-primary/10 file:text-primary cursor-pointer">
-                                        <button type="submit" class="bg-primary text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Kirim Bukti</button>
-                                    </form>
-                                @endif
-                            @endif
-
-                            @if($status == \App\Models\Consultation::STATUS_WAITING_APPROVAL)
-                                <div class="bg-orange-50 text-orange-600 px-6 py-4 rounded-xl border border-orange-100 flex items-center gap-3">
-                                    <i class="fa-solid fa-hourglass-half animate-pulse"></i>
-                                    <span class="text-[10px] font-black uppercase tracking-widest">Menunggu Approval Desainer</span>
+                    <!-- Bottom Actions Area -->
+                    <div class="border border-gray-100 rounded-2xl p-6 md:p-8 bg-white">
+                        @if($status == \App\Models\Consultation::STATUS_WAITING_CONSULTATION_FEE)
+                            @if($activeConsultation->payment_proof)
+                                <div class="bg-gray-50 text-gray-700 px-6 py-4 rounded-xl border border-gray-200 flex items-center gap-3">
+                                    <i class="fa-solid fa-clock"></i>
+                                    <span class="text-sm font-bold tracking-wide">Bukti Pembayaran Fee Dikirim. Menunggu Verifikasi.</span>
                                 </div>
-                            @endif
-
-                            @if($status == \App\Models\Consultation::STATUS_WAITING_BRIEF)
-                                <form action="{{ route('customer.consultation.submit-brief', $activeConsultation->id) }}" method="POST" class="bg-white border border-gray-200 p-6 rounded-xl space-y-4">
+                            @else
+                                <form action="{{ route('customer.consultation.pay-fee', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="flex flex-col md:flex-row items-center justify-between gap-6">
                                     @csrf
                                     <div>
-                                        <label class="text-[10px] font-black text-gray-600 uppercase tracking-widest block mb-2">Isi Brief Proyek</label>
-                                        <textarea name="description" rows="3" placeholder="Detail ruangan, preferensi warna, ukuran..." required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary"></textarea>
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Total Fee</span>
+                                        <span class="text-2xl font-black text-[#B5733A]">Rp {{ number_format($activeConsultation->consultation_fee, 0, ',', '.') }}</span>
                                     </div>
-                                    <button type="submit" class="w-full bg-primary text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Submit Brief</button>
+                                    <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
+                                        <input type="file" name="payment_proof" accept="image/*" required class="text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-gray-100 file:text-gray-600 hover:file:bg-gray-200 cursor-pointer transition-colors w-full md:w-auto">
+                                        <button type="submit" class="w-full md:w-auto bg-[#B5733A] hover:bg-[#9a6130] transition-colors text-white px-8 py-3.5 rounded-xl text-sm font-bold tracking-wide">Kirim Bukti</button>
+                                    </div>
                                 </form>
                             @endif
+                        @endif
 
-                            @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW || $status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT)
-                                @php 
-                                    $quote = $activeConsultation->quotes->first(); 
-                                    $hasRequestedRevision = $activeConsultation->quotes->where('status', 'revision')->count() > 0;
-                                @endphp
-                                @if($quote && $quote->status !== 'revision')
-                                    <div class="bg-white border-2 border-primary/20 p-6 rounded-xl relative">
-                                        <div class="absolute -top-3 -right-3"><span class="text-[9px] font-black uppercase tracking-widest bg-primary text-white px-4 py-2 rounded-full shadow-lg animate-bounce">RAB Baru</span></div>
-                                        <h4 class="text-[11px] font-black uppercase tracking-widest text-primary mb-4">Project Agreement & RAB</h4>
-                                        
-                                        <div class="flex justify-between items-center mb-6 pb-6 border-b border-gray-100">
-                                            <div>
-                                                <h4 class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Total Design Fee</h4>
-                                                <h3 class="text-2xl font-black italic text-primary mt-1">Rp {{ number_format($quote->amount, 0, ',', '.') }}</h3>
-                                            </div>
-                                            <div class="flex gap-2 flex-wrap justify-end">
-                                                @if($quote->design_image)
-                                                    @php 
-                                                        $designImages = json_decode($quote->design_image, true);
-                                                        if (!is_array($designImages)) $designImages = [$quote->design_image];
-                                                        $designImages = array_filter($designImages);
-                                                    @endphp
-                                                    <a href="{{ route('consultation.download-designs.public', $quote->id) }}" class="flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-200">
-                                                        <i class="fa-solid fa-images"></i>
-                                                        <span class="text-[10px] font-black uppercase tracking-widest">
-                                                            Download Desain {{ count($designImages) > 1 ? '(' . count($designImages) . ' gambar)' : '' }}
-                                                        </span>
-                                                    </a>
-                                                @endif
-                                                @if($quote->items)
-                                                    <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-lg hover:bg-amber-100 shadow-sm border border-amber-200">
-                                                        <i class="fa-solid fa-file-arrow-down"></i>
-                                                        <span class="text-[10px] font-black uppercase tracking-widest">Download RAB</span>
-                                                    </a>
-                                                @endif
-                                            </div>
+                        @if($status == \App\Models\Consultation::STATUS_WAITING_APPROVAL)
+                            <div class="bg-gray-50 text-gray-600 px-6 py-4 rounded-xl border border-gray-200 flex items-center gap-3">
+                                <i class="fa-solid fa-hourglass-half"></i>
+                                <span class="text-sm font-bold tracking-wide">Menunggu Approval Desainer</span>
+                            </div>
+                        @endif
+
+                        @if($status == \App\Models\Consultation::STATUS_WAITING_BRIEF)
+                            <form action="{{ route('customer.consultation.submit-brief', $activeConsultation->id) }}" method="POST" class="space-y-4">
+                                @csrf
+                                <div>
+                                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Isi Brief Proyek</label>
+                                    <textarea name="description" rows="3" placeholder="Detail ruangan, preferensi warna, ukuran..." required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#B5733A] transition-colors"></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-[#B5733A] hover:bg-[#9a6130] transition-colors text-white py-3.5 rounded-xl text-sm font-bold tracking-wide">Submit Brief</button>
+                            </form>
+                        @endif
+
+                        @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW || $status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT || $status == \App\Models\Consultation::STATUS_COMPLETED || $status == \App\Models\Consultation::STATUS_REVISION_REQUESTED)
+                            @php 
+                                $quote = $activeConsultation->quotes->first(); 
+                                $hasRequestedRevision = $activeConsultation->quotes->where('status', 'revision')->count() > 0;
+                            @endphp
+                            @if($quote && $quote->status !== 'revision')
+                                <div class="flex flex-col gap-8 relative">
+                                    @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED)
+                                        <div class="absolute -top-12 -right-4"><span class="text-[9px] font-black uppercase tracking-widest bg-red-500 text-white px-3 py-1.5 rounded-full shadow-sm">Baru</span></div>
+                                    @endif
+                                    
+                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                        <div>
+                                            <h4 class="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">Total Anggaran Jasa</h4>
+                                            <h3 class="text-3xl font-black text-[#B5733A]">Rp {{ number_format($quote->amount, 0, ',', '.') }}</h3>
                                         </div>
+                                        <div class="flex gap-3 flex-wrap">
+                                            @if($quote->items)
+                                                @php
+                                                    $rabData = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items;
+                                                    $rabExt = 'xlsx';
+                                                    if (is_array($rabData) && !empty($rabData['file_name'])) {
+                                                        $rabExt = pathinfo($rabData['file_name'], PATHINFO_EXTENSION);
+                                                    } elseif (is_array($rabData) && !empty($rabData['file_path'])) {
+                                                        $rabExt = pathinfo($rabData['file_path'], PATHINFO_EXTENSION);
+                                                    }
+                                                @endphp
+                                                <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-white text-gray-700 px-5 py-2.5 rounded-xl hover:border-[#B5733A] hover:text-[#B5733A] transition-colors border border-gray-200 text-xs font-bold shadow-sm">
+                                                    <i class="fa-solid fa-upload text-green-600"></i>
+                                                    <span>RAB.{{ strtolower($rabExt ?: 'xlsx') }}</span>
+                                                </a>
+                                            @endif
+                                            @if($quote->design_image)
+                                                @php 
+                                                    $designImages = json_decode($quote->design_image, true);
+                                                    if (!is_array($designImages)) $designImages = [$quote->design_image];
+                                                    $designImages = array_filter($designImages);
+                                                @endphp
+                                                <a href="{{ route('consultation.download-designs.public', $quote->id) }}" class="flex items-center gap-2 bg-white text-gray-700 px-5 py-2.5 rounded-xl hover:border-[#B5733A] hover:text-[#B5733A] transition-colors border border-gray-200 text-xs font-bold shadow-sm">
+                                                    <i class="fa-solid fa-image text-blue-600"></i>
+                                                    <span>Desain</span>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
 
-                                        @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW)
-                                            <div class="flex gap-4">
-                                                <form action="{{ route('customer.consultation.accept-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
-                                                    @csrf
-                                                    <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md">Accept Project</button>
-                                                </form>
-                                                <button type="button" onclick="document.getElementById('rev-{{ $activeConsultation->id }}').classList.toggle('hidden')" class="flex-1 py-3 rounded-lg border border-gray-300 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50">Request Revision</button>
-                                            </div>
-                                            
-                                            <div id="rev-{{ $activeConsultation->id }}" class="hidden mt-4 bg-gray-50 p-4 rounded-xl">
-                                                <form action="{{ route('customer.consultation.request-revision', $activeConsultation->id) }}" method="POST">
-                                                    @csrf
-                                                    <textarea name="revision_notes" rows="2" required placeholder="Tulis catatan revisi..." class="w-full bg-white border border-gray-200 rounded-lg p-3 text-xs mb-3 outline-none"></textarea>
-                                                    <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded-lg text-[10px] font-black uppercase tracking-widest">Kirim Revisi</button>
-                                                </form>
+                                    @if($status == \App\Models\Consultation::STATUS_OFFER_RECEIVED || $status == \App\Models\Consultation::STATUS_UNDER_REVIEW)
+                                        <div class="flex flex-col md:flex-row gap-4">
+                                            <form action="{{ route('customer.consultation.accept-offer', $activeConsultation->id) }}" method="POST" class="flex-1">
+                                                @csrf
+                                                <button type="submit" class="w-full bg-[#B5733A] text-white py-4 rounded-xl text-sm font-bold transition-colors hover:bg-[#9a6130] shadow-sm">Setujui Proposal & Bayar</button>
+                                            </form>
+                                            <button type="button" onclick="document.getElementById('rev-{{ $activeConsultation->id }}').classList.toggle('hidden')" class="flex-1 py-4 rounded-xl border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">Minta Revisi</button>
+                                        </div>
+                                        
+                                        <div id="rev-{{ $activeConsultation->id }}" class="hidden mt-2 bg-gray-50 p-5 rounded-2xl border border-gray-200">
+                                            <form action="{{ route('customer.consultation.request-revision', $activeConsultation->id) }}" method="POST">
+                                                @csrf
+                                                <textarea name="revision_notes" rows="3" required placeholder="Tulis catatan revisi untuk desainer..." class="w-full bg-white border border-gray-200 rounded-xl p-4 text-sm mb-4 outline-none focus:border-[#B5733A] transition-colors"></textarea>
+                                                <button type="submit" class="w-full bg-[#B5733A] text-white hover:bg-[#9a6130] transition-colors py-3.5 rounded-xl text-sm font-bold">Kirim Revisi</button>
+                                            </form>
+                                        </div>
+                                    @elseif($status == \App\Models\Consultation::STATUS_WAITING_FINAL_PAYMENT)
+                                        @if($activeConsultation->payment_proof)
+                                            <div class="bg-gray-50 text-gray-600 px-6 py-4 rounded-xl border border-gray-200 text-center">
+                                                <span class="text-sm font-bold tracking-wide">Bukti Pembayaran Proyek Dikirim. Menunggu Verifikasi.</span>
                                             </div>
                                         @else
-                                            @if($activeConsultation->payment_proof)
-                                                <div class="bg-amber-50 text-amber-600 px-6 py-4 rounded-xl border border-amber-100 text-center">
-                                                    <span class="text-[10px] font-black uppercase tracking-widest">Bukti Pembayaran Proyek Dikirim. Menunggu Verifikasi.</span>
+                                            <form action="{{ route('customer.consultation.pay-final', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="w-full flex flex-col gap-3 mt-4">
+                                                @csrf
+                                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Bukti Pembayaran Akhir</label>
+                                                <div class="flex gap-4">
+                                                    <input type="file" name="payment_proof" accept="image/*" required class="flex-1 text-xs text-gray-500 file:mr-4 file:py-3 file:px-5 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-gray-100 file:text-gray-600 hover:file:bg-gray-200 cursor-pointer transition-colors">
+                                                    <button type="submit" class="bg-[#B5733A] hover:bg-[#9a6130] transition-colors text-white px-8 py-3 rounded-xl text-sm font-bold">Kirim Bukti</button>
                                                 </div>
-                                            @else
-                                                <form action="{{ route('customer.consultation.pay-final', $activeConsultation->id) }}" method="POST" enctype="multipart/form-data" class="w-full flex flex-col gap-3">
-                                                    @csrf
-                                                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Upload Bukti Pembayaran Akhir</label>
-                                                    <div class="flex gap-4">
-                                                        <input type="file" name="payment_proof" accept="image/*" required class="flex-1 text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-green-500/10 file:text-green-600 cursor-pointer">
-                                                        <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest">Kirim</button>
-                                                    </div>
-                                                </form>
-                                            @endif
+                                            </form>
                                         @endif
-                                    </div>
-                                @endif
+                                    @elseif($status == \App\Models\Consultation::STATUS_REVISION_REQUESTED)
+                                        <div class="bg-gray-50 text-gray-600 px-6 py-4 rounded-xl border border-gray-200 text-center">
+                                            <span class="text-sm font-bold tracking-wide">Revisi Telah Diajukan. Menunggu RAB Baru dari Desainer.</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif($status == \App\Models\Consultation::STATUS_ACTIVE)
+                                <div class="bg-gray-50 text-gray-600 px-6 py-4 rounded-xl border border-gray-200 flex items-center justify-center gap-3">
+                                    <i class="fa-solid fa-compass-drafting text-lg"></i>
+                                    <span class="text-sm font-bold tracking-wide">Desainer sedang mengerjakan drafting & penawaran...</span>
+                                </div>
                             @endif
-                        </div>
+                        @endif
                     </div>
                 </div>
                 @if($isCompleted && !$existingReview)

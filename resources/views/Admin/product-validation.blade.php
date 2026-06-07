@@ -53,6 +53,27 @@ $stats_view = [
 <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
     @include("Admin.partials.header", ["title" => "Product Validation"])
     <div class="p-8 space-y-8 flex-1">
+    
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center mb-6">
+            <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
+            {{ session('success') }}
+        </div>
+    @endif
+    
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-xs font-bold flex flex-col justify-center mb-6">
+            <div class="flex items-center mb-2">
+                <i data-feather="alert-circle" class="w-4 h-4 mr-3"></i>
+                <span>Terdapat kesalahan:</span>
+            </div>
+            <ul class="list-disc list-inside ml-7">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <div class="mb-8">
         <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Quality Control</div>
@@ -120,22 +141,22 @@ $stats_view = [
 
             <!-- Thumbnail -->
             <div class="shrink-0">
-                <img src="{{ $p->images->first()->img_url ?? 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600' }}" 
+                <img src="{{ $p->images->first()?->img_url ?? 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600' }}" 
                      class="w-20 h-20 rounded-xl object-cover border border-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
-                     onclick="openDetail({{ json_encode($p) }}, '{{ addslashes($p->seller->user->full_name) }}', '{{ addslashes($p->category->name) }}')">
+                     onclick="openDetail({{ json_encode($p) }}, '{{ addslashes($p->seller->user->full_name ?? 'Unknown') }}', '{{ addslashes($p->category->name ?? 'Uncategorized') }}')">
             </div>
 
             <!-- Product Info -->
             <div class="w-1/4">
                 <div class="inline-block px-2 py-1 bg-orange-50 text-primary text-[9px] font-black uppercase tracking-widest rounded-md mb-1.5 font-mono">PRD-{{ str_pad($p->id, 3, '0', STR_PAD_LEFT) }}</div>
                 <div class="text-sm font-bold text-gray-900 truncate">{{ $p->name }}</div>
-                <div class="text-[10px] text-gray-500 font-semibold mt-1"><i data-feather="user" class="w-3 h-3 inline mr-1"></i>{{ $p->seller->user->full_name }}</div>
+                <div class="text-[10px] text-gray-500 font-semibold mt-1"><i data-feather="user" class="w-3 h-3 inline mr-1"></i>{{ $p->seller->user->full_name ?? 'Unknown' }}</div>
             </div>
 
             <!-- Category -->
             <div class="w-1/6">
                 <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black text-gray-600 bg-gray-100 uppercase tracking-widest">
-                    {{ $p->category->name }}
+                    {{ $p->category->name ?? 'Uncategorized' }}
                 </span>
             </div>
 
@@ -181,7 +202,7 @@ $stats_view = [
                     <i data-feather="x" class="w-4 h-4"></i>
                 </button>
                 @else
-                <button class="flex items-center px-3 py-1.5 rounded-lg text-[10px] font-bold bg-orange-50 text-primary hover:bg-orange-100 transition-colors" onclick="openDetail({{ json_encode($p) }}, '{{ addslashes($p->seller->user->full_name) }}', '{{ addslashes($p->category->name) }}')">
+                <button class="flex items-center px-3 py-1.5 rounded-lg text-[10px] font-bold bg-orange-50 text-primary hover:bg-orange-100 transition-colors" onclick="openDetail({{ json_encode($p) }}, '{{ addslashes($p->seller->user->full_name ?? 'Unknown') }}', '{{ addslashes($p->category->name ?? 'Uncategorized') }}')">
                     <i data-feather="eye" class="w-3.5 h-3.5 mr-1.5"></i> Detail
                 </button>
                 @endif

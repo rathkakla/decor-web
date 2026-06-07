@@ -263,13 +263,17 @@ class SellerController extends Controller
     // ==========================================
 
     // READ: Daftar Produk
-    public function productIndex()
+    public function productIndex(Request $request)
     {
         $seller = Seller::where('user_id', Auth::id())->first();
-        $products = Product::with(['images', 'category'])
-            ->where('seller_id', $seller->id)
-            ->latest()
-            ->get();
+        $query = Product::with(['images', 'category'])
+            ->where('seller_id', $seller->id);
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        $products = $query->latest()->get();
         return view('seller.products.index', compact('products'));
     }
 
@@ -285,6 +289,13 @@ class SellerController extends Controller
     public function storeProduct(Request $request)
     {
         $seller = Seller::where('user_id', Auth::id())->first();
+
+        $request->validate([
+            'price' => 'required|numeric|min:0|max:1000000000',
+        ], [
+            'price.max' => 'Harga produk tidak valid (terlalu mahal). Maksimal Rp 1.000.000.000',
+            'price.min' => 'Harga produk tidak boleh kurang dari 0',
+        ]);
 
         // 1. Simpan data produk utama
         $product = Product::create([
@@ -310,7 +321,7 @@ class SellerController extends Controller
             ]);
         }
 
-        return redirect()->route('seller.products.index')->with('success', 'Produk berhasil ditambahkan!');
+        return redirect()->route('seller.products.index')->with('success', 'Produk ' . $product->name . ' berhasil ditambahkan!');
     }
 
     // EDIT: Form Ubah
@@ -339,6 +350,13 @@ class SellerController extends Controller
         if ($product->seller_id !== $seller->id) {
             return redirect()->route('seller.products.index')->with('error', 'Akses ditolak!');
         }
+
+        $request->validate([
+            'price' => 'required|numeric|min:0|max:1000000000',
+        ], [
+            'price.max' => 'Harga produk tidak valid (terlalu mahal). Maksimal Rp 1.000.000.000',
+            'price.min' => 'Harga produk tidak boleh kurang dari 0',
+        ]);
 
         $product->update([
             'category_id' => $request->category_id,
@@ -639,8 +657,8 @@ class SellerController extends Controller
             'store_description' => 'nullable|string|max:1000',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:50',
-            'store_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'store_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'store_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'store_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
         ]);
 
         $data = $request->only(['store_name', 'store_description', 'bank_name', 'account_number']);
@@ -685,7 +703,14 @@ class SellerController extends Controller
         $seller = Seller::where('user_id', Auth::id())->first();
 
         $request->validate([
-            'code' => 'required|string|max:50',
+            'code' => [
+                'required', 
+                'string', 
+                'max:50', 
+                \Illuminate\Validation\Rule::unique('vouchers', 'code')->where(function ($query) use ($seller) {
+                    return $query->where('seller_id', $seller->id);
+                })
+            ],
             'name' => 'required|string|max:255',
             'discount_type' => 'required|in:fixed,percentage',
             'discount_value' => 'required|numeric|min:0',
@@ -694,6 +719,9 @@ class SellerController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'quota' => 'required|integer|min:1',
+        ], [
+            'code.unique' => 'Kode voucher ini sudah Anda gunakan sebelumnya. Silakan buat kode lain.',
+            'end_date.after' => 'Tanggal kadaluarsa harus lebih lambat dari tanggal mulai.',
         ]);
 
         Voucher::create([
@@ -734,7 +762,14 @@ class SellerController extends Controller
         }
 
         $request->validate([
-            'code' => 'required|string|max:50',
+            'code' => [
+                'required', 
+                'string', 
+                'max:50', 
+                \Illuminate\Validation\Rule::unique('vouchers', 'code')->where(function ($query) use ($seller) {
+                    return $query->where('seller_id', $seller->id);
+                })->ignore($id)
+            ],
             'name' => 'required|string|max:255',
             'discount_type' => 'required|in:fixed,percentage',
             'discount_value' => 'required|numeric|min:0',
@@ -743,6 +778,9 @@ class SellerController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'quota' => 'required|integer|min:1',
+        ], [
+            'code.unique' => 'Kode voucher ini sudah Anda gunakan sebelumnya. Silakan gunakan kode lain.',
+            'end_date.after' => 'Tanggal kadaluarsa harus lebih lambat dari tanggal mulai.',
         ]);
 
         $voucher->update([

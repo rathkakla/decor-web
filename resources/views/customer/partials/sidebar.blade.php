@@ -1,4 +1,4 @@
-<aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0">
+<aside class="w-72 border-r border-gray-50 p-10 bg-gray-50/20 shrink-0 sticky top-[73px] self-start h-[calc(100vh-73px)] overflow-y-auto no-scrollbar">
     <div class="text-center mb-10 group">
         <div class="relative inline-block">
             <img src="{{ Auth::user()->avatar_url }}" 
@@ -48,6 +48,5 @@
         </div>
     </nav>
 </aside>
-
 
 

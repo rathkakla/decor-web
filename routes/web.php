@@ -63,7 +63,13 @@ Route::prefix('customer')->name('customer.')->group(function () {
     Route::get('/designer/{id}', [CustomerController::class, 'designerProfile'])->name('designer.profile');
     Route::get('/about', fn() => view('customer.about'))->name('about');
     Route::get('/design-lab', fn() => view('customer.design-lab'))->name('design-lab');
-    Route::get('/help-center', fn() => view('customer.help-center'))->name('help-center');
+    Route::get('/help-center', function () {
+        $supports = collect();
+        if (auth()->check()) {
+            $supports = \App\Models\Support::where('user_id', auth()->id())->latest()->get();
+        }
+        return view('customer.help-center', compact('supports'));
+    })->name('help-center');
     Route::get('/store/{id}', [CustomerController::class, 'storeProfile'])->name('store');
 });
 
@@ -333,6 +339,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/settings', function () {
         return view('Admin.settings');
     })->name('admin.settings');
+    Route::post('/settings/update', [App\Http\Controllers\AdminController::class, 'updateSettings'])->name('admin.settings.update');
 });
 
 require __DIR__ . '/auth.php';

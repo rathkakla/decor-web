@@ -30,6 +30,13 @@
         @include('seller.partials.header', ['title' => 'Inventory Gallery'])
 
         <div class="p-8 space-y-8 flex-1">
+            @if(session('success'))
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl relative text-sm font-medium" role="alert">
+                <i class="fa-solid fa-circle-check mr-2"></i>
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+            @endif
+
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-3xl font-bold mt-1 tracking-tight text-gray-800">Kelola Produk</h2>
@@ -40,12 +47,13 @@
                 </a>
             </div>
 
-            <div class="flex space-x-4">
+            <form action="{{ route('seller.products.index') }}" method="GET" class="flex space-x-4">
                 <div class="flex-1 relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" placeholder="Cari nama produk....." class="w-full bg-white border border-gray-100 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-primary transition-all">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama produk....." class="w-full bg-white border border-gray-100 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-primary transition-all">
                 </div>
-            </div>
+                <button type="submit" class="bg-gray-100 text-gray-600 px-6 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors">Cari</button>
+            </form>
 
             <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
                 <table class="w-full text-left">

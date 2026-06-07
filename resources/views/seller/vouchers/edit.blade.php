@@ -21,6 +21,16 @@
         @include('seller.partials.header', ['title' => 'Edit Voucher'])
 
         <div class="p-8 space-y-8 flex-1">
+            @if ($errors->any())
+                <div class="max-w-4xl mx-auto bg-red-50 text-red-500 p-4 rounded-xl text-sm font-bold border border-red-200 mb-6">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li><i class="fa-solid fa-circle-exclamation mr-2"></i> {{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-8 border-b border-gray-50">
                     <h3 class="font-bold text-gray-900 uppercase tracking-widest text-sm">Voucher Details</h3>

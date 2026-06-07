@@ -114,7 +114,7 @@
                         @endif
                         <div>
                             <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Status</p>
-                            <p class="text-[11px] font-black {{ $consultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
+                            <p class="text-[11px] font-black {{ $consultation->is_chat_expired ? 'text-gray-500' : ($status == 4 ? 'text-primary' : 'text-primary') }}">
                                 @if($consultation->is_chat_expired)
                                     Expired
                                 @else
@@ -155,21 +155,21 @@
                     </a>
 
                     @if($consultation->payment_proof)
-                        <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
-                            <p class="text-[8px] font-black text-amber-700 uppercase tracking-widest">Bukti Pembayaran</p>
-                            <a href="{{ asset('storage/' . $consultation->payment_proof) }}" target="_blank" class="block w-full rounded-xl overflow-hidden border border-amber-200">
+                        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-3">
+                            <p class="text-[8px] font-black text-gray-700 uppercase tracking-widest">Bukti Pembayaran</p>
+                            <a href="{{ asset('storage/' . $consultation->payment_proof) }}" target="_blank" class="block w-full rounded-xl overflow-hidden border border-gray-200">
                                 <img src="{{ asset('storage/' . $consultation->payment_proof) }}" class="w-full h-24 object-cover">
                             </a>
                             <div class="flex gap-2">
                                 <form action="{{ route('designer.consultations.validate-payment', $consultation->id) }}" method="POST" class="flex-1">
                                     @csrf
                                     <input type="hidden" name="action" value="approve">
-                                    <button type="submit" class="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Verify</button>
+                                    <button type="submit" class="w-full px-3 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Verify</button>
                                 </form>
                                 <form action="{{ route('designer.consultations.validate-payment', $consultation->id) }}" method="POST" class="flex-1">
                                     @csrf
                                     <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Reject</button>
+                                    <button type="submit" class="w-full px-3 py-2 bg-white border border-gray-300 hover:border-gray-500 text-gray-700 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all">Reject</button>
                                 </form>
                             </div>
                         </div>
@@ -178,38 +178,38 @@
                             <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
                                 @csrf @method('PATCH')
                                 <input type="hidden" name="status" value="7">
-                                <button type="submit" class="w-full px-4 py-3 bg-green-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-green-700 transition-all">
+                                <button type="submit" class="w-full px-4 py-3 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
                                     <i class="fa-solid fa-check mr-1"></i> Approve Request
                                 </button>
                             </form>
                             <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
                                 @csrf @method('PATCH')
                                 <input type="hidden" name="status" value="6">
-                                <button type="submit" class="w-full px-4 py-3 bg-red-100 text-red-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-200 transition-all border border-red-200">
+                                <button type="submit" class="w-full px-4 py-3 bg-white text-gray-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-300">
                                     <i class="fa-solid fa-xmark mr-1"></i> Reject
                                 </button>
                             </form>
                         </div>
                     @elseif($status == 7)
-                        <div class="bg-amber-50 text-amber-600 px-4 py-3 rounded-xl border border-amber-100 text-center">
+                        <div class="bg-gray-50 text-gray-700 px-4 py-3 rounded-xl border border-gray-200 text-center">
                             <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i> Waiting for Client Payment</p>
                         </div>
                     @elseif($status == 6)
-                        <div class="bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 text-center">
+                        <div class="bg-gray-50 text-gray-700 px-4 py-3 rounded-xl border border-gray-200 text-center">
                             <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-ban mr-1"></i> Consultation Rejected</p>
                         </div>
                     @elseif($status == 0)
                         <form action="{{ route('designer.consultations.update-status', $consultation->id) }}" method="POST">
                             @csrf @method('PATCH')
                             <input type="hidden" name="status" value="1">
-                            <button type="submit" class="w-full px-4 py-3 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all">Start Project</button>
+                            <button type="submit" class="w-full px-4 py-3 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all">Start Project</button>
                         </form>
                     @elseif($status == 9)
-                        <div class="bg-amber-50 text-amber-600 px-4 py-3 rounded-xl border border-amber-100 text-center">
+                        <div class="bg-gray-50 text-gray-700 px-4 py-3 rounded-xl border border-gray-200 text-center">
                             <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-clock mr-1"></i> Waiting for Final Payment</p>
                         </div>
                     @elseif($status == 4)
-                        <div class="bg-green-50 text-green-600 px-4 py-3 rounded-xl border border-green-100 text-center">
+                        <div class="bg-gray-50 text-gray-700 px-4 py-3 rounded-xl border border-gray-200 text-center">
                             <p class="text-[9px] font-black uppercase tracking-widest"><i class="fa-solid fa-check mr-1"></i> Project Completed</p>
                         </div>
                     @endif
@@ -300,7 +300,7 @@
                                 <div class="max-w-[70%] p-2 rounded-[24px] {{ $item->data->uploaded_by == Auth::id() ? 'bg-primary/5 border border-primary/20 rounded-bl-[24px]' : 'bg-white border border-gray-100 rounded-br-[24px]' }} flex flex-col items-center gap-2">
                                     @php $fileUrl = str_starts_with($item->data->file_url, 'http') ? $item->data->file_url : asset('storage/' . $item->data->file_url); @endphp
                                     <div class="flex items-center gap-3 px-4 py-2">
-                                        <i class="fa-solid fa-file-pdf text-2xl text-red-500"></i>
+                                        <i class="fa-solid fa-file-pdf text-2xl text-primary"></i>
                                         <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-primary hover:underline line-clamp-1">Attachment File</a>
                                     </div>
                                     <span class="text-[8px] text-gray-400 font-bold px-2 w-full text-right">{{ $item->data->created_at->format('H:i') }}</span>
@@ -316,47 +316,47 @@
 
                         @foreach($consultation->quotes as $quote)
                             <div class="flex justify-center my-8">
-                                <div class="bg-amber-50 border border-amber-100 rounded-3xl p-8 max-w-2xl w-full shadow-sm">
-                                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <div class="bg-white border border-gray-200 rounded-3xl p-8 max-w-2xl w-full shadow-sm">
+                                    <div class="w-12 h-12 bg-gray-50 text-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
                                         <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
                                     </div>
-                                    <h4 class="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-4 text-center">Project Agreement & RAB</h4>
+                                    <h4 class="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-4 text-center">Project Agreement & RAB</h4>
                                     
                                     @if($quote->items)
                                         <div class="mb-6 flex justify-center">
-                                            <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-white text-amber-700 px-6 py-3 rounded-xl border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                                            <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="flex items-center gap-2 bg-white text-gray-700 px-6 py-3 rounded-xl border border-gray-200 hover:border-primary hover:text-primary transition-colors shadow-sm">
                                                 <i class="fa-solid fa-file-arrow-down text-xl"></i>
                                                 <span class="text-[11px] font-black uppercase tracking-widest">Download RAB File</span>
                                             </a>
                                         </div>
                                     @endif
 
-                                    <div class="text-center mb-6 border-t border-amber-200/50 pt-4">
-                                        <p class="text-[10px] text-amber-800 font-bold uppercase tracking-widest">Total Design Fee</p>
-                                        <p class="text-2xl font-black text-amber-900 mt-1">Rp {{ number_format($quote->amount, 0, ',', '.') }}</p>
+                                    <div class="text-center mb-6 border-t border-gray-100 pt-4">
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Total Design Fee</p>
+                                        <p class="text-2xl font-black text-gray-900 mt-1">Rp {{ number_format($quote->amount, 0, ',', '.') }}</p>
                                     </div>
 
                                     @if($quote->notes)
-                                        <p class="text-[11px] text-amber-700/70 font-bold mt-2 leading-relaxed italic text-center">"{{ $quote->notes }}"</p>
+                                        <p class="text-[11px] text-gray-500 font-bold mt-2 leading-relaxed italic text-center">"{{ $quote->notes }}"</p>
                                     @endif
 
-                                    <div class="mt-6 pt-6 border-t border-amber-200/50 flex flex-col items-center">
+                                    <div class="mt-6 pt-6 border-t border-gray-100 flex flex-col items-center">
                                         <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest 
-                                            {{ $quote->status == 'pending' ? 'bg-amber-200 text-amber-800' : '' }}
-                                            {{ $quote->status == 'accepted' ? 'bg-green-200 text-green-800' : '' }}
-                                            {{ $quote->status == 'rejected' ? 'bg-red-200 text-red-800' : '' }}
-                                            {{ $quote->status == 'revision' ? 'bg-blue-200 text-blue-800' : '' }}">
+                                            {{ $quote->status == 'pending' ? 'bg-gray-100 text-gray-600' : '' }}
+                                            {{ $quote->status == 'accepted' ? 'bg-primary/10 text-primary' : '' }}
+                                            {{ $quote->status == 'rejected' ? 'bg-gray-100 text-gray-600' : '' }}
+                                            {{ $quote->status == 'revision' ? 'bg-gray-100 text-gray-600' : '' }}">
                                             Status: {{ ucfirst($quote->status) }}
                                         </span>
                                         
                                         @if($quote->status == 'accepted')
-                                            <p class="text-[9px] font-black text-green-600 uppercase mt-3 italic">Client has accepted this project agreement!</p>
+                                            <p class="text-[9px] font-black text-primary uppercase mt-3 italic">Client has accepted this project agreement!</p>
                                         @elseif($quote->status == 'rejected')
-                                            <p class="text-[9px] font-black text-red-600 uppercase mt-3 italic">Client has rejected the project.</p>
+                                            <p class="text-[9px] font-black text-gray-500 uppercase mt-3 italic">Client has rejected the project.</p>
                                         @elseif($quote->status == 'revision' && $quote->revision_notes)
-                                            <div class="mt-4 bg-white p-4 rounded-xl border border-blue-100 text-left w-full">
-                                                <p class="text-[9px] font-black text-blue-800 uppercase tracking-widest mb-1"><i class="fa-solid fa-pen-to-square mr-1"></i> Revision Requested:</p>
-                                                <p class="text-[11px] text-gray-700 font-bold">"{{ $quote->revision_notes }}"</p>
+                                            <div class="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200 text-left w-full">
+                                                <p class="text-[9px] font-black text-gray-800 uppercase tracking-widest mb-1"><i class="fa-solid fa-pen-to-square mr-1"></i> Revision Requested:</p>
+                                                <p class="text-[11px] text-gray-600 font-bold">"{{ $quote->revision_notes }}"</p>
                                             </div>
                                         @endif
                                     </div>
@@ -382,12 +382,12 @@
                             @csrf
                             <div class="p-8 space-y-6 overflow-y-auto custom-scroll flex-1">
                                 <!-- Download Template Banner -->
-                                <div class="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex justify-between items-center">
+                                <div class="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex justify-between items-center">
                                     <div>
-                                        <h4 class="text-[11px] font-black text-amber-800 uppercase tracking-widest">Template & Contoh RAB Decor</h4>
-                                        <p class="text-[10px] text-amber-700 mt-1 font-bold">Unduh template kosong dan contoh pengisian RAB kami, lengkapi, lalu upload kembali di bawah ini.</p>
+                                        <h4 class="text-[11px] font-black text-primary uppercase tracking-widest">Template & Contoh RAB Decor</h4>
+                                        <p class="text-[10px] text-primary/70 mt-1 font-bold">Unduh template kosong dan contoh pengisian RAB kami, lengkapi, lalu upload kembali di bawah ini.</p>
                                     </div>
-                                    <a href="{{ route('designer.consultations.download-rab-template') }}?v={{ time() }}" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0">
+                                    <a href="{{ route('designer.consultations.download-rab-template') }}?v={{ time() }}" class="bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 shadow-md">
                                         <i class="fa-solid fa-download mr-1"></i> Download Template & Contoh RAB
                                     </a>
                                 </div>
@@ -446,14 +446,14 @@
                 <!-- Action Footer: Flying Chat Input -->
                 @if($status == 4)
                     <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
-                        <div class="bg-green-50/90 backdrop-blur-md border border-green-200 rounded-2xl px-6 py-3 shadow-lg">
-                            <p class="text-xs font-black text-green-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Proyek Selesai. Chat telah dinonaktifkan.</p>
+                        <div class="bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl px-6 py-3 shadow-lg">
+                            <p class="text-xs font-black text-gray-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Proyek Selesai. Chat telah dinonaktifkan.</p>
                         </div>
                     </div>
                 @elseif($consultation->is_chat_expired)
                     <div class="absolute bottom-0 left-0 right-0 p-4 flex justify-center">
-                        <div class="bg-red-50/90 backdrop-blur-md border border-red-200 rounded-2xl px-6 py-3 shadow-lg">
-                            <p class="text-xs font-black text-red-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Waktu Konsultasi Habis. Chat telah dinonaktifkan.</p>
+                        <div class="bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl px-6 py-3 shadow-lg">
+                            <p class="text-xs font-black text-gray-700 uppercase tracking-widest"><i class="fa-solid fa-lock mr-2"></i> Waktu Konsultasi Habis. Chat telah dinonaktifkan.</p>
                         </div>
                     </div>
                 @else
@@ -472,7 +472,7 @@
                                 </button>
                             </form>
                              @if($consultation->consultation_type != 'chat_consultation')
-                                <button onclick="toggleQuoteModal()" class="bg-amber-100/80 backdrop-blur-md text-amber-700 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-all border border-amber-200 shrink-0">
+                                <button onclick="toggleQuoteModal()" class="bg-white/90 backdrop-blur-md text-gray-700 hover:text-primary px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border border-gray-200 hover:border-primary shrink-0 shadow-lg shadow-black/5">
                                     <i class="fa-solid fa-file-invoice mr-2"></i> Project Agreement (RAB)
                                 </button>
                             @endif

@@ -40,7 +40,36 @@
                 <h1 class="text-3xl font-bold tracking-tighter mb-1 text-gray-900">My Orders</h1>
                 <p class="text-sm text-gray-500 mb-10">Manage your active shipments and view past purchases.</p>
 
-                @forelse($orders as $order)
+                @php 
+                    $tab = request('tab', 'semua');
+                    $tabs = [
+                        'semua' => 'Semua',
+                        'belum_bayar' => 'Belum Bayar',
+                        'dikemas' => 'Dikemas',
+                        'dikirim' => 'Dikirim',
+                        'selesai' => 'Selesai'
+                    ];
+
+                    $filteredOrders = $orders->filter(function($order) use ($tab) {
+                        if ($tab == 'belum_bayar') return in_array($order->status, ['pending', 'waiting_verification']);
+                        if ($tab == 'dikemas') return in_array($order->status, ['paid', 'processing']);
+                        if ($tab == 'dikirim') return $order->status == 'shipped';
+                        if ($tab == 'selesai') return $order->status == 'completed';
+                        return true; // 'semua'
+                    });
+                @endphp
+
+                <!-- TABS (Seperti Shopee) -->
+                <div class="flex overflow-x-auto border-b border-gray-100 mb-8 pb-px no-scrollbar gap-8">
+                    @foreach($tabs as $key => $label)
+                        <a href="{{ route('customer.orders', ['tab' => $key]) }}" 
+                           class="pb-4 text-xs font-bold uppercase tracking-widest whitespace-nowrap {{ $tab == $key ? 'text-primary border-b-2 border-primary' : 'text-gray-400 hover:text-gray-600' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+
+                @forelse($filteredOrders as $order)
                 
                 @php 
                     $isCompleted = $order->status == 'completed'; 

@@ -124,11 +124,17 @@ class AdminController extends Controller
 
     public function rejectProduct(Request $request, $id)
     {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ], [
+            'message.required' => 'Alasan penolakan harus diisi.'
+        ]);
+
         $product = \App\Models\Product::findOrFail($id);
         $product->update(['status' => 'rejected']);
         
         // Notify seller
-        $message = $request->get('message', 'Produk ' . $product->name . ' ditolak karena tidak memenuhi kriteria kualitas kami.');
+        $message = $request->get('message');
         $product->seller->user->notify(new \App\Notifications\ViolationWarning($message));
         
         return back()->with('success', 'Produk ' . $product->name . ' telah ditolak.');
@@ -282,11 +288,30 @@ class AdminController extends Controller
         $designer = Designer::with(['user', 'portfolios'])->findOrFail($id);
         return view('Admin.designer-detail', compact('designer'));
     }
-    public function customerSupport()
+    public function customerSupport(Request $request)
     {
-        $tickets = Support::whereHas('user', function($q) {
+        $statusFilter = $request->get('status', 'semua');
+        $search = $request->get('search');
+
+        $query = Support::whereHas('user', function($q) {
             $q->where('role', 'customer');
-        })->with('user')->latest()->get();
+        })->with('user');
+
+        if ($statusFilter && $statusFilter !== 'semua') {
+            $query->where('status', $statusFilter);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('subject', 'like', "%$search%")
+                  ->orWhere('message', 'like', "%$search%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('full_name', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $tickets = $query->latest()->get();
 
         $stats = [
             'open' => Support::whereHas('user', fn($q) => $q->where('role', 'customer'))->where('status', 'pending')->count(),
@@ -294,14 +319,33 @@ class AdminController extends Controller
             'resolved' => Support::whereHas('user', fn($q) => $q->where('role', 'customer'))->where('status', 'resolved')->count(),
         ];
 
-        return view('Admin.customer-support', compact('tickets', 'stats'));
+        return view('Admin.customer-support', compact('tickets', 'stats', 'statusFilter'));
     }
 
-    public function sellerSupport()
+    public function sellerSupport(Request $request)
     {
-        $tickets = Support::whereHas('user', function($q) {
+        $statusFilter = $request->get('status', 'semua');
+        $search = $request->get('search');
+        
+        $query = Support::whereHas('user', function($q) {
             $q->where('role', 'seller');
-        })->with('user')->latest()->get();
+        })->with('user');
+
+        if ($statusFilter && $statusFilter !== 'semua') {
+            $query->where('status', $statusFilter);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('subject', 'like', "%$search%")
+                  ->orWhere('message', 'like', "%$search%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('full_name', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $tickets = $query->latest()->get();
 
         $stats = [
             'open' => Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count(),
@@ -309,14 +353,33 @@ class AdminController extends Controller
             'resolved' => Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'resolved')->count(),
         ];
 
-        return view('Admin.seller-support', compact('tickets', 'stats'));
+        return view('Admin.seller-support', compact('tickets', 'stats', 'statusFilter'));
     }
 
-    public function designerSupport()
+    public function designerSupport(Request $request)
     {
-        $tickets = Support::whereHas('user', function($q) {
+        $statusFilter = $request->get('status', 'semua');
+        $search = $request->get('search');
+        
+        $query = Support::whereHas('user', function($q) {
             $q->where('role', 'designer');
-        })->with('user')->latest()->get();
+        })->with('user');
+
+        if ($statusFilter && $statusFilter !== 'semua') {
+            $query->where('status', $statusFilter);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('subject', 'like', "%$search%")
+                  ->orWhere('message', 'like', "%$search%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('full_name', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $tickets = $query->latest()->get();
 
         $stats = [
             'open' => Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count(),
@@ -324,7 +387,7 @@ class AdminController extends Controller
             'resolved' => Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'resolved')->count(),
         ];
 
-        return view('Admin.designer-support', compact('tickets', 'stats'));
+        return view('Admin.designer-support', compact('tickets', 'stats', 'statusFilter'));
     }
 
     public function replySupport(Request $request, $id)
@@ -382,5 +445,34 @@ class AdminController extends Controller
         $portfolio->update(['status' => 'rejected']);
 
         return back()->with('success', 'Portofolio telah ditolak.');
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'current_password' => 'nullable|required_with:new_password|string',
+            'new_password' => 'nullable|min:8|confirmed',
+        ], [
+            'current_password.required_with' => 'Password saat ini wajib diisi jika Anda ingin mengganti password baru.',
+            'new_password.min' => 'Password baru minimal harus terdiri dari 8 karakter.',
+            'new_password.confirmed' => 'Konfirmasi password baru tidak sesuai.',
+        ]);
+
+        if ($request->filled('new_password')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Password saat ini salah.']);
+            }
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->new_password);
+        }
+
+        $user->full_name = $request->full_name;
+        $user->email = $request->email;
+        $user->save();
+
+        return back()->with('success', 'Profil berhasil diperbarui.');
     }
 }

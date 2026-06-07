@@ -120,7 +120,7 @@
                         Interior Designer</h2>
                 </div>
 
-                <form action="{{ route('register') }}" method="POST" class="space-y-12">
+                <form action="{{ route('register') }}" method="POST" class="space-y-12" novalidate>
                     @csrf
                     <input type="hidden" name="role" value="designer">
 
