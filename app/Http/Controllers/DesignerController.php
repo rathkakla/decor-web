@@ -598,9 +598,28 @@ class DesignerController extends Controller
 
         $activeChat = null;
         $messages = [];
+        $timeLeft = 0;
+        $isFreeChat = false;
 
         if ($userId) {
             $activeChat = \App\Models\User::findOrFail($userId);
+            
+            // Check if there is an active free consultation
+            $customer = \App\Models\Customer::where('user_id', $userId)->first();
+            $designer = \App\Models\Designer::where('user_id', Auth::id())->first();
+
+            if ($customer && $designer) {
+                $freeConsultation = \App\Models\FreeConsultation::where('customer_id', $customer->id)
+                    ->where('designer_id', $designer->id)
+                    ->first();
+                
+                if ($freeConsultation) {
+                    $isFreeChat = true;
+                    if (!$freeConsultation->is_completed && !$freeConsultation->expires_at->isPast()) {
+                        $timeLeft = (int) now()->diffInSeconds($freeConsultation->expires_at);
+                    }
+                }
+            }
             $messages = \App\Models\Chat::where(function ($q) use ($designerId, $userId) {
                 $q->where('sender_id', $designerId)->where('receiver_id', $userId);
             })
@@ -620,7 +639,7 @@ class DesignerController extends Controller
 
         // We will use the same view path or create an index view
         // Since `designer.chat.chat` is the static one, I'll pass data to it and we'll update it
-        return view('designer.chat.chat', compact('conversations', 'activeChat', 'messages'));
+        return view('designer.chat.chat', compact('conversations', 'activeChat', 'messages', 'timeLeft', 'isFreeChat'));
     }
 
     public function sendChatMessage(Request $request)

@@ -36,15 +36,16 @@
             
             <!-- Welcome System Message -->
             <div class="flex justify-center mb-4">
-                <div class="bg-gray-50 border border-gray-100 px-6 py-3 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest italic">
-                    10-minute free consultation started
+                <div class="bg-primary/10 border border-primary/20 px-6 py-3 rounded-full text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-stopwatch text-primary"></i> 
+                    <span id="countdown">--:--</span>
                 </div>
             </div>
 
             <!-- Designer Greeting -->
             <div class="flex justify-start">
                 <div class="max-w-[70%] bg-gray-50 border border-gray-100 rounded-[2rem] rounded-tl-none px-6 py-4 text-[13px] leading-relaxed text-gray-700 shadow-sm">
-                    Hello! I'm {{ $designer->user->full_name }}. How can I help you with your design project today? You have 10 minutes of free consultation.
+                    Hello! I'm {{ $designer->user->full_name }}. How can I help you with your design project today? You have 30 minutes of free consultation.
                 </div>
             </div>
 
@@ -102,7 +103,7 @@
                     <i class="fa-regular fa-clock text-3xl"></i>
                 </div>
                 <h3 class="text-2xl font-black italic mb-3">Waktu Habis!</h3>
-                <p class="text-[12px] text-gray-500 leading-relaxed mb-8 italic">Sesi free consultation 10 menit Anda telah selesai. Lanjutkan diskusi dengan booking consultation.</p>
+                <p class="text-[12px] text-gray-500 leading-relaxed mb-8 italic">Sesi free consultation 30 menit Anda telah selesai. Lanjutkan diskusi dengan booking consultation.</p>
                 
                 <a href="{{ route('customer.designers.book', $designer->id) }}" class="block w-full bg-primary text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:scale-[1.03] transition-all">
                     Book Consultation

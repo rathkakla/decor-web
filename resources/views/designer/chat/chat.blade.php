@@ -75,6 +75,12 @@
                         <h4 class="text-[11px] font-black text-gray-900 uppercase tracking-widest">{{ $activeChat->full_name }}</h4>
                         <p class="text-[8px] font-black text-green-500 uppercase tracking-widest italic">● Online Now</p>
                     </div>
+                    @if(isset($isFreeChat) && $isFreeChat)
+                    <div class="flex items-center space-x-2 bg-primary/10 border border-primary/20 px-4 py-2 rounded-xl text-[10px] font-bold text-primary uppercase tracking-widest transition-all" id="designerTimerContainer">
+                        <i class="fa-solid fa-stopwatch"></i> 
+                        <span id="countdown">--:--</span>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-10 space-y-8" id="message-container">
@@ -165,6 +171,48 @@
         if(msgContainer) {
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
+
+        @if(isset($isFreeChat) && $isFreeChat)
+        let timeLeft = {{ $timeLeft ?? 0 }};
+        const timerElement = document.getElementById('countdown');
+        const timerContainer = document.getElementById('designerTimerContainer');
+        const messageInput = document.querySelector('input[name="message"]');
+        const attachButton = document.querySelector('button[onclick*="chat-attachment"]');
+
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (timerElement) timerElement.textContent = '00:00';
+                if (messageInput) messageInput.disabled = true;
+                if (attachButton) attachButton.disabled = true;
+                if (timerContainer) {
+                    timerContainer.classList.remove('bg-primary/10', 'border-primary/20', 'text-primary');
+                    timerContainer.classList.add('bg-red-50', 'border-red-100', 'text-red-500');
+                    timerContainer.innerHTML = '<i class="fa-solid fa-clock"></i> <span>TIME UP</span>';
+                }
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = Math.floor(timeLeft % 60);
+            if (timerElement) {
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            if (timeLeft <= 60 && timerContainer) {
+                timerContainer.classList.remove('bg-primary/10', 'border-primary/20', 'text-primary');
+                timerContainer.classList.add('bg-red-50', 'border-red-100', 'text-red-500', 'animate-pulse');
+            }
+
+            timeLeft--;
+        }
+
+        let timerInterval = null;
+        if (timerElement) {
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+        @endif
     </script>
 </body>
 </html>

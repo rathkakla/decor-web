@@ -747,7 +747,7 @@ class CustomerController extends Controller
             $freeConsultation = \App\Models\FreeConsultation::create([
                 'customer_id' => $customer->id,
                 'designer_id' => $id,
-                'expires_at' => now()->addMinutes(10),
+                'expires_at' => now()->addMinutes(30),
             ]);
         }
 

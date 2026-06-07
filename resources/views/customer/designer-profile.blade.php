@@ -127,7 +127,7 @@
                     @if($canFreeChat)
                     <a href="{{ route('customer.designers.free-chat', $designer->id) }}" class="block w-full">
                         <button class="w-full bg-primary text-white py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                            Start Consultation (Free 10 Min)
+                            Start Free Consultation 30 Menit
                         </button>
                     </a>
                     @else
@@ -263,7 +263,7 @@
                     @if($canFreeChat)
                     <a href="{{ route('customer.designers.free-chat', $designer->id) }}" class="block w-full">
                         <button class="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                            Tanyakan Tentang Desain Ini (Free 10 Min)
+                            Start Free Consultation 30 Menit
                         </button>
                     </a>
                     @else
