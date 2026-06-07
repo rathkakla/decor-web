@@ -59,8 +59,8 @@
                 <div class="lg:col-span-2 space-y-6">
                     <div>
                         <h3 class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Project Visual</h3>
-                        <label id="drop-area" class="block w-full aspect-square bg-white border-2 border-dashed border-gray-200 rounded-[40px] flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors group relative overflow-hidden shadow-sm">
-                            <input type="file" name="image" accept="image/*" onchange="previewImage(this)" required>
+                        <label id="drop-area" class="block w-full aspect-square bg-white border-2 @error('image') border-red-500 @else border-dashed border-gray-200 @enderror rounded-[40px] flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors group relative overflow-hidden shadow-sm">
+                            <input type="file" name="image" accept="image/*" onchange="previewImage(this)">
                             <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-cover">
                             <div id="upload-placeholder" class="text-center group-hover:scale-105 transition-transform">
                                 <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -70,7 +70,7 @@
                                 <p class="text-[10px] text-gray-400 font-bold mt-1 italic">JPG, PNG up to 100MB</p>
                             </div>
                         </label>
-                        @error('image') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
+                        @error('image') <p class="text-[10px] text-red-500 font-bold mt-2 ml-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> Gambar portfolio wajib diupload.</p> @enderror
                     </div>
 
                     <!-- 360 DEGREE TOGGLE -->
