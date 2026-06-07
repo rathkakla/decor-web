@@ -133,7 +133,10 @@
                                 <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Seller Response</p>
                                 <form action="{{ route('seller.reviews.reply', $r->id) }}" method="POST">
                                     @csrf
-                                    <textarea name="reply" placeholder="Write your reply to {{ explode(' ', $r->customer->user->full_name)[0] }}..." class="w-full bg-white border border-gray-100 rounded-2xl p-4 text-[10px] font-bold placeholder-gray-300 outline-none focus:border-primary min-h-[80px]" required></textarea>
+                                    <textarea name="reply" placeholder="Write your reply to {{ explode(' ', $r->customer->user->full_name)[0] }}..." class="w-full bg-white border @error('reply') border-red-500 @else border-gray-100 @enderror rounded-2xl p-4 text-[10px] font-bold placeholder-gray-300 outline-none focus:border-primary min-h-[80px]"></textarea>
+                                    @error('reply')
+                                        <p class="text-red-500 text-[10px] font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> Kolom balasan tidak boleh kosong.</p>
+                                    @enderror
                                     <div class="flex justify-end pt-2">
                                         <button type="submit" class="bg-primary text-white px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90">Post Reply</button>
                                     </div>
