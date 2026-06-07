@@ -120,6 +120,10 @@
                             <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Deskripsi Toko</label>
                             <textarea name="store_description" rows="4" class="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-4 text-xs font-medium text-gray-600 leading-relaxed transition-all">{{ $seller->store_description }}</textarea>
                         </div>
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Alamat Toko</label>
+                            <textarea name="store_address" rows="3" class="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-4 text-xs font-medium text-gray-600 leading-relaxed transition-all" placeholder="Masukkan alamat lengkap toko...">{{ $seller->store_address }}</textarea>
+                        </div>
                     </div>
                 </div>
 

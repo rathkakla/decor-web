@@ -691,13 +691,14 @@ class SellerController extends Controller
         $request->validate([
             'store_name' => 'required|string|max:255',
             'store_description' => 'nullable|string|max:1000',
+            'store_address' => 'nullable|string|max:500',
             'bank_name' => 'nullable|string|max:100',
             'account_number' => 'nullable|string|max:50',
             'store_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
             'store_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
         ]);
 
-        $data = $request->only(['store_name', 'store_description', 'bank_name', 'account_number']);
+        $data = $request->only(['store_name', 'store_description', 'store_address', 'bank_name', 'account_number']);
 
         if ($request->hasFile('store_image')) {
             if ($seller->store_image) {
