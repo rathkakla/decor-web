@@ -130,7 +130,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Informasi Rekening Bank</h3>
-                        <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                        <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6 h-full">
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Bank Name</label>
                                 <input type="text" name="bank_name" value="{{ $seller->bank_name }}" placeholder="e.g. BCA, Mandiri, BNI" class="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-3 text-xs font-bold text-gray-800 transition-all">
@@ -138,6 +138,30 @@
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Account Number</label>
                                 <input type="text" name="account_number" value="{{ $seller->account_number }}" placeholder="e.g. 8820xxxxxx" class="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-3 text-xs font-bold text-gray-800 transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Keamanan Akun</h3>
+                        <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6 h-full">
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Current Password</label>
+                                <input type="password" name="current_password" class="w-full bg-gray-50/50 @error('current_password') border-red-500 @else border-gray-100 @enderror border rounded-xl p-3 text-xs font-bold text-gray-800 transition-all" placeholder="Masukkan password saat ini">
+                                @error('current_password')
+                                    <p class="text-red-500 text-[10px] font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">New Password</label>
+                                <input type="password" name="new_password" class="w-full bg-gray-50/50 @error('new_password') border-red-500 @else border-gray-100 @enderror border rounded-xl p-3 text-xs font-bold text-gray-800 transition-all" placeholder="Masukkan password baru">
+                                @error('new_password')
+                                    <p class="text-red-500 text-[10px] font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Confirm New Password</label>
+                                <input type="password" name="new_password_confirmation" class="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-3 text-xs font-bold text-gray-800 transition-all" placeholder="Konfirmasi password baru">
                             </div>
                         </div>
                     </div>

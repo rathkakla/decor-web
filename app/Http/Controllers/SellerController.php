@@ -696,6 +696,11 @@ class SellerController extends Controller
             'account_number' => 'nullable|string|max:50',
             'store_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
             'store_banner' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'current_password' => 'nullable|string',
+            'new_password' => 'nullable|string|min:8|confirmed',
+        ], [
+            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'new_password.min' => 'Password baru minimal 8 karakter.',
         ]);
 
         $data = $request->only(['store_name', 'store_description', 'store_address', 'bank_name', 'account_number']);
@@ -716,7 +721,23 @@ class SellerController extends Controller
 
         $seller->update($data);
 
-        return back()->with('success', 'Pengaturan toko berhasil diperbarui!');
+        $successMessage = 'Pengaturan toko berhasil diperbarui!';
+
+        if ($request->filled('current_password')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Password saat ini salah.']);
+            }
+            if (!$request->filled('new_password')) {
+                return back()->withErrors(['new_password' => 'Password baru harus diisi.']);
+            }
+            
+            $user->update(['password' => \Illuminate\Support\Facades\Hash::make($request->new_password)]);
+            $successMessage = 'Pengaturan toko dan password berhasil diperbarui!';
+        } elseif ($request->filled('new_password')) {
+            return back()->withErrors(['current_password' => 'Password saat ini harus diisi untuk mengubah password.']);
+        }
+
+        return back()->with('success', $successMessage);
     }
 
     // ==========================================
