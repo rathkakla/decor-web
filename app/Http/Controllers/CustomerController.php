@@ -54,9 +54,13 @@ class CustomerController extends Controller
             if ($customer) {
                 $existingFreeChat = \App\Models\FreeConsultation::where('customer_id', $customer->id)
                     ->where('designer_id', $id)
-                    ->exists();
+                    ->first();
                 
-                if (!$existingFreeChat) {
+                if ($existingFreeChat) {
+                    if ($existingFreeChat->is_completed || ($existingFreeChat->expires_at && $existingFreeChat->expires_at->isPast())) {
+                        $canFreeChat = false;
+                    }
+                } else {
                     $totalFreeUsed = \App\Models\FreeConsultation::where('customer_id', $customer->id)->count();
                     if ($totalFreeUsed >= 3) {
                         $canFreeChat = false;
