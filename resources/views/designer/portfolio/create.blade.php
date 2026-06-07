@@ -99,8 +99,8 @@
                     
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Project Title <span class="text-red-500">*</span></label>
-                        <input type="text" name="title" value="{{ old('title') }}" placeholder="e.g., Modern Scandinavian Living Room" required class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
-                        @error('title') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
+                        <input type="text" name="title" value="{{ old('title') }}" placeholder="e.g., Modern Scandinavian Living Room" class="w-full bg-gray-50 @error('title') border border-red-500 @else border-none @enderror rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none">
+                        @error('title') <p class="text-[10px] text-red-500 font-bold mt-2 ml-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> Judul portfolio tidak boleh kosong.</p> @enderror
                     </div>
 
                     <div class="grid grid-cols-2 gap-6">
@@ -133,8 +133,8 @@
 
                     <div>
                         <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-2">Project Description <span class="text-red-500">*</span></label>
-                        <textarea name="description" rows="4" placeholder="Describe the concept and story behind this masterpiece..." required class="w-full bg-gray-50 border-none rounded-3xl py-5 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none resize-none custom-scroll">{{ old('description') }}</textarea>
-                        @error('description') <p class="text-[9px] text-red-500 font-bold mt-2 ml-2">{{ $message }}</p> @enderror
+                        <textarea name="description" rows="4" placeholder="Describe the concept and story behind this masterpiece..." class="w-full bg-gray-50 @error('description') border border-red-500 @else border-none @enderror rounded-3xl py-5 px-6 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none resize-none custom-scroll">{{ old('description') }}</textarea>
+                        @error('description') <p class="text-[10px] text-red-500 font-bold mt-2 ml-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> Deskripsi portfolio tidak boleh kosong.</p> @enderror
                     </div>
 
                     <div class="pt-6 border-t border-gray-50 flex items-center justify-end space-x-4">
