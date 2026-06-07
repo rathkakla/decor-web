@@ -27,6 +27,18 @@
 
         <div class="p-10 space-y-8 flex-1">
             
+            @if(session('success'))
+                <div class="bg-green-50 text-green-600 p-4 rounded-xl text-sm font-bold border border-green-100 flex items-center shadow-sm">
+                    <i class="fa-solid fa-circle-check mr-3 text-lg"></i> {{ session('success') }}
+                </div>
+            @endif
+            @if($errors->any())
+                <div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100 flex items-center shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i> 
+                    Balasan ulasan gagal dikirim: Pastikan kolom balasan tidak kosong dan tidak terlalu panjang.
+                </div>
+            @endif
+
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-4xl font-extrabold text-gray-800 tracking-tight">Reviews & Ratings</h2>
