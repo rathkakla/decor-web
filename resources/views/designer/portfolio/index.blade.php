@@ -205,6 +205,14 @@
                 </div>
                 @endforelse
             </div>
+
+            <!-- Pesan Tidak Ditemukan (Search) -->
+            <div id="no-result-msg" class="hidden py-20 text-center w-full">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-magnifying-glass text-gray-300 text-2xl"></i>
+                </div>
+                <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Portofolio tidak ditemukan.</p>
+            </div>
         </div>
 
         <footer class="p-8 border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white mt-auto text-center">
@@ -304,15 +312,26 @@
             const input = document.getElementById("portfolioSearch");
             const filter = input.value.toUpperCase();
             const cards = document.querySelectorAll('.portfolio-card');
+            let visibleCount = 0;
 
             cards.forEach(card => {
                 const title = card.querySelector('h4').innerText;
                 if (title.toUpperCase().indexOf(filter) > -1) {
                     card.classList.remove('hidden');
+                    visibleCount++;
                 } else {
                     card.classList.add('hidden');
                 }
             });
+
+            const noResultMsg = document.getElementById('no-result-msg');
+            if (cards.length > 0) {
+                if (visibleCount === 0) {
+                    noResultMsg.classList.remove('hidden');
+                } else {
+                    noResultMsg.classList.add('hidden');
+                }
+            }
         }
 
         function openDeleteModal(id) {
