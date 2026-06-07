@@ -661,7 +661,7 @@ class DesignerController extends Controller
         $designer = Designer::where('user_id', Auth::id())->firstOrFail();
 
         $request->validate([
-            'studio_name' => 'nullable|string|max:150',
+            'studio_name' => 'required|string|max:150',
             'specialty' => 'nullable|string|max:100',
             'bio' => 'nullable|string',
             'education' => 'nullable|string',
@@ -671,6 +671,8 @@ class DesignerController extends Controller
             'is_open' => 'nullable',
             'instagram_url' => 'nullable|url|max:255',
             'linkedin_url' => 'nullable|url|max:255',
+        ], [
+            'studio_name.required' => 'Nama studio tidak boleh kosong.',
         ]);
 
         $designer->studio_name = $request->studio_name;

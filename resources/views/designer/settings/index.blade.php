@@ -112,9 +112,9 @@
                                 <h3 class="text-xs font-black uppercase tracking-widest text-gray-300 italic leading-none">Studio Identity</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-3">
-                                        <label class="text-[9px] font-black uppercase text-gray-400 ml-2">Display Name</label>
-                                        <input type="text" name="studio_name" value="{{ old('studio_name', $designer->studio_name) }}" class="w-full bg-gray-50 border-none rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/10">
-                                        @error('studio_name') <p class="text-[9px] text-red-500 font-bold ml-2">{{ $message }}</p> @enderror
+                                        <label class="text-[9px] font-black uppercase text-gray-400 ml-2">Display Name <span class="text-red-500">*</span></label>
+                                        <input type="text" name="studio_name" value="{{ old('studio_name', $designer->studio_name) }}" class="w-full bg-gray-50 @error('studio_name') border border-red-500 @else border-none @enderror rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/10">
+                                        @error('studio_name') <p class="text-[10px] text-red-500 font-bold ml-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}</p> @enderror
                                     </div>
                                     <div class="space-y-3">
                                         <label class="text-[9px] font-black uppercase text-gray-400 ml-2">Specialization</label>
