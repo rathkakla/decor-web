@@ -22,6 +22,9 @@ class Designer extends Model
         'is_open',
         'instagram_url',
         'linkedin_url',
+        'bank_name',
+        'account_number',
+        'digital_signature',
         'status',
         'rejection_reason',
     ];

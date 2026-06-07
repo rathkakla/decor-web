@@ -656,6 +656,37 @@ class DesignerController extends Controller
         return view('designer.settings.index', compact('designer'));
     }
 
+    public function settingsBank()
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+        return view('designer.settings.bank', compact('designer'));
+    }
+
+    public function updateBankSettings(Request $request)
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+
+        $request->validate([
+            'bank_name' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:50',
+            'digital_signature' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $designer->bank_name = $request->bank_name;
+        $designer->account_number = $request->account_number;
+
+        if ($request->hasFile('digital_signature')) {
+            if ($designer->digital_signature) {
+                Storage::disk('public')->delete($designer->digital_signature);
+            }
+            $designer->digital_signature = $request->file('digital_signature')->store('designers/signatures', 'public');
+        }
+
+        $designer->save();
+
+        return back()->with('success', 'Bank & Signature settings updated successfully!');
+    }
+
     public function updateSettings(Request $request)
     {
         $designer = Designer::where('user_id', Auth::id())->firstOrFail();

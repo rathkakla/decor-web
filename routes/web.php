@@ -283,9 +283,8 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
     // Settings (Folder: settings)
     Route::get('/settings', [App\Http\Controllers\DesignerController::class, 'settings'])->name('settings');
     Route::post('/settings/update', [App\Http\Controllers\DesignerController::class, 'updateSettings'])->name('settings.update');
-    Route::get('/settings/bank', function () {
-        return view('designer.settings.bank');
-    })->name('settings.bank');
+    Route::get('/settings/bank', [App\Http\Controllers\DesignerController::class, 'settingsBank'])->name('settings.bank');
+    Route::post('/settings/bank/update', [App\Http\Controllers\DesignerController::class, 'updateBankSettings'])->name('settings.bank.update');
 
     // Support (Folder: Support)
     Route::get('/support', function () {
