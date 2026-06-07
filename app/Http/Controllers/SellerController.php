@@ -102,6 +102,15 @@ class SellerController extends Controller
 
     public function reportIndex(Request $request)
     {
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ], [
+                'end_date.after_or_equal' => 'Periode tidak valid: Sampai Tanggal tidak boleh mendahului Dari Tanggal.',
+            ]);
+        }
+
         $seller = Seller::where('user_id', Auth::id())->first();
 
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
@@ -135,6 +144,15 @@ class SellerController extends Controller
 
     public function downloadReport(Request $request)
     {
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ], [
+                'end_date.after_or_equal' => 'Periode tidak valid: Sampai Tanggal tidak boleh mendahului Dari Tanggal.',
+            ]);
+        }
+
         $seller = Seller::where('user_id', Auth::id())->first();
 
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());

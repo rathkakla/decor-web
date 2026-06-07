@@ -26,6 +26,12 @@
         @include('seller.partials.header', ['title' => 'Business Analytics', 'extra_action' => $extraAction])
 
         <div class="p-8 space-y-8 flex-1">
+            @if($errors->any())
+                <div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold border border-red-100 flex items-center shadow-sm">
+                    <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i> 
+                    {{ $errors->first() }}
+                </div>
+            @endif
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-3xl font-bold">Laporan Penjualan</h2>
