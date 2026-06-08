@@ -300,7 +300,8 @@ class SellerController extends Controller
     {
         $categories = Category::all();
         $styles = ['Minimalist', 'Modern', 'Industrial', 'Japandi', 'Classic', 'Bohemian'];
-        return view('seller.products.create', compact('categories', 'styles'));
+        $materials = ['Oak', 'Walnut', 'Fabric', 'Leather', 'Stone'];
+        return view('seller.products.create', compact('categories', 'styles', 'materials'));
     }
 
     // STORE: Simpan Tambah
@@ -356,8 +357,9 @@ class SellerController extends Controller
 
         $categories = Category::all();
         $styles = ['Minimalist', 'Modern', 'Industrial', 'Japandi', 'Classic', 'Bohemian'];
+        $materials = ['Oak', 'Walnut', 'Fabric', 'Leather', 'Stone'];
 
-        return view('seller.products.edit', compact('product', 'categories', 'styles'));
+        return view('seller.products.edit', compact('product', 'categories', 'styles', 'materials'));
     }
 
     // UPDATE: Simpan Ubah

@@ -88,7 +88,12 @@
 
                             <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Material</label>
-                                <input type="text" name="material" required placeholder="e.g. Solid Teak Wood, Leather" class="w-full bg-gray-50 rounded-lg p-3 text-sm border-transparent border-2 transition-all">
+                                <select name="material" required class="w-full bg-gray-50 rounded-lg p-3 text-sm border-transparent border-2">
+                                    <option value="" disabled selected>Pilih Material</option>
+                                    @foreach($materials as $material)
+                                        <option value="{{ $material }}">{{ $material }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="space-y-2">
