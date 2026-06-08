@@ -320,6 +320,7 @@ class SellerController extends Controller
             'seller_id' => $seller->id,
             'category_id' => $request->category_id,
             'style' => $request->style,
+            'material' => $request->material,
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
@@ -379,6 +380,7 @@ class SellerController extends Controller
         $product->update([
             'category_id' => $request->category_id,
             'style' => $request->style,
+            'material' => $request->material,
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,

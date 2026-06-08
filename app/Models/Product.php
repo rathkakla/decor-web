@@ -13,7 +13,7 @@ class Product extends Model
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
 
-    protected $fillable = ['seller_id', 'category_id', 'name', 'description', 'price', 'stock', 'style', 'status'];
+    protected $fillable = ['seller_id', 'category_id', 'name', 'description', 'price', 'stock', 'style', 'material', 'status'];
 
     // Relasi ke Gambar (Penting untuk tampil di Catalog & Cart)
     public function images() {

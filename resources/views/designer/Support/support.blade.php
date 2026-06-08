@@ -98,12 +98,14 @@
                     <form action="{{ route('designer.support.submit') }}" method="POST" class="space-y-4">
                         @csrf
                         <div>
-                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Subjek</label>
-                            <input type="text" name="subject" required class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Contoh: Masalah Pembayaran">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Subjek <span class="text-red-500">*</span></label>
+                            <input type="text" name="subject" required value="{{ old('subject') }}" class="w-full bg-gray-50 @error('subject') border border-red-500 @else border-none @enderror rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Contoh: Masalah Pembayaran">
+                            @error('subject') <p class="text-[10px] text-red-500 font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Pesan Detail</label>
-                            <textarea name="message" required rows="4" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Jelaskan kendala Anda..."></textarea>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400">Pesan Detail <span class="text-red-500">*</span></label>
+                            <textarea name="message" rows="4" class="w-full bg-gray-50 @error('message') border border-red-500 @else border-none @enderror rounded-xl py-3 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all mt-1" placeholder="Jelaskan kendala Anda...">{{ old('message') }}</textarea>
+                            @error('message') <p class="text-[10px] text-red-500 font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> {{ $message }}</p> @enderror
                         </div>
                         <button type="submit" class="bg-primary text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20">
                             Kirim Sekarang

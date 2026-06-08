@@ -868,6 +868,8 @@ class DesignerController extends Controller
         $request->validate([
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
+        ], [
+            'message.required' => 'Pesan detail komplain tidak boleh dikosongkan.'
         ]);
 
         Support::create([
@@ -886,6 +888,11 @@ class DesignerController extends Controller
         
         $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        if ($startDate > $endDate) {
+            return redirect()->route('designer.reports')
+                ->with('warning', 'Peringatan: Start Date tidak boleh mendahului/melebihi End Date. Sistem telah mereset filter ke 30 hari terakhir.');
+        }
 
         $consultations = \App\Models\Consultation::with(['quotes' => function($q) {
                 $q->where('status', 'accepted');
@@ -942,6 +949,11 @@ class DesignerController extends Controller
         
         $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        if ($startDate > $endDate) {
+            return redirect()->route('designer.reports')
+                ->with('warning', 'Peringatan: Start Date tidak boleh mendahului/melebihi End Date. Sistem telah mereset filter ke 30 hari terakhir.');
+        }
 
         $consultations = \App\Models\Consultation::with(['quotes' => function($q) {
                 $q->where('status', 'accepted');

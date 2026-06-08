@@ -279,6 +279,11 @@
                             Style</span>
                         <p class="text-[13px] text-gray-700 leading-relaxed">{{ $product->style ?? '-' }}</p>
                     </div>
+                    <div class="flex gap-4">
+                        <span
+                            class="text-[10px] font-black uppercase tracking-wider text-gray-400 w-24 shrink-0 pt-0.5">Material</span>
+                        <p class="text-[13px] text-gray-700 leading-relaxed">{{ $product->material ?? '-' }}</p>
+                    </div>
                 </div>
 
                 <div class="border border-gray-100 rounded-2xl p-5 space-y-4">

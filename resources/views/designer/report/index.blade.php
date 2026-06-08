@@ -63,6 +63,13 @@
                 </a>
             </form>
 
+            @if(session('warning'))
+                <div class="bg-amber-50 border border-amber-100 text-amber-600 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm flex items-center">
+                    <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i>
+                    {{ session('warning') }}
+                </div>
+            @endif
+
             <!-- ANALYTICS SUMMARY -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">

@@ -87,6 +87,11 @@
                             </div>
 
                             <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Material</label>
+                                <input type="text" name="material" required placeholder="e.g. Solid Teak Wood, Leather" class="w-full bg-gray-50 rounded-lg p-3 text-sm border-transparent border-2 transition-all">
+                            </div>
+
+                            <div class="space-y-2">
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price (IDR)</label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">Rp</span>
