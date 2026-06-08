@@ -43,7 +43,9 @@
         <div class="flex-1 flex overflow-hidden">
             <aside class="w-80 bg-white border-r border-gray-100 flex flex-col flex-shrink-0">
                 <div class="p-6 border-b border-gray-50">
-                    <input type="text" placeholder="Search conversations..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-1 focus:ring-primary/20">
+                    <form action="{{ url()->current() }}" method="GET">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search conversations..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-1 focus:ring-primary/20" onchange="this.form.submit()">
+                    </form>
                 </div>
                 <div class="flex-1 overflow-y-auto">
                     @forelse($conversations as $conv)

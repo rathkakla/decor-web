@@ -666,9 +666,10 @@ class DesignerController extends Controller
         return back()->with('success', 'Balasan Anda berhasil dikirim!');
     }
 
-    public function chatIndex($userId = null)
+    public function chatIndex(Request $request, $userId = null)
     {
         $designerId = Auth::id();
+        $search = $request->input('search');
 
         // Get unique users who have messaged this designer
         $conversations = \App\Models\Chat::where('receiver_id', $designerId)
@@ -681,6 +682,12 @@ class DesignerController extends Controller
             })
             ->unique('id')
             ->values();
+
+        if ($search) {
+            $conversations = $conversations->filter(function ($user) use ($search) {
+                return $user && stripos($user->full_name, $search) !== false;
+            })->values();
+        }
 
         $activeChat = null;
         $messages = [];
