@@ -186,6 +186,11 @@
 
                         <div class="pt-6 border-t border-gray-50 flex justify-end items-center">
                             <div class="flex items-center space-x-3">
+                                @if(is_null($portfolio->consultation_id))
+                                <a href="{{ route('designer.portfolio.edit', $portfolio->id) }}" class="w-9 h-9 flex items-center justify-center bg-amber-50 border border-amber-100 rounded-xl text-amber-500 hover:bg-amber-500 hover:text-white transition-all" title="Edit Portofolio">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </a>
+                                @endif
                                 <button onclick="openPortfolioModalFromCard({{ $portfolio->id }})" class="w-9 h-9 flex items-center justify-center bg-primary/5 border border-primary/10 rounded-xl text-primary hover:bg-primary hover:text-white transition-all" title="Lihat Detail">
                                     <i class="fa-solid fa-eye text-xs"></i>
                                 </button>

@@ -408,11 +408,12 @@
 
                                 <!-- Amount -->
                                 <div class="space-y-2 pt-2 border-t border-gray-100">
-                                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Project Fee / Design Fee (IDR)</label>
+                                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Project Fee / Design Fee (IDR) <span class="text-red-500">*</span></label>
                                     <div class="relative">
                                         <span class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Rp</span>
-                                        <input type="number" name="amount" required placeholder="0" min="0" class="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-14 pr-6 py-4 text-[13px] font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all">
+                                        <input type="number" name="amount" id="amount-input" required placeholder="0" min="0" class="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-14 pr-6 py-4 text-[13px] font-bold outline-none focus:ring-2 focus:ring-primary/10 transition-all">
                                     </div>
+                                    <p id="amount-warning" class="text-[10px] text-red-500 font-bold hidden"><i class="fa-solid fa-circle-exclamation mr-1"></i> Peringatan: Project Fee tidak boleh dikosongkan. Harap isi nominal fee proyek ini.</p>
                                 </div>
 
                                 <!-- Notes -->
@@ -441,6 +442,38 @@
                             modal.classList.add('hidden');
                         }
                     }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const rabForm = document.getElementById('rabForm');
+                        if (rabForm) {
+                            const amountInput = document.getElementById('amount-input');
+                            const amountWarning = document.getElementById('amount-warning');
+
+                            amountInput.addEventListener('invalid', function(e) {
+                                e.preventDefault();
+                                amountWarning.classList.remove('hidden');
+                                amountInput.classList.add('border-red-500', 'bg-red-50');
+                                amountInput.classList.remove('border-gray-100', 'bg-gray-50');
+                            });
+
+                            amountInput.addEventListener('input', function() {
+                                if (this.value !== '') {
+                                    amountWarning.classList.add('hidden');
+                                    amountInput.classList.remove('border-red-500', 'bg-red-50');
+                                    amountInput.classList.add('border-gray-100', 'bg-gray-50');
+                                }
+                            });
+
+                            rabForm.addEventListener('submit', function(e) {
+                                if (!amountInput.value) {
+                                    e.preventDefault();
+                                    amountWarning.classList.remove('hidden');
+                                    amountInput.classList.add('border-red-500', 'bg-red-50');
+                                    amountInput.classList.remove('border-gray-100', 'bg-gray-50');
+                                }
+                            });
+                        }
+                    });
                 </script>
 
                 <!-- Action Footer: Flying Chat Input -->

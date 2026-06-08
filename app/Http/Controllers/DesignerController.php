@@ -95,16 +95,25 @@ class DesignerController extends Controller
         ));
     }
 
-    public function consultationIndex()
+    public function consultationIndex(Request $request)
     {
         $user = Auth::user();
         $designer = Designer::where('user_id', $user->id)->firstOrFail();
 
-        // Get consultations
-        $consultations = Consultation::where('designer_id', $designer->id)
-            ->with(['customer.user'])
-            ->latest()
-            ->get();
+        $query = Consultation::where('designer_id', $designer->id)
+            ->with(['customer.user']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhereHas('customer.user', function ($q2) use ($search) {
+                      $q2->where('full_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $consultations = $query->latest()->get();
 
         return view('designer.consultation.index', compact('consultations'));
     }
@@ -481,6 +490,59 @@ class DesignerController extends Controller
         ]);
 
         return redirect()->route('designer.portfolio.index')->with('success', 'Portfolio berhasil ditambahkan!');
+    }
+
+    public function portfolioEdit($id)
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+        $portfolio = DesignerPortfolio::where('id', $id)
+            ->where('designer_id', $designer->id)
+            ->whereNull('consultation_id')
+            ->firstOrFail();
+
+        return view('designer.portfolio.edit', compact('portfolio'));
+    }
+
+    public function portfolioUpdate(Request $request, $id)
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+        $portfolio = DesignerPortfolio::where('id', $id)
+            ->where('designer_id', $designer->id)
+            ->whereNull('consultation_id')
+            ->firstOrFail();
+
+        $request->validate([
+            'title' => 'required|string|max:150',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:102400',
+            'description' => 'nullable|string',
+            'category' => 'nullable|string',
+            'budget' => 'required|string',
+            'area' => 'nullable|string',
+            'duration' => 'nullable|string',
+            'is_360' => 'nullable',
+        ], [
+            'budget.required' => 'Harga wajib diisi saat edit portofolio manual.'
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($portfolio->image_url) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($portfolio->image_url);
+            }
+            $portfolio->image_url = $request->file('image')->store('designers/portfolios', 'public');
+        }
+
+        $portfolio->update([
+            'title' => $request->title,
+            'image_url' => $portfolio->image_url,
+            'is_360' => $request->has('is_360'),
+            'description' => $request->description,
+            'category' => $request->category,
+            'budget' => $request->budget,
+            'area' => $request->area,
+            'duration' => $request->duration,
+        ]);
+
+        return redirect()->route('designer.portfolio.index')->with('success', 'Portfolio berhasil diupdate!');
     }
 
     public function portfolioDestroy($id)

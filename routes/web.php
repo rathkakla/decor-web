@@ -250,6 +250,8 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
     Route::get('/portfolio', [App\Http\Controllers\DesignerController::class, 'portfolioIndex'])->name('portfolio.index');
     Route::get('/portfolio/create', [App\Http\Controllers\DesignerController::class, 'portfolioCreate'])->name('portfolio.create');
     Route::post('/portfolio/store', [App\Http\Controllers\DesignerController::class, 'portfolioStore'])->name('portfolio.store');
+    Route::get('/portfolio/{id}/edit', [App\Http\Controllers\DesignerController::class, 'portfolioEdit'])->name('portfolio.edit');
+    Route::put('/portfolio/{id}/update', [App\Http\Controllers\DesignerController::class, 'portfolioUpdate'])->name('portfolio.update');
     Route::delete('/portfolio/{id}/destroy', [App\Http\Controllers\DesignerController::class, 'portfolioDestroy'])->name('portfolio.destroy');
     Route::post('/portfolio/{id}/update-area', [App\Http\Controllers\DesignerController::class, 'portfolioUpdateArea'])->name('portfolio.update-area');
 

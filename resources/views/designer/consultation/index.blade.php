@@ -47,8 +47,13 @@
                     <p class="text-xs text-gray-400 mt-2 font-medium italic">Your curated archive of intellectual luxury projects.</p>
                 </div>
                 <div class="relative w-full md:w-72">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                    <input type="text" placeholder="Search..." class="w-full bg-white border border-gray-100 rounded-2xl py-3.5 pl-11 pr-6 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary/10 shadow-sm transition-all">
+                    <form action="{{ route('designer.consultations.index') }}" method="GET" class="w-full">
+                        @if(request('tab'))
+                            <input type="hidden" name="tab" value="{{ request('tab') }}">
+                        @endif
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..." class="w-full bg-white border border-gray-100 rounded-2xl py-3.5 pl-11 pr-6 text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-primary/10 shadow-sm transition-all">
+                    </form>
                 </div>
             </div>
 
@@ -68,21 +73,21 @@
             @endphp
 
             <div class="flex items-center space-x-4 border-b border-gray-100 pb-4">
-                <a href="{{ route('designer.consultations.index', ['tab' => 'needs_action']) }}" 
+                <a href="{{ route('designer.consultations.index', ['tab' => 'needs_action', 'search' => request('search')]) }}" 
                    class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'needs_action' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     Needs Action
                     @if($needsActionCount > 0)
                         <span class="{{ $tab == 'needs_action' ? 'bg-white text-primary' : 'bg-primary text-white' }} px-2 py-0.5 rounded-full text-[9px]">{{ $needsActionCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('designer.consultations.index', ['tab' => 'on_progress']) }}" 
+                <a href="{{ route('designer.consultations.index', ['tab' => 'on_progress', 'search' => request('search')]) }}" 
                    class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'on_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     On-Progress
                     @if($onProgressCount > 0)
                         <span class="{{ $tab == 'on_progress' ? 'bg-white text-primary' : 'bg-primary text-white' }} px-2 py-0.5 rounded-full text-[9px]">{{ $onProgressCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('designer.consultations.index', ['tab' => 'completed']) }}" 
+                <a href="{{ route('designer.consultations.index', ['tab' => 'completed', 'search' => request('search')]) }}" 
                    class="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 {{ $tab == 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-gray-400 border border-gray-50' }}">
                     Completed
                     @if($completedCount > 0)
@@ -137,7 +142,13 @@
                 @empty
                 <div class="col-span-full py-20 text-center">
                     <i class="fa-solid fa-folder-open text-6xl text-gray-100 mb-4"></i>
-                    <p class="text-xs font-black text-gray-300 uppercase tracking-widest">No consultations found in this category.</p>
+                    <p class="text-xs font-black text-gray-300 uppercase tracking-widest">
+                        @if(request('search'))
+                            Pencarian untuk "{{ request('search') }}" tidak ditemukan.
+                        @else
+                            No consultations found in this category.
+                        @endif
+                    </p>
                 </div>
                 @endforelse
             </div>
