@@ -773,8 +773,10 @@ class DesignerController extends Controller
 
         $request->validate([
             'bank_name' => 'nullable|string|max:100',
-            'account_number' => 'nullable|string|max:50',
+            'account_number' => 'required|string|max:50',
             'digital_signature' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'account_number.required' => 'Nomor rekening wajib diisi.',
         ]);
 
         $designer->bank_name = $request->bank_name;

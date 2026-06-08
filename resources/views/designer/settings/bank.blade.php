@@ -57,6 +57,14 @@
                     </div>
                     @endif
 
+                    @if($errors->any())
+                    <div class="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-sm space-y-1">
+                        @foreach($errors->all() as $error)
+                            <p>{{ $error }}</p>
+                        @endforeach
+                    </div>
+                    @endif
+
                     <!-- TAB NAVIGATION -->
                     <div class="flex border-b border-gray-200">
                         <a href="{{ route('designer.settings') }}" class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-all">Studio Info</a>
