@@ -132,14 +132,23 @@
             </form>
         </div>
     @elseif($order->status == 'completed')
-        @if(!$order->productReturn)
-            <a href="{{ route('customer.return-request', ['order_id' => $order->id]) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
-                Return Request
-            </a>
+        @if(!$order->has_reviewed)
+            @if(!$order->productReturn)
+                <a href="{{ route('customer.return-request', ['order_id' => $order->id]) }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
+                    Return Request
+                </a>
+            @else
+                <a href="{{ route('customer.return-request') }}" class="border border-primary text-primary px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-primary hover:text-white transition-colors shadow-sm inline-block">
+                    View Return Status
+                </a>
+            @endif
         @else
-            <a href="{{ route('customer.return-request') }}" class="border border-primary text-primary px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-primary hover:text-white transition-colors shadow-sm inline-block">
-                View Return Status
-            </a>
+            <form action="{{ route('customer.orders.buy-again', $order->id) }}" method="POST" class="inline-block">
+                @csrf
+                <button type="submit" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm inline-block">
+                    Buy Again
+                </button>
+            </form>
         @endif
     @else
         <button class="border border-gray-200 text-gray-500 px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-gray-50 transition-colors shadow-sm">
@@ -232,13 +241,15 @@
                                         
                                         @if($order->status == 'completed')
                                         <div class="mt-2 flex gap-2">
-                                            <a href="{{ route('customer.review', $item->product_id) }}" class="inline-block text-[10px] font-bold text-primary uppercase tracking-widest border border-primary px-3 py-1 rounded hover:bg-primary hover:text-white transition-colors">
-                                                Write a Review
-                                            </a>
-                                            @if(!$order->productReturn)
-                                                <a href="{{ route('customer.return-request', $order->id) }}" class="inline-block text-[10px] font-bold text-gray-500 uppercase tracking-widest border border-gray-300 px-3 py-1 rounded hover:bg-gray-100 transition-colors">
-                                                    Return Request
+                                            @if(!$order->has_reviewed)
+                                                <a href="{{ route('customer.review', ['id' => $item->product_id, 'order_id' => $order->id]) }}" class="inline-block text-[10px] font-bold text-primary uppercase tracking-widest border border-primary px-3 py-1 rounded hover:bg-primary hover:text-white transition-colors">
+                                                    Write a Review
                                                 </a>
+                                                @if(!$order->productReturn)
+                                                    <a href="{{ route('customer.return-request', $order->id) }}" class="inline-block text-[10px] font-bold text-gray-500 uppercase tracking-widest border border-gray-300 px-3 py-1 rounded hover:bg-gray-100 transition-colors">
+                                                        Return Request
+                                                    </a>
+                                                @endif
                                             @endif
                                         </div>
                                         @endif
@@ -402,7 +413,7 @@
                                     </div>
 
                                     <!-- Comment Textarea -->
-                                    <textarea name="reviews[{{ $index }}][comment]" placeholder="Tulis komentar ulasan Anda (opsional)..." class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs outline-none focus:border-primary focus:bg-white transition-all resize-none h-20 placeholder:text-gray-400"></textarea>
+                                    <textarea name="reviews[{{ $index }}][comment]" oninput="validateForm()" placeholder="Tulis komentar ulasan Anda..." class="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs outline-none focus:border-primary focus:bg-white transition-all resize-none h-20 placeholder:text-gray-400"></textarea>
                                 </div>
                             @endforeach
                         </div>
@@ -496,9 +507,17 @@
                         }
                     });
 
+                    const commentInputs = document.querySelectorAll('textarea[name*="[comment]"]');
+                    let allCommented = true;
+                    commentInputs.forEach(input => {
+                        if (input.value.trim() === '') {
+                            allCommented = false;
+                        }
+                    });
+
                     const submitBtn = document.getElementById('submitReviewsBtn');
                     if (submitBtn) {
-                        submitBtn.disabled = !allRated;
+                        submitBtn.disabled = !(allRated && allCommented);
                     }
                 }
             </script>

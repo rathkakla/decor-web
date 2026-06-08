@@ -627,6 +627,16 @@ class CustomerController extends Controller
             'rating' => $request->rating,
             'comment' => $request->comment
         ]);
+
+        if ($request->has('order_id')) {
+            $order = \App\Models\Order::where('id', $request->order_id)
+                ->where('customer_id', $customer->id)
+                ->first();
+            if ($order) {
+                $order->update(['has_reviewed' => true]);
+            }
+        }
+
         return redirect()->route('customer.product-detail', $id)->with('success', 'Thank you for your review!');
     }
 
@@ -833,6 +843,14 @@ class CustomerController extends Controller
         $user = Auth::user();
         $customer = \App\Models\Customer::where('user_id', $user->id)->first();
 
+        // Auto-complete expired chat consultations
+        \App\Models\Consultation::where('customer_id', $customer->id)
+            ->where('consultation_type', 'chat_consultation')
+            ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
+            ->whereNotNull('chat_expires_at')
+            ->where('chat_expires_at', '<', now())
+            ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
+
         $consultations = \App\Models\Consultation::with('designer.user')
             ->where('customer_id', $customer->id)
             ->latest()
@@ -855,6 +873,14 @@ class CustomerController extends Controller
     {
         $user = Auth::user();
         $customer = \App\Models\Customer::where('user_id', $user->id)->first();
+
+        // Auto-complete expired chat consultations
+        \App\Models\Consultation::where('customer_id', $customer->id)
+            ->where('consultation_type', 'chat_consultation')
+            ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
+            ->whereNotNull('chat_expires_at')
+            ->where('chat_expires_at', '<', now())
+            ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $tab = $request->query('tab', 'semua');
         $query = \App\Models\Consultation::with(['designer.user', 'messages', 'quotes', 'attachments'])
@@ -1283,7 +1309,42 @@ class CustomerController extends Controller
             ]);
         }
 
+        $order->update(['has_reviewed' => true]);
+
         return redirect()->route('customer.orders')->with('success', 'Ulasan Anda berhasil dikirim! Terima kasih.');
+    }
+
+    public function buyAgainOrder($id)
+    {
+        $user = Auth::user();
+        $customer = Customer::where('user_id', $user->id)->firstOrFail();
+        $order = Order::with('orderItems.product')->where('customer_id', $customer->id)->findOrFail($id);
+        
+        $cart = Cart::firstOrCreate(['customer_id' => $customer->id]);
+        
+        $added = false;
+        foreach ($order->orderItems as $item) {
+            if ($item->product && $item->product->stock > 0) {
+                $cartItem = CartItem::where('cart_id', $cart->id)->where('product_id', $item->product_id)->first();
+                if ($cartItem) {
+                    $cartItem->increment('quantity', 1);
+                } else {
+                    CartItem::create([
+                        'cart_id' => $cart->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => 1,
+                        'is_selected' => true
+                    ]);
+                }
+                $added = true;
+            }
+        }
+        
+        if ($added) {
+            return redirect()->route('customer.cart')->with('success', 'Produk dari pesanan ini telah ditambahkan ke keranjang!');
+        } else {
+            return back()->with('error', 'Semua produk dalam pesanan ini sedang habis atau tidak tersedia.');
+        }
     }
 
     public function submitConsultationReview(Request $request, $id)

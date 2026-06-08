@@ -166,6 +166,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/vouchers/apply', [CustomerController::class, 'applyVoucher'])->name('vouchers.apply');
         Route::post('/orders/{id}/complete', [CustomerController::class, 'completeOrder'])->name('orders.complete');
         Route::post('/orders/submit-reviews', [CustomerController::class, 'submitOrderReviews'])->name('orders.submit-reviews');
+        Route::post('/orders/{id}/buy-again', [CustomerController::class, 'buyAgainOrder'])->name('orders.buy-again');
         
         // Support Submission
         Route::get('/support', fn() => view('customer.support'))->name('support');

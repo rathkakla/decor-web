@@ -48,6 +48,9 @@
 
                 <form action="{{ route('customer.review.submit', $product->id) }}" method="POST">
                     @csrf
+                    @if(request('order_id'))
+                        <input type="hidden" name="order_id" value="{{ request('order_id') }}">
+                    @endif
                     <section class="mb-8">
                         <div class="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex items-center gap-6">
                             <div class="w-20 h-20 bg-white rounded-xl overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
@@ -92,12 +95,46 @@
 
                         <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
                             <a href="{{ route('customer.orders') }}" class="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-all">Cancel</a>
-                            <button type="submit" class="px-10 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all">Submit Review</button>
+                            <button type="submit" id="submitBtn" class="px-10 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all opacity-50 cursor-not-allowed" disabled>Submit Review</button>
                         </div>
                     </section>
                 </form>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const commentArea = document.querySelector('textarea[name="comment"]');
+            const submitBtn = document.getElementById('submitBtn');
+            const ratingRadios = document.querySelectorAll('input[name="rating"]');
+
+            function checkFormValidity() {
+                let ratingSelected = false;
+                for(let radio of ratingRadios) {
+                    if(radio.checked) {
+                        ratingSelected = true;
+                        break;
+                    }
+                }
+                
+                const commentFilled = commentArea.value.trim().length > 0;
+
+                if(ratingSelected && commentFilled) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            commentArea.addEventListener('input', checkFormValidity);
+            ratingRadios.forEach(r => r.addEventListener('change', checkFormValidity));
+            
+            // Initial check just in case browser retains values
+            checkFormValidity();
+        });
+    </script>
 </body>
 </html>

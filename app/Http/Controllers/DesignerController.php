@@ -16,6 +16,14 @@ class DesignerController extends Controller
     {
         $user = Auth::user();
         $designer = Designer::where('user_id', $user->id)->firstOrFail();
+
+        // Auto-complete expired chat consultations
+        \App\Models\Consultation::where('designer_id', $designer->id)
+            ->where('consultation_type', 'chat_consultation')
+            ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
+            ->whereNotNull('chat_expires_at')
+            ->where('chat_expires_at', '<', now())
+            ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
         $selectedYear = $request->get('year', date('Y'));
 
         // 1. Stats Utama
@@ -100,6 +108,14 @@ class DesignerController extends Controller
         $user = Auth::user();
         $designer = Designer::where('user_id', $user->id)->firstOrFail();
 
+        // Auto-complete expired chat consultations
+        \App\Models\Consultation::where('designer_id', $designer->id)
+            ->where('consultation_type', 'chat_consultation')
+            ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
+            ->whereNotNull('chat_expires_at')
+            ->where('chat_expires_at', '<', now())
+            ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
+
         $query = Consultation::where('designer_id', $designer->id)
             ->with(['customer.user']);
 
@@ -122,6 +138,14 @@ class DesignerController extends Controller
     {
         $user = Auth::user();
         $designer = Designer::where('user_id', $user->id)->firstOrFail();
+
+        // Auto-complete expired chat consultations
+        \App\Models\Consultation::where('designer_id', $designer->id)
+            ->where('consultation_type', 'chat_consultation')
+            ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
+            ->whereNotNull('chat_expires_at')
+            ->where('chat_expires_at', '<', now())
+            ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $consultation = Consultation::where('id', $id)
             ->where('designer_id', $designer->id)
