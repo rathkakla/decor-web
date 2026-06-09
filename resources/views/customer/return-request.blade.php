@@ -94,7 +94,7 @@
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Jenis Return</label>
                                     <div class="grid grid-cols-2 gap-0 rounded-xl p-1 bg-gray-100/80 border border-gray-200/30 w-full">
                                         <label class="cursor-pointer select-none">
-                                            <input type="radio" name="return_type" value="refund" class="sr-only peer" required onchange="toggleBankInput(this.value)">
+                                            <input type="radio" name="return_type" value="refund" class="sr-only peer" onchange="toggleBankInput(this.value)">
                                             <div class="py-3.5 text-xs font-bold rounded-lg text-gray-500 peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm hover:text-gray-900 transition-all duration-200 text-center flex items-center justify-center gap-2">
                                                 <i class="fa-solid fa-coins text-[10px]"></i> Refund
                                             </div>
@@ -106,39 +106,57 @@
                                             </div>
                                         </label>
                                     </div>
+                                    @error('return_type')
+                                        <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div id="bank_account_wrapper" class="hidden space-y-2">
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Nomor Rekening</label>
-                                    <input type="text" name="bank_account_number" placeholder="Masukkan nomor rekening Anda..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
+                                    <input type="text" name="bank_account_number" placeholder="Masukkan nomor rekening Anda..." class="w-full bg-gray-50 border {{ $errors->has('bank_account_number') ? 'border-red-500 focus:border-red-500' : 'border-gray-100 focus:border-primary' }} rounded-xl px-4 py-3 text-xs outline-none transition-all" value="{{ old('bank_account_number') }}">
+                                    @error('bank_account_number')
+                                        <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                    @enderror
                                     <p class="text-[9px] text-gray-400 italic mt-1">*Refund akan diproses dalam 3-5 hari kerja setelah return disetujui.</p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-2">
                                         <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Bukti Video (Wajib)</label>
-                                        <input type="file" name="video_proof" accept="video/*" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        <input type="file" name="video_proof" accept="video/*" class="w-full bg-gray-50 border {{ $errors->has('video_proof') ? 'border-red-500' : 'border-gray-100' }} rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        @error('video_proof')
+                                            <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Bukti Foto (Wajib)</label>
-                                        <input type="file" name="photo_proof" accept="image/*" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        <input type="file" name="photo_proof" accept="image/*" class="w-full bg-gray-50 border {{ $errors->has('photo_proof') ? 'border-red-500' : 'border-gray-100' }} rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        @error('photo_proof')
+                                            <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="space-y-2">
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Reason for Return</label>
-                                    <select name="reason" required class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs outline-none focus:border-primary transition-all">
+                                    <select name="reason" class="w-full bg-gray-50 border {{ $errors->has('reason') ? 'border-red-500 focus:border-red-500' : 'border-gray-100 focus:border-primary' }} rounded-xl px-4 py-3 text-xs outline-none transition-all">
                                         <option value="">Select a reason...</option>
-                                        <option value="Damaged upon arrival">Damaged upon arrival</option>
-                                        <option value="Different from description">Different from description</option>
-                                        <option value="Quality not as expected">Quality not as expected</option>
-                                        <option value="Changed my mind">Changed my mind</option>
+                                        <option value="Damaged upon arrival" {{ old('reason') == 'Damaged upon arrival' ? 'selected' : '' }}>Damaged upon arrival</option>
+                                        <option value="Different from description" {{ old('reason') == 'Different from description' ? 'selected' : '' }}>Different from description</option>
+                                        <option value="Quality not as expected" {{ old('reason') == 'Quality not as expected' ? 'selected' : '' }}>Quality not as expected</option>
+                                        <option value="Changed my mind" {{ old('reason') == 'Changed my mind' ? 'selected' : '' }}>Changed my mind</option>
                                     </select>
+                                    @error('reason')
+                                        <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div class="space-y-2">
                                     <label class="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Additional Notes</label>
-                                    <textarea name="notes" rows="4" placeholder="Describe the issue in detail..." class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-xs outline-none focus:border-primary transition-all resize-none"></textarea>
+                                    <textarea name="notes" rows="4" placeholder="Describe the issue in detail..." class="w-full bg-gray-50 border {{ $errors->has('notes') ? 'border-red-500 focus:border-red-500' : 'border-gray-100 focus:border-primary' }} rounded-xl px-4 py-4 text-xs outline-none transition-all resize-none">{{ old('notes') }}</textarea>
+                                    @error('notes')
+                                        <p class="text-[10px] text-red-500 font-bold mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
