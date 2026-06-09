@@ -651,6 +651,8 @@ class DesignerController extends Controller
     {
         $request->validate([
             'reply' => 'required|string|max:1000',
+        ], [
+            'reply.required' => 'Gagal dikirim! Wajib mengisi teks balasan.'
         ]);
 
         $designer = Designer::where('user_id', Auth::id())->firstOrFail();

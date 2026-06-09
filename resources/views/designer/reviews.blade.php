@@ -66,6 +66,11 @@
                     <i class="fa-solid fa-circle-xmark text-red-500"></i> {{ session('error') }}
                 </div>
             @endif
+            @if($errors->any())
+                <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center gap-3 text-sm font-bold">
+                    <i class="fa-solid fa-circle-xmark text-red-500"></i> {{ $errors->first() }}
+                </div>
+            @endif
 
             <!-- Page Title + Search/Filter -->
             <div class="flex justify-between items-end flex-wrap gap-4">
@@ -278,6 +283,9 @@
                                                   placeholder="Tulis balasan untuk {{ $customerName }}..."
                                                   class="w-full bg-white border border-gray-100 rounded-2xl p-5 text-sm font-medium text-gray-600 focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none shadow-sm"
                                                   spellcheck="false">{{ $review->designer_reply }}</textarea>
+                                        @error('reply')
+                                            <p class="text-xs text-red-500 font-bold mt-2"><i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}</p>
+                                        @enderror
                                         <div class="flex justify-between items-center mt-4">
                                             @if($review->designer_reply)
                                                 <button type="button" onclick="toggleReply('reply-{{ $review->id }}')"
