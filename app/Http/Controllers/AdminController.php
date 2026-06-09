@@ -475,4 +475,83 @@ class AdminController extends Controller
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }
+
+    public function designerChat(Request $request, $userId = null)
+    {
+        $adminId = \Illuminate\Support\Facades\Auth::id();
+        $search = $request->input('search');
+
+        // Only designers who chatted with admin
+        $conversations = \App\Models\Chat::where(function($q) use ($adminId) {
+            $q->where('receiver_id', $adminId)->orWhere('sender_id', $adminId);
+        })
+        ->whereHas('sender', function($q) { $q->where('role', 'designer'); })
+        ->orWhereHas('receiver', function($q) { $q->where('role', 'designer'); })
+        ->with(['sender', 'receiver'])
+        ->latest()
+        ->get()
+        ->map(function ($chat) use ($adminId) {
+            return $chat->sender_id == $adminId ? $chat->receiver : $chat->sender;
+        })
+        ->filter(function($user) { return $user->role == 'designer'; })
+        ->unique('id')
+        ->values();
+
+        if ($search) {
+            $conversations = $conversations->filter(function ($user) use ($search) {
+                return $user && stripos($user->full_name, $search) !== false;
+            })->values();
+        }
+
+        $activeChat = null;
+        $messages = [];
+
+        if ($userId) {
+            $activeChat = \App\Models\User::findOrFail($userId);
+            
+            $messages = \App\Models\Chat::where(function ($q) use ($adminId, $userId) {
+                $q->where('sender_id', $adminId)->where('receiver_id', $userId);
+            })
+            ->orWhere(function ($q) use ($adminId, $userId) {
+                $q->where('sender_id', $userId)->where('receiver_id', $adminId);
+            })
+            ->oldest()
+            ->get();
+
+            // Mark as read
+            \App\Models\Chat::where('sender_id', $userId)
+                ->where('receiver_id', $adminId)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+        }
+
+        return view('Admin.designer-chat', compact('conversations', 'activeChat', 'messages'));
+    }
+
+    public function sendDesignerChat(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx,zip|max:5120'
+        ]);
+
+        if (!$request->message && !$request->hasFile('attachment')) {
+            return back()->with('error', 'Pesan atau lampiran harus diisi.');
+        }
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
+        }
+
+        \App\Models\Chat::create([
+            'sender_id' => \Illuminate\Support\Facades\Auth::id(),
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message ?? '',
+            'attachment' => $attachmentPath,
+        ]);
+
+        return back();
+    }
 }

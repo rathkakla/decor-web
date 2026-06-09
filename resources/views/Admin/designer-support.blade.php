@@ -52,10 +52,17 @@ $menu_items = [
     @include("Admin.partials.header", ["title" => "Designer Support"])
     <div class="p-8 space-y-8 flex-1">
 
-    <div class="mb-8">
-        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Partnership Care</div>
-        <div class="text-2xl font-bold text-gray-900">Designer Support Hub</div>
-        <div class="text-xs text-gray-500 mt-1">Bantu desainer mengatasi kendala unggah portofolio, pencairan dana, dan sistem proyek.</div>
+    <div class="mb-8 flex justify-between items-end">
+        <div>
+            <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Partnership Care</div>
+            <div class="text-2xl font-bold text-gray-900">Designer Support Hub</div>
+            <div class="text-xs text-gray-500 mt-1">Bantu desainer mengatasi kendala unggah portofolio, pencairan dana, dan sistem proyek.</div>
+        </div>
+        
+        <a href="{{ route('admin.designer-chat') }}" class="bg-primary text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2">
+            <i data-feather="message-circle" class="w-4 h-4"></i>
+            Live Chats
+        </a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

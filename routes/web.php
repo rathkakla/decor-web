@@ -294,9 +294,8 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
         return view('designer.Support.support');
     })->name('support');
     Route::post('/support/submit', [App\Http\Controllers\DesignerController::class, 'submitSupport'])->name('support.submit');
-    Route::get('/support/chat', function () {
-        return view('designer.Support.chat');
-    })->name('support.chat');
+    Route::get('/support/chat', [App\Http\Controllers\DesignerController::class, 'supportChat'])->name('support.chat');
+    Route::post('/support/chat/send', [App\Http\Controllers\DesignerController::class, 'sendSupportChat'])->name('support.chat.send');
 });
 
 
@@ -331,6 +330,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/customer-support', [App\Http\Controllers\AdminController::class, 'customerSupport'])->name('admin.customer-support');
     Route::get('/seller-support', [App\Http\Controllers\AdminController::class, 'sellerSupport'])->name('admin.seller-support');
     Route::get('/designer-support', [App\Http\Controllers\AdminController::class, 'designerSupport'])->name('admin.designer-support');
+    Route::get('/designer-chat/{userId?}', [App\Http\Controllers\AdminController::class, 'designerChat'])->name('admin.designer-chat');
+    Route::post('/designer-chat/send', [App\Http\Controllers\AdminController::class, 'sendDesignerChat'])->name('admin.designer-chat.send');
     Route::post('/support/{id}/reply', [App\Http\Controllers\AdminController::class, 'replySupport'])->name('admin.support.reply');
     Route::patch('/support/{id}/status', [App\Http\Controllers\AdminController::class, 'updateSupportStatus'])->name('admin.support.status');
 

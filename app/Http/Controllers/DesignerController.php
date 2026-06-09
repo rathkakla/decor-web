@@ -1020,4 +1020,57 @@ class DesignerController extends Controller
         
         return $pdf->download('report_' . $startDate . '_to_' . $endDate . '.pdf');
     }
+
+    public function supportChat()
+    {
+        $admin = \App\Models\User::where('role', 'admin')->first();
+        if (!$admin) {
+            return back()->with('error', 'Admin tidak ditemukan.');
+        }
+
+        $messages = \App\Models\Chat::where(function ($q) use ($admin) {
+            $q->where('sender_id', Auth::id())->where('receiver_id', $admin->id);
+        })->orWhere(function ($q) use ($admin) {
+            $q->where('sender_id', $admin->id)->where('receiver_id', Auth::id());
+        })->oldest()->get();
+
+        // Mark as read
+        \App\Models\Chat::where('sender_id', $admin->id)
+            ->where('receiver_id', Auth::id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return view('designer.Support.chat', compact('admin', 'messages'));
+    }
+
+    public function sendSupportChat(Request $request)
+    {
+        $request->validate([
+            'message' => 'nullable|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx,zip|max:5120'
+        ]);
+
+        if (!$request->message && !$request->hasFile('attachment')) {
+            return back()->with('error', 'Pesan atau lampiran harus diisi.');
+        }
+
+        $admin = \App\Models\User::where('role', 'admin')->first();
+        if (!$admin) {
+            return back()->with('error', 'Admin tidak ditemukan.');
+        }
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
+        }
+
+        \App\Models\Chat::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $admin->id,
+            'message' => $request->message ?? '',
+            'attachment' => $attachmentPath,
+        ]);
+
+        return back();
+    }
 }

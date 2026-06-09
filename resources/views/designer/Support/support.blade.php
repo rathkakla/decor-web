@@ -53,13 +53,13 @@
                 <!-- NEW: Kiyowo Search Bar (Consistent with other pages) -->
                 <div class="relative group">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors text-xs"></i>
-                    <input type="text" placeholder="Search help articles..." class="bg-white border-none rounded-2xl py-3.5 pl-10 pr-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none w-64 shadow-sm transition-all">
+                    <input type="text" id="searchInput" placeholder="Search support options..." class="bg-white border-none rounded-2xl py-3.5 pl-10 pr-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none w-64 shadow-sm transition-all">
                 </div>
             </div>
 
             <!-- GRID CARDS -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="cardsContainer">
+                <div class="support-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
                     <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-primary"><i class="fa-solid fa-book-open"></i></div>
                     <div>
                         <h3 class="text-xl font-black text-gray-800 uppercase tracking-tight">Help Center</h3>
@@ -67,7 +67,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
+                <div class="support-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
                     <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-primary"><i class="fa-solid fa-envelope"></i></div>
                     <div>
                         <h3 class="text-xl font-black text-gray-800 uppercase tracking-tight">Contact Us</h3>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
+                <div class="support-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm space-y-6 hover:shadow-xl transition-all duration-500">
                     <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-primary"><i class="fa-solid fa-comments"></i></div>
                     <div>
                         <h3 class="text-xl font-black text-gray-800 uppercase tracking-tight">Live Chat</h3>
@@ -187,6 +187,25 @@
             sidebar.classList.toggle('sidebar-closed');
             mainContent.classList.toggle('main-full');
         }
+
+        // Filter Support Cards Data
+        const searchInput = document.getElementById('searchInput');
+        const cards = document.querySelectorAll('.support-card');
+
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase().trim();
+            
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                const desc = card.querySelector('p').innerText.toLowerCase();
+                
+                if (title.includes(keyword) || desc.includes(keyword)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>

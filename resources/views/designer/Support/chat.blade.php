@@ -53,10 +53,26 @@
 
         <!-- CHAT INTERFACE -->
         <main class="flex-1 flex flex-col p-10 overflow-hidden">
-            <div class="mb-8">
+            <div class="mb-4">
                 <h2 class="text-4xl font-black tracking-tight text-gray-800 italic">Chat with Admin</h2>
                 <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">Direct line to DECOR's official support team</p>
             </div>
+
+            @if(session('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    {{ session('error') }}
+                </div>
+            @endif
+            
+            @if($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <div class="bg-white rounded-[48px] border border-gray-100 shadow-sm flex flex-1 overflow-hidden flex-col">
                 
@@ -73,31 +89,51 @@
                 </div>
 
                 <!-- Messages -->
-                <div class="flex-1 overflow-y-auto p-12 space-y-8 bg-[#FCFBFB]">
-                    <div class="flex items-start space-x-4 max-w-[70%]">
-                        <div class="bg-white bubble-admin p-6 text-xs font-semibold leading-relaxed border border-gray-50 shadow-sm text-gray-600 italic">
-                            Halo Audri! Ada yang bisa kami bantu terkait akun desainer atau proyek kamu hari ini? 😊
+                <div class="flex-1 overflow-y-auto p-12 space-y-8 bg-[#FCFBFB]" id="chatBox">
+                    @forelse($messages ?? [] as $msg)
+                        @if($msg->sender_id == Auth::id())
+                        <div class="flex items-end space-x-4 max-w-[70%] ml-auto text-right flex-row-reverse">
+                            <div class="bg-primary text-white bubble-designer p-6 text-xs font-semibold leading-relaxed mr-4 shadow-xl shadow-primary/20">
+                                {{ $msg->message }}
+                                @if($msg->attachment)
+                                    <div class="mt-2 text-right">
+                                        <a href="{{ Storage::url($msg->attachment) }}" target="_blank" class="text-white/80 underline text-[10px] hover:text-white"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="flex items-end space-x-4 max-w-[70%] ml-auto text-right flex-row-reverse">
-                        <div class="bg-primary text-white bubble-designer p-6 text-xs font-semibold leading-relaxed mr-4 shadow-xl shadow-primary/20">
-                            Halo Admin! Saya ingin bertanya terkait proses verifikasi portofolio baru saya yang masih pending.
+                        @else
+                        <div class="flex items-start space-x-4 max-w-[70%]">
+                            <div class="bg-white bubble-admin p-6 text-xs font-semibold leading-relaxed border border-gray-50 shadow-sm text-gray-600 italic">
+                                {{ $msg->message }}
+                                @if($msg->attachment)
+                                    <div class="mt-2 text-left">
+                                        <a href="{{ Storage::url($msg->attachment) }}" target="_blank" class="text-primary/80 underline text-[10px] hover:text-primary"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                        @endif
+                    @empty
+                        <div class="text-center text-gray-400 text-xs italic mt-10">Belum ada percakapan. Mulai sapa Admin sekarang!</div>
+                    @endforelse
                 </div>
 
                 <!-- Input -->
                 <div class="p-10 bg-white border-t border-gray-50">
-                    <div class="flex items-center space-x-6">
-                        <button class="text-gray-300 hover:text-primary transition-all"><i class="fa-solid fa-paperclip text-xl"></i></button>
+                    <form action="{{ route('designer.support.chat.send') }}" method="POST" enctype="multipart/form-data" class="flex items-center space-x-6">
+                        @csrf
+                        <label class="text-gray-300 hover:text-primary transition-all cursor-pointer">
+                            <i class="fa-solid fa-paperclip text-xl"></i>
+                            <input type="file" name="attachment" class="hidden" id="fileInput">
+                        </label>
                         <div class="flex-1">
-                            <input type="text" placeholder="Write a message to Admin Support..." class="w-full bg-gray-50 rounded-2xl py-5 px-8 text-xs font-bold outline-none border-2 border-transparent focus:border-primary/10 transition-all shadow-inner">
+                            <input type="text" name="message" placeholder="Write a message to Admin Support..." class="w-full bg-gray-50 rounded-2xl py-5 px-8 text-xs font-bold outline-none border-2 border-transparent focus:border-primary/10 transition-all shadow-inner">
                         </div>
-                        <button class="bg-primary text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+                        <button type="submit" class="bg-primary text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 transition-all">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </main>
@@ -113,6 +149,12 @@
             const mainContent = document.getElementById('main-content');
             sidebar.classList.toggle('sidebar-closed');
             mainContent.classList.toggle('main-full');
+        }
+
+        // Auto-scroll to bottom of chat
+        const chatBox = document.getElementById('chatBox');
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 </body>
