@@ -187,34 +187,32 @@
 
 
         {{-- ─── SHOP THE LOOK ──────────────────────────────────────────────── --}}
-        <section class="mb-20">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-bold tracking-tight">Shop the Look</h2>
-                <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary">View All 12 Items</a>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <?php
-                $looks = [
-                    ['name' => 'Aurelius Lounge Chair',   'price' => '2,450', 'img' => 'https://images.unsplash.com/photo-1592078615290-033ee584e267?w=400'],
-                    ['name' => 'Zenith Pendant Light',    'price' => '890',   'img' => 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400'],
-                    ['name' => 'Nordic Floating Credenza','price' => '1,720', 'img' => 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400'],
-                    ['name' => 'Handwoven Wool Rug',      'price' => '640',   'img' => 'https://images.unsplash.com/photo-1575414003591-ece8d0416c7a?w=400'],
+        @php
+            $allProducts = \App\Models\Product::with('images')->where('status', 'approved')->get();
+            $productsByStyle = [];
+            foreach($allProducts as $p) {
+                $styleName = $p->style ?? 'Modern';
+                if (!isset($productsByStyle[$styleName])) {
+                    $productsByStyle[$styleName] = [];
+                }
+                $imgUrl = $p->images->first() ? $p->images->first()->img_url : 'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=400';
+                $productsByStyle[$styleName][] = [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => number_format($p->price, 0, ',', '.'),
+                    'material' => $p->material ?? 'Material',
+                    'img' => $imgUrl,
+                    'url' => route('customer.product-detail', $p->id)
                 ];
-                foreach($looks as $l):
-                ?>
-                <div class="space-y-4">
-                    <div class="aspect-square rounded-2xl overflow-hidden bg-gray-50">
-                        <img src="<?= $l['img'] ?>" class="w-full h-full object-cover hover:scale-110 transition duration-700">
-                    </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h5 class="text-xs font-bold"><?= $l['name'] ?></h5>
-                            <p class="text-[9px] text-gray-400 mt-1 uppercase tracking-widest">Architectural Series</p>
-                        </div>
-                        <span class="text-xs font-bold text-primary">$<?= $l['price'] ?></span>
-                    </div>
-                </div>
-                <?php endforeach; ?>
+            }
+        @endphp
+        <section class="mb-20" id="shop-the-look-section">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-bold tracking-tight">Shop the Look: <span id="stl-style-name" class="text-primary italic">Scandinavian</span></h2>
+                <a href="{{ route('customer.catalog') }}" class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary">View All Catalog</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8" id="stl-grid">
+                <!-- Products will be injected here by JS -->
             </div>
         </section>
     </main>
@@ -301,8 +299,50 @@
                 styleCards.forEach(c => c.querySelector('.card-border').classList.replace('border-primary', 'border-transparent'));
                 this.querySelector('.card-border').classList.replace('border-transparent', 'border-primary');
                 selectedStyle = this.getAttribute('data-style');
+                renderShopTheLook(selectedStyle);
             });
         });
+
+        // ─── Render Dynamic Shop The Look ─────────────────────────────────────
+        const styleProducts = @json($productsByStyle);
+        const stlGrid = document.getElementById('stl-grid');
+        const stlStyleName = document.getElementById('stl-style-name');
+
+        function renderShopTheLook(style) {
+            stlStyleName.innerText = style;
+            stlGrid.innerHTML = '';
+            
+            let products = styleProducts[style];
+            // Fallback if no exact match for this style: grab products from other styles
+            if (!products || products.length === 0) {
+                products = Object.values(styleProducts).flat();
+            }
+            
+            if (products.length === 0) {
+                stlGrid.innerHTML = '<p class="text-sm text-gray-400 col-span-4">Belum ada produk untuk gaya desain ini.</p>';
+                return;
+            }
+
+            products.slice(0, 4).forEach(p => {
+                const card = `
+                <div class="space-y-4 cursor-pointer group" onclick="window.location='${p.url}'">
+                    <div class="aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
+                        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="text-xs font-bold group-hover:text-primary transition-colors">${p.name}</h5>
+                            <p class="text-[9px] text-gray-400 mt-1 uppercase tracking-widest">${p.material}</p>
+                        </div>
+                        <span class="text-xs font-bold text-primary whitespace-nowrap">Rp ${p.price}</span>
+                    </div>
+                </div>`;
+                stlGrid.innerHTML += card;
+            });
+        }
+
+        // Init initial style
+        renderShopTheLook(selectedStyle);
 
         // ─── Pilih Room Type ──────────────────────────────────────────────────
         roomCards.forEach(card => {

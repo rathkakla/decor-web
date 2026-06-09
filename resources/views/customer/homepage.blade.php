@@ -150,7 +150,7 @@ foreach ($cats as $c) {
                 <div onclick="window.location='{{ route('customer.product-detail', $product->id) }}'" class="group cursor-pointer">
                     <div class="bg-gray-100 aspect-[4/5] rounded-2xl overflow-hidden mb-5">
                         @if($product->images && $product->images->count() > 0)
-                            <img src="{{ asset('storage/' . $product->images->first()->image_path) }}"
+                            <img src="{{ $product->images->first()->img_url }}"
                                 class="w-full h-full object-cover group-hover:scale-110 transition duration-700" alt="{{ $product->name }}">
                         @else
                             <img src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?auto=format&fit=crop&q=80&w=600"
