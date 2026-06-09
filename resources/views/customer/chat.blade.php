@@ -57,11 +57,6 @@
         <!-- TRACK BUTTON -->
         @if($activeConsultation->consultation_type != 'chat_consultation')
         <div class="flex items-center space-x-4">
-            <a href="{{ route('customer.track-consultation.list') }}" class="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center space-x-2">
-                <i class="fa-solid fa-list-check"></i>
-                <span>Track Status</span>
-            </a>
-            <div class="h-8 w-px bg-gray-200 mx-2"></div>
             <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">{{ Auth::user()->full_name }}</span>
                 <img src="{{ Auth::user()->avatar_url }}" class="w-8 h-8 rounded-lg object-cover">
@@ -85,44 +80,53 @@
 
     <div class="flex-1 flex overflow-hidden">
         <!-- LEFT PANEL: PROJECT INFO -->
-        <aside class="w-80 bg-white border-r border-gray-100 p-8 space-y-10 overflow-y-auto flex-shrink-0 custom-scroll">
-            <div class="space-y-4">
-                <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Designer Profile</h3>
-                <div class="bg-gray-50 rounded-[32px] p-6 border border-gray-100 shadow-inner flex items-center gap-4">
-                    <img src="{{ $activeConsultation->designer->designer_image ? asset('storage/'.$activeConsultation->designer->designer_image) : 'https://ui-avatars.com/api/?name='.urlencode($activeConsultation->designer->user->full_name) }}" class="w-12 h-12 rounded-2xl object-cover border border-gray-200">
-                    <div>
-                        <p class="text-[11px] font-black text-gray-900 uppercase leading-none mb-1">{{ $activeConsultation->designer->user->full_name }}</p>
-                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">{{ $activeConsultation->designer->specialty ?? 'Interior Designer' }}</p>
+        <aside class="w-80 bg-[#fbfaf9] p-6 space-y-6 overflow-y-auto flex-shrink-0 custom-scroll border-r border-gray-200 flex flex-col justify-between">
+            <div class="space-y-6">
+                <!-- Designer Card -->
+                <div class="bg-white rounded-[24px] p-8 flex flex-col items-center text-center shadow-sm border border-gray-100 relative">
+                    <div class="relative mb-4">
+                        <img src="{{ $activeConsultation->designer->designer_image ? asset('storage/'.$activeConsultation->designer->designer_image) : 'https://ui-avatars.com/api/?name='.urlencode($activeConsultation->designer->user->full_name).'&background=B5733A&color=fff' }}" class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
+                        <div class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full"></div>
+                    </div>
+                    <p class="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-2">Desainer</p>
+                    <h3 class="text-[15px] font-bold text-gray-900 mb-1">{{ $activeConsultation->designer->user->full_name }}</h3>
+                    <p class="text-[11px] text-gray-400 font-medium">{{ $activeConsultation->designer->specialty ?? 'Interior Studio' }}</p>
+                </div>
+
+                <!-- Project Info Card -->
+                <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex flex-col">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Project Info</h3>
+                    
+                    <div class="bg-gray-50/70 rounded-2xl p-4 border border-gray-100 space-y-4">
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Type</p>
+                            <p class="text-[11px] font-black text-gray-800">
+                                {{ $activeConsultation->consultation_type == 'chat_consultation' ? 'Chat Consultation' : 'Request Proposal' }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Budget</p>
+                            <p class="text-[11px] font-black text-gray-800">{{ $activeConsultation->budget_range }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                            <p class="text-[11px] font-black {{ $activeConsultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
+                                @if($activeConsultation->is_chat_expired)
+                                    Expired
+                                @else
+                                    {{ \App\Models\Consultation::getStatusLabel($status) }}
+                                @endif
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="space-y-4">
-                <h3 class="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em] leading-none italic">Project Info</h3>
-                <div class="space-y-3">
-                    <div>
-                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Type</p>
-                        <p class="text-[11px] font-black text-gray-800">
-                            {{ $activeConsultation->consultation_type == 'chat_consultation' ? 'Chat Consultation' : 'Request Proposal' }}
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Budget</p>
-                        <p class="text-[11px] font-black text-gray-800">{{ $activeConsultation->budget_range }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Status</p>
-                        <p class="text-[11px] font-black {{ $activeConsultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
-                            @if($activeConsultation->is_chat_expired)
-                                Expired
-                            @else
-                                {{ \App\Models\Consultation::getStatusLabel($status) }}
-                            @endif
-                        </p>
-                    </div>
-                </div>
+            
+            <div class="mt-4 pt-4">
+                <a href="{{ route('customer.track-consultation.list') }}" class="block w-full bg-[#B5733A] text-white text-center py-3.5 rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-[#9E6432] transition-colors shadow-lg shadow-primary/20">
+                    <i class="fa-regular fa-clipboard mr-2"></i> Lacak Status Proyek
+                </a>
             </div>
-
         </aside>
 
         <!-- CANVAS AREA: PROJECT WORKSPACE -->
@@ -134,7 +138,7 @@
                     <h2 class="text-lg font-bold text-gray-800">{{ $activeConsultation->title }}</h2>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Workspace</p>
                 </div>
-                <button onclick="document.getElementById('media-drawer').classList.remove('translate-x-full');" class="text-[10px] font-black text-gray-600 bg-gray-50 hover:bg-primary/10 hover:text-primary px-5 py-2.5 rounded-xl border border-gray-200 hover:border-primary/20 uppercase tracking-widest flex items-center gap-2 transition-all">
+                <button onclick="document.getElementById('media-drawer').classList.remove('w-0', 'opacity-0'); document.getElementById('media-drawer').classList.add('w-96', 'border-l');" class="text-[10px] font-black text-gray-600 bg-gray-50 hover:bg-primary/10 hover:text-primary px-5 py-2.5 rounded-xl border border-gray-200 hover:border-primary/20 uppercase tracking-widest flex items-center gap-2 transition-all">
                     <i class="fa-solid fa-folder-open"></i>
                     Media & Assets
                 </button>
@@ -303,6 +307,78 @@
                 </div>
             @endif
         </section>
+
+        <!-- MEDIA DRAWER (WHATSAPP STYLE) -->
+        <aside id="media-drawer" class="w-0 opacity-0 overflow-hidden bg-white border-gray-200 shrink-0 transition-all duration-300 ease-in-out relative z-40">
+            <div class="w-96 flex flex-col h-full absolute top-0 right-0">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg">Media & Assets</h3>
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Files shared in this project</p>
+                    </div>
+                    <button onclick="document.getElementById('media-drawer').classList.add('w-0', 'opacity-0'); document.getElementById('media-drawer').classList.remove('w-96', 'border-l');" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
+                    @forelse($activeConsultation->attachments as $attachment)
+                        @php 
+                            $fileUrl = str_starts_with($attachment->file_url, 'http') ? $attachment->file_url : asset('storage/'.$attachment->file_url); 
+                        @endphp
+                        <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary/30 transition-colors group">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {{ $attachment->file_type == 'image' || str_contains($attachment->file_url, 'image') ? 'bg-black overflow-hidden' : 'bg-red-50 text-red-500' }}">
+                                @if($attachment->file_type == 'image' || str_contains($attachment->file_url, 'image'))
+                                    <img src="{{ $fileUrl }}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
+                                @else
+                                    <i class="fa-solid fa-file-pdf text-xl"></i>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-primary truncate block mb-1">
+                                    {{ basename($attachment->file_url) }}
+                                </a>
+                                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {{ $attachment->created_at->format('d M Y, H:i') }} • 
+                                    {{ $attachment->uploaded_by == Auth::id() ? 'You' : 'Designer' }}
+                                </p>
+                            </div>
+                        </div>
+                    @empty
+                        @if($activeConsultation->quotes->isEmpty())
+                        <div class="flex flex-col items-center justify-center py-12 text-center opacity-50">
+                            <i class="fa-solid fa-folder-open text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">No media shared yet</p>
+                        </div>
+                        @endif
+                    @endforelse
+                    
+                    <!-- RAB Quotes as assets -->
+                    @foreach($activeConsultation->quotes as $quote)
+                        @if($quote->items)
+                            @php 
+                                $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items; 
+                            @endphp
+                            @if(isset($items['file_path']))
+                                <div class="flex items-start gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100 hover:border-amber-300 transition-colors group">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 text-amber-600">
+                                        <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-amber-600 truncate block mb-1">
+                                            {{ $items['file_name'] ?? 'RAB_Project.pdf' }}
+                                        </a>
+                                        <p class="text-[9px] text-amber-600/60 font-bold uppercase tracking-widest">
+                                            {{ $quote->created_at->format('d M Y, H:i') }} • Designer
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        </aside>
+
     </div>
     @endif
 
@@ -339,76 +415,7 @@
     </script>
     @endif
 
-    @if($activeConsultation)
-    <!-- MEDIA DRAWER (WHATSAPP STYLE) -->
-    <div id="media-drawer" class="fixed inset-y-0 right-0 w-96 bg-white border-l border-gray-200 shadow-2xl z-[60] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <div>
-                <h3 class="font-bold text-gray-900 text-lg">Media & Assets</h3>
-                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Files shared in this project</p>
-            </div>
-            <button onclick="document.getElementById('media-drawer').classList.add('translate-x-full');" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors">
-                <i class="fa-solid fa-times"></i>
-            </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
-            @forelse($activeConsultation->attachments as $attachment)
-                @php 
-                    $fileUrl = str_starts_with($attachment->file_url, 'http') ? $attachment->file_url : asset('storage/'.$attachment->file_url); 
-                @endphp
-                <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-primary/30 transition-colors group">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {{ $attachment->file_type == 'image' || str_contains($attachment->file_url, 'image') ? 'bg-black overflow-hidden' : 'bg-red-50 text-red-500' }}">
-                        @if($attachment->file_type == 'image' || str_contains($attachment->file_url, 'image'))
-                            <img src="{{ $fileUrl }}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
-                        @else
-                            <i class="fa-solid fa-file-pdf text-xl"></i>
-                        @endif
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <a href="{{ $fileUrl }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-primary truncate block mb-1">
-                            {{ basename($attachment->file_url) }}
-                        </a>
-                        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
-                            {{ $attachment->created_at->format('d M Y, H:i') }} • 
-                            {{ $attachment->uploaded_by == Auth::id() ? 'You' : 'Designer' }}
-                        </p>
-                    </div>
-                </div>
-            @empty
-                @if($activeConsultation->quotes->isEmpty())
-                <div class="flex flex-col items-center justify-center py-12 text-center opacity-50">
-                    <i class="fa-solid fa-folder-open text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">No media shared yet</p>
-                </div>
-                @endif
-            @endforelse
-            
-            <!-- RAB Quotes as assets -->
-            @foreach($activeConsultation->quotes as $quote)
-                @if($quote->items)
-                    @php 
-                        $items = is_string($quote->items) ? json_decode($quote->items, true) : $quote->items; 
-                    @endphp
-                    @if(isset($items['file_path']))
-                        <div class="flex items-start gap-4 p-4 bg-amber-50/50 rounded-2xl border border-amber-100 hover:border-amber-300 transition-colors group">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100 text-amber-600">
-                                <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <a href="{{ route('consultation.download-rab.public', $quote->id) }}" target="_blank" class="text-xs font-bold text-gray-800 hover:text-amber-600 truncate block mb-1">
-                                    {{ $items['file_name'] ?? 'RAB_Project.pdf' }}
-                                </a>
-                                <p class="text-[9px] text-amber-600/60 font-bold uppercase tracking-widest">
-                                    {{ $quote->created_at->format('d M Y, H:i') }} • Designer
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                @endif
-            @endforeach
-        </div>
-    </div>
-    @endif
+    <!-- Media Drawer Code Has Been Moved Inside Flex Container Above -->
 
 </body>
 </html>

@@ -62,6 +62,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
     Route::get('/designers', [CustomerController::class, 'designers'])->name('designers');
     Route::get('/designer/{id}', [CustomerController::class, 'designerProfile'])->name('designer.profile');
     Route::get('/about', fn() => view('customer.about'))->name('about');
+    Route::get('/credits', fn() => view('customer.credits'))->name('credits');
     Route::get('/design-lab', fn() => view('customer.design-lab'))->name('design-lab');
     Route::get('/help-center', function () {
         $supports = collect();

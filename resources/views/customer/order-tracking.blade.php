@@ -121,12 +121,12 @@
         </div>
     @elseif($order->status == 'shipped')
         <div class="flex gap-2">
-            <button class="bg-[#1a1a1a] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-black transition-colors shadow-sm">
+            <button class="border border-primary text-primary bg-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-primary hover:text-white transition-colors shadow-sm">
                 Track Live Location
             </button>
             <form action="{{ route('customer.orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin pesanan sudah diterima dengan baik?')">
                 @csrf
-                <button type="submit" class="bg-green-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-green-700 transition-colors shadow-sm">
+                <button type="submit" class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide hover:bg-opacity-90 transition-colors shadow-sm">
                     Pesanan Diterima
                 </button>
             </form>
@@ -171,7 +171,7 @@
 
                                 <!-- Step 1: Ordered -->
                                 <div class="relative flex items-start gap-5">
-                                    <div class="z-10 w-5 h-5 rounded-full bg-primary flex items-center justify-center ring-[6px] ring-white">
+                                    <div class="z-10 w-5 h-5 shrink-0 rounded-full bg-primary flex items-center justify-center ring-[6px] ring-white">
                                         <i class="fa-solid fa-check text-[9px] text-white"></i>
                                     </div>
                                     <div>
@@ -182,7 +182,7 @@
 
                                 <!-- Step 2: Processed -->
                                 <div class="relative flex items-start gap-5 {{ !$isProcessed ? 'opacity-40' : '' }}">
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isProcessed ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
+                                    <div class="z-10 w-5 h-5 shrink-0 rounded-full {{ $isProcessed ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
                                         <i class="fa-solid fa-check text-[9px] {{ $isProcessed ? 'text-white' : 'text-transparent' }}"></i>
                                     </div>
                                     <div>
@@ -193,13 +193,8 @@
 
                                 <!-- Step 3: Shipped -->
                                 <div class="relative flex items-start gap-5 {{ !$isShipped ? 'opacity-40' : '' }}">
-                                    <!-- Lingkaran Outlined khusus status ini seperti di gambar -->
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isShipped && !$isCompleted ? 'border-2 border-primary bg-white' : ($isShipped ? 'bg-primary' : 'bg-gray-200') }} flex items-center justify-center ring-[6px] ring-white">
-                                        @if($isCompleted)
-                                            <i class="fa-solid fa-check text-[9px] text-white"></i>
-                                        @elseif($isShipped)
-                                            <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                        @endif
+                                    <div class="z-10 w-5 h-5 shrink-0 rounded-full {{ $isShipped ? 'bg-primary' : 'bg-gray-200' }} flex items-center justify-center ring-[6px] ring-white">
+                                        <i class="fa-solid fa-check text-[9px] {{ $isShipped ? 'text-white' : 'text-transparent' }}"></i>
                                     </div>
                                     <div>
                                         <h4 class="font-bold text-sm {{ $isShipped && !$isCompleted ? 'text-primary' : 'text-gray-900' }}">Shipped</h4>
@@ -209,7 +204,7 @@
 
                                 <!-- Step 4: Delivered -->
                                 <div class="relative flex items-start gap-5 {{ !$isCompleted ? 'opacity-40' : '' }}">
-                                    <div class="z-10 w-5 h-5 rounded-full {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }} flex items-center justify-center ring-[6px] ring-white">
+                                    <div class="z-10 w-5 h-5 shrink-0 rounded-full {{ $isCompleted ? 'bg-primary' : 'bg-gray-100' }} flex items-center justify-center ring-[6px] ring-white">
                                         <i class="fa-solid fa-check text-[9px] {{ $isCompleted ? 'text-white' : 'text-transparent' }}"></i>
                                     </div>
                                     <div>
