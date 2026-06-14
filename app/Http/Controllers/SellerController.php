@@ -328,17 +328,18 @@ class SellerController extends Controller
             'stock' => $request->stock,
         ]);
 
-        // 2. Simpan gambar ke database (BAGIAN INI YANG KRUSIAL)
-        if ($request->hasFile('image')) {
-            // Simpan file fisik
-            $path = $request->file('image')->store('products', 'public');
+        // 2. Simpan gambar ke database
+        if ($request->hasFile('images')) {
+            foreach($request->file('images') as $file) {
+                // Simpan file fisik
+                $path = $file->store('products', 'public');
 
-            // Simpan record ke tabel product_images
-            // Pastikan nama model dan kolomnya tepat
-            ProductImage::create([
-                'product_id' => $product->id,
-                'img_url' => '/storage/' . $path
-            ]);
+                // Simpan record ke tabel product_images
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'img_url' => '/storage/' . $path
+                ]);
+            }
         }
 
         return redirect()->route('seller.products.index')->with('success', 'Produk ' . $product->name . ' berhasil ditambahkan!');
@@ -389,22 +390,28 @@ class SellerController extends Controller
             'stock' => $request->stock,
         ]);
 
-        // Proses jika Seller mengupload gambar baru saat edit
-        if ($request->hasFile('image')) {
-            // Hapus gambar lama dari storage (Opsional tapi direkomendasikan)
-            $oldImage = ProductImage::where('product_id', $product->id)->first();
-            if ($oldImage) {
-                $oldPath = str_replace('/storage/', '', $oldImage->img_url);
-                Storage::disk('public')->delete($oldPath);
-                $oldImage->delete();
+        // Hapus gambar yang dipilih untuk dihapus
+        if ($request->has('delete_images')) {
+            foreach ($request->delete_images as $imageId) {
+                $img = ProductImage::where('id', $imageId)->where('product_id', $product->id)->first();
+                if ($img) {
+                    $oldPath = str_replace('/storage/', '', $img->img_url);
+                    Storage::disk('public')->delete($oldPath);
+                    $img->delete();
+                }
             }
+        }
 
+        // Proses jika Seller mengupload gambar baru saat edit (APPEND)
+        if ($request->hasFile('images')) {
             // Simpan gambar baru
-            $path = $request->file('image')->store('products', 'public');
-            ProductImage::create([
-                'product_id' => $product->id,
-                'img_url' => '/storage/' . $path
-            ]);
+            foreach($request->file('images') as $file) {
+                $path = $file->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'img_url' => '/storage/' . $path
+                ]);
+            }
         }
 
         return redirect()->route('seller.products.index')->with('success', 'Detail produk berhasil diperbarui!');

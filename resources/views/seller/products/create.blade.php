@@ -131,22 +131,20 @@
                             <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Media</h3>
                         </div>
                         
-                        <input type="file" name="image" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg" onchange="previewImage(event)">
+                        <input type="file" name="images[]" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg" multiple onchange="previewImages(event)">
 
                         <div onclick="document.getElementById('file-upload').click()" class="border-2 border-dashed border-secondary rounded-2xl p-12 text-center space-y-4 hover:border-primary transition-colors cursor-pointer group">
                             <div class="bg-secondary/30 w-12 h-12 rounded-lg flex items-center justify-center mx-auto text-primary group-hover:bg-primary/20 transition-all">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold">Click to Upload Product Image</h4>
-                                <p class="text-[10px] text-gray-400 font-medium">Upload high-resolution editorial photography. PNG or JPG.</p>
+                                <h4 class="text-sm font-bold">Click to Upload Product Images</h4>
+                                <p class="text-[10px] text-gray-400 font-medium">Upload high-resolution editorial photography. PNG or JPG. Multiple images allowed.</p>
                             </div>
                         </div>
 
-                        <div class="flex space-x-4 pt-4 hidden" id="preview-container">
-                            <div class="w-24 h-24 rounded-xl border-2 border-primary p-1 relative">
-                                <img id="image-preview" src="" class="w-full h-full object-cover rounded-lg">
-                            </div>
+                        <div class="flex space-x-4 pt-4 hidden overflow-x-auto pb-2" id="preview-container">
+                            <!-- Previews go here -->
                         </div>
                     </div>
                 </div>
@@ -173,15 +171,39 @@
 
     <script>
         // FUNGSI PREVIEW GAMBAR
-        function previewImage(event) {
+        function previewImages(event) {
             const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('image-preview').src = e.target.result;
-                    document.getElementById('preview-container').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
+            const container = document.getElementById('preview-container');
+            container.innerHTML = '';
+            
+            if (input.files && input.files.length > 0) {
+                container.classList.remove('hidden');
+                Array.from(input.files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        // Add border-primary for the first image (main image)
+                        div.className = `w-24 h-24 rounded-xl border-2 ${index === 0 ? 'border-primary' : 'border-gray-200'} p-1 relative shrink-0`;
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-full h-full object-cover rounded-lg';
+                        
+                        div.appendChild(img);
+                        
+                        if(index === 0) {
+                            const badge = document.createElement('div');
+                            badge.className = 'absolute top-1.5 right-1.5 bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-sm';
+                            badge.innerText = 'MAIN';
+                            div.appendChild(badge);
+                        }
+                        
+                        container.appendChild(div);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                container.classList.add('hidden');
             }
         }
 

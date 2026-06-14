@@ -133,19 +133,29 @@
                             <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Media Gallery</h3>
                         </div>
                         
-                        <input type="file" name="image" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg" onchange="previewImage(event)">
+                        <input type="file" name="images[]" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg" multiple onchange="previewImages(event)">
 
-                        <div class="flex space-x-4">
-                            <div class="w-24 h-24 rounded-xl border-2 border-primary p-1 relative">
-                                <img id="image-preview" src="{{ $product->images->first()->img_url ?? 'https://via.placeholder.com/200' }}" class="w-full h-full object-cover rounded-lg">
-                            </div>
+                        <div id="deleted-images-container"></div>
+
+                        <div class="flex space-x-4 overflow-x-auto pb-2" id="preview-container">
+                            @foreach($product->images as $index => $image)
+                                <div class="w-24 h-24 rounded-xl border-2 {{ $index === 0 ? 'border-primary' : 'border-gray-200' }} p-1 relative shrink-0 server-preview" id="server-img-{{ $image->id }}">
+                                    <img src="{{ asset($image->img_url) }}" class="w-full h-full object-cover rounded-lg">
+                                    @if($index === 0)
+                                        <div class="absolute top-1.5 right-1.5 bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">MAIN</div>
+                                    @endif
+                                    <button type="button" onclick="removeImage({{ $image->id }}, this)" class="absolute bottom-1.5 left-1.5 bg-red-500 text-white w-5 h-5 rounded-md flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors shadow-sm">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            @endforeach
                             
-                            <div onclick="document.getElementById('file-upload').click()" class="w-24 h-24 rounded-xl border border-gray-100 bg-gray-50 flex flex-col items-center justify-center text-gray-300 hover:text-primary cursor-pointer border-dashed transition-all">
-                                <i class="fa-solid fa-camera text-lg"></i>
-                                <span class="text-[8px] font-bold uppercase mt-1">Change</span>
+                            <div onclick="document.getElementById('file-upload').click()" id="upload-button" class="w-24 h-24 rounded-xl border border-gray-100 bg-gray-50 flex flex-col items-center justify-center text-gray-300 hover:text-primary cursor-pointer border-dashed transition-all shrink-0">
+                                <i class="fa-solid fa-plus text-lg"></i>
+                                <span class="text-[8px] font-bold uppercase mt-1">Add Images</span>
                             </div>
                         </div>
-                        <p class="text-[10px] text-gray-400 font-medium mt-2">*Upload gambar baru hanya jika ingin mengganti gambar yang sudah ada.</p>
+                        <p class="text-[10px] text-gray-400 font-medium mt-2">*Upload gambar baru akan ditambahkan ke galeri. Klik (x) untuk menghapus gambar yang sudah ada.</p>
                     </div>
                 </div>
             </div>
@@ -164,15 +174,63 @@
     </main>
 
     <script>
+        // Fungsi untuk menghapus gambar yang sudah ada di server
+        function removeImage(id, btn) {
+            if(confirm('Yakin ingin menghapus gambar ini?')) {
+                // Sembunyikan elemen gambar
+                const imgContainer = document.getElementById('server-img-' + id);
+                if(imgContainer) imgContainer.style.display = 'none';
+
+                // Tambahkan hidden input untuk dikirim ke backend
+                const container = document.getElementById('deleted-images-container');
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_images[]';
+                input.value = id;
+                container.appendChild(input);
+            }
+        }
+
         // Fungsi untuk preview gambar jika user mengupload gambar baru
-        function previewImage(event) {
+        function previewImages(event) {
             const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('image-preview').src = e.target.result;
-                }
-                reader.readAsDataURL(input.files[0]);
+            const container = document.getElementById('preview-container');
+            const uploadBtn = document.getElementById('upload-button');
+            
+            // Remove only newly added previews (not server ones)
+            const existingPreviews = container.querySelectorAll('div.new-preview');
+            existingPreviews.forEach(el => el.remove());
+            
+            if (input.files && input.files.length > 0) {
+                // Determine if there's already a MAIN badge visible among server previews
+                const hasMainBadge = Array.from(container.querySelectorAll('.server-preview')).some(el => el.style.display !== 'none' && el.innerHTML.includes('MAIN'));
+
+                Array.from(input.files).forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        const isMain = !hasMainBadge && index === 0;
+                        
+                        div.className = `w-24 h-24 rounded-xl border-2 ${isMain ? 'border-primary' : 'border-gray-200'} p-1 relative shrink-0 new-preview`;
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-full h-full object-cover rounded-lg';
+                        
+                        div.appendChild(img);
+                        
+                        if(isMain) {
+                            const badge = document.createElement('div');
+                            badge.className = 'absolute top-1.5 right-1.5 bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-sm';
+                            badge.innerText = 'MAIN';
+                            div.appendChild(badge);
+                        }
+                        
+                        // Insert before the upload button
+                        container.insertBefore(div, uploadBtn);
+                    }
+                    reader.readAsDataURL(file);
+                });
             }
         }
 
