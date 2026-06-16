@@ -47,7 +47,7 @@
 
                     <section>
                         <h2 class="text-xl font-bold text-gray-900 mb-3">Sumber Aset Visual Pihak Ketiga</h2>
-                        <p class="mb-4">Website ini secara dominan memanfaatkan foto royalty-free dan aset grafis dari platform berikut:</p>
+                        <p class="mb-4">Website ini secara dominan memanfaatkan foto dan aset grafis dari platform berikut:</p>
                         <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <li class="flex items-center space-x-3 p-4 border border-gray-100 rounded-xl hover:border-primary/30 transition">
                                 <i class="fa-brands fa-unsplash text-2xl text-gray-800"></i>
