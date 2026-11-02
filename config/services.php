@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'stability' => [
+        'key'      => env('STABILITY_API_KEY'),
+        'endpoint' => env('STABILITY_ENDPOINT', 'https://api.stability.ai/v2beta/stable-image/generate/sd3'),
+        'model'    => env('STABILITY_MODEL', 'sd3.5-medium'),
+        'mode'     => env('STABILITY_MODE', 'image-to-image'),
+        'strength' => (float) env('STABILITY_STRENGTH', 0.65),
+        'timeout'  => (int) env('STABILITY_TIMEOUT', 120),
+        // true = error yang sudah ditangani dibalas HTTP 200 + success:false
+        // (untuk client mobile yang melempar exception pada status >= 400).
+        'friendly_http' => (bool) env('AI_FRIENDLY_HTTP', false),
+    ],
+
 ];

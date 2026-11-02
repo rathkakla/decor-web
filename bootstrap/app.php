@@ -18,5 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Semua error pada route /api/* selalu dikembalikan sebagai JSON,
+        // supaya client mobile (Dio) tidak menerima halaman HTML 500 yang
+        // membuat pesan errornya tidak terbaca.
+        $exceptions->shouldRenderJsonWhen(function ($request) {
+            return $request->is('api/*') || $request->expectsJson();
+        });
     })->create();

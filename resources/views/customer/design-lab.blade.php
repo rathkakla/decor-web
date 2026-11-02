@@ -448,7 +448,26 @@
                     'Accept'      : 'application/json',
                 },
             })
-            .then(res => res.json())
+            .then(async res => {
+                // Baca body sebagai teks dulu supaya respons non-JSON
+                // (419/413/500 dari server/proxy) tidak memicu error parsing.
+                const raw = await res.text();
+                let data = {};
+                try { data = JSON.parse(raw); } catch (e) { data = {}; }
+
+                if (!res.ok) {
+                    let msg = data.message || ('Gagal memproses permintaan (HTTP ' + res.status + ')');
+                    if (data.errors) {
+                        const first = Object.values(data.errors)[0];
+                        if (Array.isArray(first) && first.length) msg = first[0];
+                    }
+                    const err = new Error(msg);
+                    err.status = res.status;
+                    err.code = data.code;
+                    throw err;
+                }
+                return data;
+            })
             .then(data => {
                 clearInterval(loadingMsgTimer);
                 clearInterval(progressTimer);
@@ -492,7 +511,8 @@
                 loadingOverlay.classList.remove('flex');
                 aiResultImage.classList.remove('blur-sm', 'scale-105');
                 generateBtn.disabled = false;
-                showToast('❌ Koneksi gagal: ' + err.message, 'error');
+                const msg = err.status ? err.message : ('Koneksi gagal: ' + err.message);
+                showToast('❌ ' + msg, 'error');
             });
         }
 
