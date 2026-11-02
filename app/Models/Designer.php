@@ -49,6 +49,21 @@ class Designer extends Model
         return $this->hasMany(ConsultationReview::class, 'designer_id');
     }
 
+    public function b2bRfqs()
+    {
+        return $this->hasMany(B2bRfq::class, 'designer_id');
+    }
+
+    public function b2bOrders()
+    {
+        return $this->hasManyThrough(
+            B2bOrder::class,
+            B2bRfq::class,
+            'designer_id',
+            'rfq_id'
+        );
+    }
+
     public function getAverageRatingAttribute()
     {
         $avg = $this->reviews()->avg('rating');

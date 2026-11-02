@@ -22,6 +22,21 @@ class Seller extends Model
         'store_banner',
         'status',
         'rejection_reason',
+        // Profil B2B (pabrik mebel rekanan)
+        'wood_specialties',
+        'monthly_capacity',
+        'city',
+        'svlk_verified',
+        'b2b_enabled',
+        'portfolio_url',
+    ];
+
+    protected $casts = [
+        'wood_specialties' => 'array',
+        'monthly_capacity' => 'integer',
+        'svlk_verified' => 'boolean',
+        'b2b_enabled' => 'boolean',
+        'rating' => 'decimal:1',
     ];
 
     protected $appends = ['store_image_url', 'store_banner_url'];
@@ -50,5 +65,20 @@ class Seller extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function b2bRfqs()
+    {
+        return $this->hasMany(B2bRfq::class, 'seller_id');
+    }
+
+    public function b2bOrders()
+    {
+        return $this->hasManyThrough(
+            B2bOrder::class,
+            B2bRfq::class,
+            'seller_id',
+            'rfq_id'
+        );
     }
 }

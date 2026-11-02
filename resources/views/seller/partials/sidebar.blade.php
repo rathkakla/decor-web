@@ -3,7 +3,25 @@
         <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
         <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
     </div>
-    
+
+    @php
+        $sidebarSeller = \App\Models\Seller::where('user_id', Auth::id())->first();
+        $sidebarNewOrders = 0;
+        if ($sidebarSeller) {
+            $sidebarNewOrders = \App\Models\Order::whereHas('orderItems.product', function ($q) use ($sidebarSeller) {
+                $q->where('seller_id', $sidebarSeller->id);
+            })->whereIn('status', ['pending', 'waiting_verification'])->count();
+        }
+        $sidebarB2bUnread = 0;
+        if ($sidebarSeller && $sidebarSeller->b2b_enabled) {
+            $sidebarB2bUnread = \App\Models\B2bNegotiation::where('is_read', false)
+                ->where('sender_id', '!=', Auth::id())
+                ->whereHas('rfq', function ($q) use ($sidebarSeller) {
+                    $q->where('seller_id', $sidebarSeller->id);
+                })->count();
+        }
+    @endphp
+
     <!-- MENU UTAMA (ATAS) -->
     <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
         <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
@@ -16,22 +34,26 @@
             <div class="flex items-center">
                 <i class="fa-solid fa-bag-shopping mr-3 w-5 text-center"></i> Daftar Pesanan
             </div>
-            @php
-                $seller = \App\Models\Seller::where('user_id', Auth::id())->first();
-                $newOrdersCount = 0;
-                if ($seller) {
-                    $newOrdersCount = \App\Models\Order::whereHas('orderItems.product', function ($q) use ($seller) {
-                        $q->where('seller_id', $seller->id);
-                    })->whereIn('status', ['pending', 'waiting_verification'])->count();
-                }
-            @endphp
-            @if($newOrdersCount > 0)
-                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $newOrdersCount }}</span>
+            @if($sidebarNewOrders > 0)
+                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $sidebarNewOrders }}</span>
             @endif
         </a>
-        <a href="{{ route('seller.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Seller Chat
+        @if($sidebarSeller && $sidebarSeller->b2b_enabled)
+            <a href="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+                <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan B2B Kustom
+            </a>
+        @endif
+
+        <!-- Chat -->
+        <a href="{{ route('seller.chats') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <span class="flex items-center">
+                <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Chat
+            </span>
+            @if($sidebarB2bUnread > 0)
+                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $sidebarB2bUnread }}</span>
+            @endif
         </a>
+
         <a href="{{ route('seller.complaint.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.complaint.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
         </a>
@@ -39,7 +61,7 @@
         <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*review*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
         </a>
-        
+
         <!-- Laporan -->
         <a href="{{ route('seller.reports') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*report*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Laporan
@@ -50,19 +72,19 @@
             <i class="fa-solid fa-ticket mr-3 w-5 text-center"></i> Kelola Voucher
         </a>
     </nav>
-    
+
     <!-- MENU PENGATURAN (BAWAH) -->
     <div class="p-4 border-t border-gray-100 space-y-1 bg-white">
         <!-- Settings -->
         <a href="{{ route('seller.settings') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.settings*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-gear mr-3 w-5 text-center"></i> Settings
         </a>
-        
+
         <!-- Support -->
         <a href="{{ route('seller.support') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.support*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-headset mr-3 w-5 text-center"></i> Support
         </a>
-        
+
         <!-- Logout -->
         <form method="POST" action="{{ route('logout') }}">
             @csrf

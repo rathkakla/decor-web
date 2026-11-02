@@ -670,71 +670,131 @@ class DesignerController extends Controller
 
     public function chatIndex(Request $request, $userId = null)
     {
-        $designerId = Auth::id();
+        $authId = Auth::id();
         $search = $request->input('search');
 
-        // Get unique users who have messaged this designer
-        $conversations = \App\Models\Chat::where('receiver_id', $designerId)
-            ->orWhere('sender_id', $designerId)
-            ->with(['sender', 'receiver'])
-            ->latest()
-            ->get()
-            ->map(function ($chat) use ($designerId) {
-                return $chat->sender_id == $designerId ? $chat->receiver : $chat->sender;
-            })
-            ->unique('id')
-            ->values();
-
-        if ($search) {
-            $conversations = $conversations->filter(function ($user) use ($search) {
-                return $user && stripos($user->full_name, $search) !== false;
-            })->values();
+        $tab = $request->input('tab', 'customer');
+        if (! in_array($tab, ['customer', 'b2b'], true)) {
+            $tab = 'customer';
         }
 
+        $designer = Designer::where('user_id', $authId)->first();
+
+        $b2bUnread = 0;
+        if ($designer) {
+            $b2bUnread = \App\Models\B2bNegotiation::where('is_read', false)
+                ->where('sender_id', '!=', $authId)
+                ->whereHas('rfq', function ($q) use ($designer) {
+                    $q->where('designer_id', $designer->id);
+                })->count();
+        }
+
+        $conversations = collect();
         $activeChat = null;
         $messages = [];
         $timeLeft = 0;
         $isFreeChat = false;
 
-        if ($userId) {
-            $activeChat = \App\Models\User::findOrFail($userId);
-            
-            // Check if there is an active free consultation
-            $customer = \App\Models\Customer::where('user_id', $userId)->first();
-            $designer = \App\Models\Designer::where('user_id', Auth::id())->first();
+        $b2bConversations = collect();
+        $activeRfq = null;
+        $b2bMessages = collect();
 
-            if ($customer && $designer) {
-                $freeConsultation = \App\Models\FreeConsultation::where('customer_id', $customer->id)
-                    ->where('designer_id', $designer->id)
-                    ->first();
-                
-                if ($freeConsultation) {
-                    $isFreeChat = true;
-                    if (!$freeConsultation->is_completed && !$freeConsultation->expires_at->isPast()) {
-                        $timeLeft = (int) now()->diffInSeconds($freeConsultation->expires_at);
+        if ($tab === 'customer') {
+            // Get unique users who have messaged this designer
+            $conversations = \App\Models\Chat::where('receiver_id', $authId)
+                ->orWhere('sender_id', $authId)
+                ->with(['sender', 'receiver'])
+                ->latest()
+                ->get()
+                ->map(function ($chat) use ($authId) {
+                    return $chat->sender_id == $authId ? $chat->receiver : $chat->sender;
+                })
+                ->unique('id')
+                ->values();
+
+            if ($search) {
+                $conversations = $conversations->filter(function ($user) use ($search) {
+                    return $user && stripos($user->full_name, $search) !== false;
+                })->values();
+            }
+
+            if ($userId) {
+                $activeChat = \App\Models\User::findOrFail($userId);
+
+                // Check if there is an active free consultation
+                $customer = \App\Models\Customer::where('user_id', $userId)->first();
+
+                if ($customer && $designer) {
+                    $freeConsultation = \App\Models\FreeConsultation::where('customer_id', $customer->id)
+                        ->where('designer_id', $designer->id)
+                        ->first();
+
+                    if ($freeConsultation) {
+                        $isFreeChat = true;
+                        if (!$freeConsultation->is_completed && !$freeConsultation->expires_at->isPast()) {
+                            $timeLeft = (int) now()->diffInSeconds($freeConsultation->expires_at);
+                        }
                     }
                 }
-            }
-            $messages = \App\Models\Chat::where(function ($q) use ($designerId, $userId) {
-                $q->where('sender_id', $designerId)->where('receiver_id', $userId);
-            })
-                ->orWhere(function ($q) use ($designerId, $userId) {
-                    $q->where('sender_id', $userId)->where('receiver_id', $designerId);
+                $messages = \App\Models\Chat::where(function ($q) use ($authId, $userId) {
+                    $q->where('sender_id', $authId)->where('receiver_id', $userId);
                 })
-                ->with('product')
-                ->oldest()
-                ->get();
+                    ->orWhere(function ($q) use ($authId, $userId) {
+                        $q->where('sender_id', $userId)->where('receiver_id', $authId);
+                    })
+                    ->with('product')
+                    ->oldest()
+                    ->get();
 
-            // Mark as read
-            \App\Models\Chat::where('sender_id', $userId)
-                ->where('receiver_id', $designerId)
-                ->where('is_read', false)
-                ->update(['is_read' => true]);
+                // Mark as read
+                \App\Models\Chat::where('sender_id', $userId)
+                    ->where('receiver_id', $authId)
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+            }
+        } else {
+            abort_unless($designer, 403, 'Akun designer tidak ditemukan.');
+
+            $b2bConversations = \App\Models\B2bRfq::forDesigner($designer->id)
+                ->whereHas('negotiations')
+                ->with([
+                    'seller.user',
+                    'negotiations' => fn ($q) => $q->latest(),
+                ])
+                ->withCount(['negotiations as unread_count' => function ($q) use ($authId) {
+                    $q->where('sender_id', '!=', $authId)->where('is_read', false);
+                }])
+                ->get()
+                ->sortByDesc(fn ($rfq) => optional($rfq->negotiations->first())->created_at)
+                ->values();
+
+            if ($search) {
+                $b2bConversations = $b2bConversations->filter(function ($rfq) use ($search) {
+                    return stripos($rfq->project_name ?? '', $search) !== false
+                        || stripos(optional($rfq->seller)->store_name ?? '', $search) !== false
+                        || stripos(optional(optional($rfq->seller)->user)->full_name ?? '', $search) !== false;
+                })->values();
+            }
+
+            $rfqId = $request->input('rfq');
+            if ($rfqId) {
+                $activeRfq = \App\Models\B2bRfq::forDesigner($designer->id)->findOrFail($rfqId);
+
+                $b2bMessages = $activeRfq->negotiations()->with('sender')->oldest()->get();
+
+                $marked = $activeRfq->negotiations()
+                    ->where('sender_id', '!=', $authId)
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+
+                $b2bUnread = max(0, $b2bUnread - $marked);
+            }
         }
 
-        // We will use the same view path or create an index view
-        // Since `designer.chat.chat` is the static one, I'll pass data to it and we'll update it
-        return view('designer.chat.chat', compact('conversations', 'activeChat', 'messages', 'timeLeft', 'isFreeChat'));
+        return view('designer.chat.chat', compact(
+            'tab', 'conversations', 'activeChat', 'messages', 'timeLeft', 'isFreeChat',
+            'b2bConversations', 'activeRfq', 'b2bMessages', 'b2bUnread'
+        ));
     }
 
     public function sendChatMessage(Request $request)

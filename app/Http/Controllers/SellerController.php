@@ -208,45 +208,118 @@ class SellerController extends Controller
         return view('seller.Support.chat');
     }
 
-    public function chatIndex($userId = null)
+    public function chatIndex(Request $request, $userId = null)
     {
-        $sellerId = Auth::id();
+        $authId = Auth::id();
+        $search = $request->input('search');
 
-        // Get unique users who have messaged this seller
-        $conversations = \App\Models\Chat::where('receiver_id', $sellerId)
-            ->orWhere('sender_id', $sellerId)
-            ->with(['sender', 'receiver'])
-            ->latest()
-            ->get()
-            ->map(function ($chat) use ($sellerId) {
-                return $chat->sender_id == $sellerId ? $chat->receiver : $chat->sender;
-            })
-            ->unique('id')
-            ->values();
+        $tab = $request->input('tab', 'customer');
+        if (! in_array($tab, ['customer', 'b2b'], true)) {
+            $tab = 'customer';
+        }
 
+        $seller = Seller::where('user_id', $authId)->first();
+        $b2bEnabled = (bool) ($seller && $seller->b2b_enabled);
+
+        if ($tab === 'b2b' && ! $b2bEnabled) {
+            $tab = 'customer';
+        }
+
+        $b2bUnread = 0;
+        if ($b2bEnabled) {
+            $b2bUnread = \App\Models\B2bNegotiation::where('is_read', false)
+                ->where('sender_id', '!=', $authId)
+                ->whereHas('rfq', function ($q) use ($seller) {
+                    $q->where('seller_id', $seller->id);
+                })->count();
+        }
+
+        $conversations = collect();
         $activeChat = null;
         $messages = [];
 
-        if ($userId) {
-            $activeChat = \App\Models\User::findOrFail($userId);
-            $messages = \App\Models\Chat::where(function ($q) use ($sellerId, $userId) {
-                $q->where('sender_id', $sellerId)->where('receiver_id', $userId);
-            })
-                ->orWhere(function ($q) use ($sellerId, $userId) {
-                    $q->where('sender_id', $userId)->where('receiver_id', $sellerId);
-                })
-                ->with('product')
-                ->oldest()
-                ->get();
+        $b2bConversations = collect();
+        $activeRfq = null;
+        $b2bMessages = collect();
 
-            // Mark as read
-            \App\Models\Chat::where('sender_id', $userId)
-                ->where('receiver_id', $sellerId)
-                ->where('is_read', false)
-                ->update(['is_read' => true]);
+        if ($tab === 'customer') {
+            // Get unique users who have messaged this seller
+            $conversations = \App\Models\Chat::where('receiver_id', $authId)
+                ->orWhere('sender_id', $authId)
+                ->with(['sender', 'receiver'])
+                ->latest()
+                ->get()
+                ->map(function ($chat) use ($authId) {
+                    return $chat->sender_id == $authId ? $chat->receiver : $chat->sender;
+                })
+                ->unique('id')
+                ->values();
+
+            if ($search) {
+                $conversations = $conversations->filter(function ($user) use ($search) {
+                    return $user && stripos($user->full_name, $search) !== false;
+                })->values();
+            }
+
+            if ($userId) {
+                $activeChat = \App\Models\User::findOrFail($userId);
+                $messages = \App\Models\Chat::where(function ($q) use ($authId, $userId) {
+                    $q->where('sender_id', $authId)->where('receiver_id', $userId);
+                })
+                    ->orWhere(function ($q) use ($authId, $userId) {
+                        $q->where('sender_id', $userId)->where('receiver_id', $authId);
+                    })
+                    ->with('product')
+                    ->oldest()
+                    ->get();
+
+                // Mark as read
+                \App\Models\Chat::where('sender_id', $userId)
+                    ->where('receiver_id', $authId)
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+            }
+        } else {
+            $b2bConversations = \App\Models\B2bRfq::forSeller($seller->id)
+                ->whereHas('negotiations')
+                ->with([
+                    'designer.user',
+                    'negotiations' => fn ($q) => $q->latest(),
+                ])
+                ->withCount(['negotiations as unread_count' => function ($q) use ($authId) {
+                    $q->where('sender_id', '!=', $authId)->where('is_read', false);
+                }])
+                ->get()
+                ->sortByDesc(fn ($rfq) => optional($rfq->negotiations->first())->created_at)
+                ->values();
+
+            if ($search) {
+                $b2bConversations = $b2bConversations->filter(function ($rfq) use ($search) {
+                    return stripos($rfq->project_name ?? '', $search) !== false
+                        || stripos(optional(optional($rfq->designer)->user)->full_name ?? '', $search) !== false
+                        || stripos(optional($rfq->designer)->studio_name ?? '', $search) !== false;
+                })->values();
+            }
+
+            $rfqId = $request->input('rfq');
+            if ($rfqId) {
+                $activeRfq = \App\Models\B2bRfq::forSeller($seller->id)->findOrFail($rfqId);
+
+                $b2bMessages = $activeRfq->negotiations()->with('sender')->oldest()->get();
+
+                $marked = $activeRfq->negotiations()
+                    ->where('sender_id', '!=', $authId)
+                    ->where('is_read', false)
+                    ->update(['is_read' => true]);
+
+                $b2bUnread = max(0, $b2bUnread - $marked);
+            }
         }
 
-        return view('seller.chats.index', compact('conversations', 'activeChat', 'messages'));
+        return view('seller.chats.index', compact(
+            'tab', 'conversations', 'activeChat', 'messages',
+            'b2bConversations', 'activeRfq', 'b2bMessages', 'b2bUnread', 'b2bEnabled'
+        ));
     }
 
     public function sendChatMessage(Request $request)

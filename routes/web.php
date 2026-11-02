@@ -22,7 +22,7 @@ Route::get('/choose-role', function () {
 })->name('role.selection');
 
 Route::get('/design-lab', function () {
-    return view('design-lab'); 
+    return view('customer.design-lab');
 })->name('design-lab');
 
 // Jalur AI murni ke Controller
@@ -347,3 +347,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+require __DIR__ . '/b2b.php';

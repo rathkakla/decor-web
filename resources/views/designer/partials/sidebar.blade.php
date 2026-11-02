@@ -4,6 +4,24 @@
         <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic font-bold">Designer Portal</p>
     </div>
 
+    @php
+        $sidebarDesigner = \App\Models\Designer::where('user_id', Auth::id())->first();
+        $sidebarConsultationNotif = 0;
+        if ($sidebarDesigner) {
+            $sidebarConsultationNotif = \App\Models\Consultation::where('designer_id', $sidebarDesigner->id)
+                ->whereIn('status', [0, 3, 5]) // Needs action statuses
+                ->count();
+        }
+        $sidebarB2bUnread = 0;
+        if ($sidebarDesigner) {
+            $sidebarB2bUnread = \App\Models\B2bNegotiation::where('is_read', false)
+                ->where('sender_id', '!=', Auth::id())
+                ->whereHas('rfq', function ($q) use ($sidebarDesigner) {
+                    $q->where('designer_id', $sidebarDesigner->id);
+                })->count();
+        }
+    @endphp
+
     <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
         <a href="{{ route('designer.dashboard') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.dashboard') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
             <i class="fa-solid fa-table-columns mr-3 w-5 text-center"></i> Dashboard
@@ -12,24 +30,26 @@
             <i class="fa-solid fa-briefcase mr-3 w-5 text-center"></i> Kelola Portofolio
         </a>
         <a href="{{ route('designer.consultations.index') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.consultations.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-            <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i> 
+            <i class="fa-solid fa-calendar-check mr-3 w-5 text-center"></i>
             <span class="flex-1">Konsultasi</span>
-            @php
-                $sidebarDesigner = \App\Models\Designer::where('user_id', Auth::id())->first();
-                $sidebarConsultationNotif = 0;
-                if ($sidebarDesigner) {
-                    $sidebarConsultationNotif = \App\Models\Consultation::where('designer_id', $sidebarDesigner->id)
-                        ->whereIn('status', [0, 3, 5]) // Needs action statuses
-                        ->count();
-                }
-            @endphp
             @if($sidebarConsultationNotif > 0)
                 <span class="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ $sidebarConsultationNotif }}</span>
             @endif
         </a>
-        <a href="{{ route('designer.chats') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.chats') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-            <i class="fa-solid fa-comment-dots mr-3 w-5 text-center"></i> Chat
+        <a href="{{ b2b_route('designer.b2b.katalog') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
+            <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pengadaan B2B
         </a>
+
+        <!-- Chat -->
+        <a href="{{ route('designer.chats') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.chats*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
+            <span class="flex items-center">
+                <i class="fa-solid fa-message mr-3 w-5 text-center"></i> Chat
+            </span>
+            @if($sidebarB2bUnread > 0)
+                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $sidebarB2bUnread }}</span>
+            @endif
+        </a>
+
         <a href="{{ route('designer.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.reviews') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
             <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
         </a>
