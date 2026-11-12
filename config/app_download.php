@@ -17,7 +17,7 @@ return [
         // Opsional: paksa URL tertentu. Kosongkan agar deteksi otomatis dipakai.
         'url' => env('ANDROID_APK_URL'),
 
-        'min_os' => env('ANDROID_MIN_OS', 'Android 8.0'),
+        'min_os' => env('ANDROID_MIN_OS', 'Android 7.0'),
 
         'notes' => env('ANDROID_RELEASE_NOTES'),
     ],
