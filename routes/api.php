@@ -24,6 +24,7 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/sellers/{id}', [ProductController::class, 'sellerStore']); 
 Route::get('/designers', [\App\Http\Controllers\Api\DesignerController::class, 'index']); 
 Route::get('/designers/{id}', [\App\Http\Controllers\Api\DesignerController::class, 'show']); 
+Route::get('/app-version', [\App\Http\Controllers\Api\AppVersionController::class, 'show']);
 Route::post('/generate-room', [AiDesignController::class, 'generate']); 
 
 // --- RUTE TERPROTEKSI (Wajib Token) ---

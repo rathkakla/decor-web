@@ -47,12 +47,17 @@
                 <p class="text-gray-400 text-sm max-w-sm leading-relaxed">Curating architectural excellence and
                     sustainable craftsmanship for the modern world. Designed by innovators, for visionaries.</p>
 
-                <div class="flex items-center space-x-6 pt-4">
+                <div class="flex flex-wrap items-center gap-5 pt-4">
                     <a href="{{ route('customer.catalog') }}">
                         <button
                             class="bg-primary text-white px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-lg shadow-primary/20">
                             Shop Collection
                         </button>
+                    </a>
+                    <a href="{{ route('download') }}"
+                        class="inline-flex items-center gap-2 border border-primary text-primary px-6 py-4 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition">
+                        <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
+                        Download App
                     </a>
                     <a href="{{ route('customer.about') }}"
                         class="text-[11px] font-black border-b-2 border-gray-800 pb-1 uppercase tracking-[0.2em] hover:text-primary hover:border-primary transition-all">About
@@ -197,6 +202,7 @@ foreach ($cats as $c) {
                         <a href="{{ route('customer.credits') }}" class="hover:text-white/70">Image Credits</a>
                     </div>
                     <div class="flex flex-col space-y-3">
+                        <a href="{{ route('download') }}" class="hover:text-white/70 transition-colors">Aplikasi</a>
                         <a href="{{ route('customer.help-center') }}" class="hover:text-white/70 transition-colors">Help
                             Center</a>
                         <a href="#" class="hover:text-white/70">FAQ</a>

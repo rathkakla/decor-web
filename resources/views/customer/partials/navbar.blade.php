@@ -14,6 +14,7 @@
             <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-all">Collections</a>
             <a href="{{ route('customer.designers') }}" class="hover:text-primary transition-all">Designers</a>
             <a href="{{ route('customer.design-lab') }}" class="hover:text-primary transition-all">AI Studio</a>
+            <a href="{{ route('download') }}" class="hover:text-primary transition-all">Aplikasi</a>
         </nav>
 
         <div class="flex items-center space-x-6 flex-1 justify-end">

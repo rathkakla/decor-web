@@ -25,6 +25,13 @@ Route::get('/design-lab', function () {
     return view('customer.design-lab');
 })->name('design-lab');
 
+Route::get('/download', function () {
+    return view('customer.download', [
+        'release' => \App\Services\AppRelease::latest(),
+        'history' => array_slice(\App\Services\AppRelease::all(), 1),
+    ]);
+})->name('download');
+
 // Jalur AI murni ke Controller
 
 // PUBLIC INVOICE ROUTE
