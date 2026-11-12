@@ -15,19 +15,24 @@
                         secondary: '#E3DCD6', /* Warm Grey / Off-White */
                     },
                     fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-secondary min-h-screen flex flex-col font-sans antialiased">
 
     <header class="w-full px-8 md:px-16 py-6 flex justify-between items-center bg-transparent">
-        <div class="text-primary font-bold text-xl tracking-widest uppercase">DECOR</div>
+        <a href="{{ route('homepage') }}"
+            class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">DECOR</a>
        
         <div class="text-sm font-semibold text-gray-600">
             <a href="" class="hover:text-primary transition"></a>

@@ -16,7 +16,7 @@
                         lightbg: '#F8F6F4'
                     },
                     fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
                     }
                 }
             }
@@ -24,6 +24,10 @@
     </script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
         body {
@@ -34,9 +38,10 @@
 <body class="min-h-screen flex flex-col text-gray-800 antialiased">
 
     <header class="w-full bg-white px-8 py-4 flex justify-between items-center shadow-sm relative z-10">
-        <div class="text-primary font-bold text-xl tracking-widest uppercase">
+        <a href="{{ route('homepage') }}"
+            class="text-2xl font-black tracking-tighter uppercase text-primary hover:opacity-80 transition-all">
             Decor
-        </div>
+        </a>
         <div class="text-gray-400">
             <i class="fa-solid fa-shield-halved"></i>
         </div>

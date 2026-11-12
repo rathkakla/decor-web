@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Playfair+Display:italic,wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&family=Playfair+Display:italic,wght@700&display=swap');
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -91,7 +91,8 @@
             <img src="{{ asset('images/auth/register-designer.webp') }}"
                 class="absolute inset-0 w-full h-full object-cover opacity-70 scale-110" alt="Interior Design">
             <div class="relative z-10 p-8 lg:p-16 flex flex-col justify-between h-full text-white">
-                <h1 class="text-xl lg:text-2xl font-bold tracking-[0.4em]">DECOR</h1>
+                <a href="{{ route('homepage') }}"
+                    class="text-xl lg:text-2xl font-black tracking-tighter uppercase hover:opacity-80 transition-all">DECOR</a>
                 <div class="hidden lg:block max-w-xs">
                     <p class="text-2xl font-playfair leading-relaxed mb-6">"Design is not just what it looks like, it's
                         how it works."</p>

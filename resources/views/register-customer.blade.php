@@ -15,13 +15,15 @@
                         secondary: '#E3DCD6', /* Warm Grey / Off-White */
                     },
                     fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
         .terms-container {
             height: 300px;
             overflow-y: scroll;
@@ -58,7 +60,8 @@
 
         <div class="relative z-10 w-full h-full flex flex-col justify-between p-16">
             <div class="flex items-center gap-4">
-                <span class="text-white font-extrabold text-2xl tracking-widest uppercase">DECOR</span>
+                <a href="{{ route('homepage') }}"
+                    class="text-white text-2xl font-black tracking-tighter uppercase hover:opacity-80 transition-all">DECOR</a>
                 <div class="h-[2px] w-12 bg-white mt-1"></div>
             </div>
 
@@ -136,7 +139,7 @@
 
     <div class="flex items-start space-x-3 mb-5">
         <input type="checkbox" id="terms-checkbox" disabled class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-not-allowed">
-        <label for="terms-checkbox" class="text-[10px] text-gray-400 leading-relaxed uppercase font-bold tracking-wider">
+        <label for="terms-checkbox" class="text-[10px] text-gray-400 leading-snug uppercase font-bold tracking-normal">
             Saya menyetujui <button type="button" onclick="openTerms()" class="text-primary underline">Syarat & Ketentuan</button> yang berlaku pada platform DECOR.
         </label>
     </div>

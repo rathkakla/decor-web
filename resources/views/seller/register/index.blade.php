@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Playfair+Display:italic,wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&family=Playfair+Display:italic,wght@700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
         .font-playfair { font-family: 'Playfair Display', serif; }
         .bg-primary { background-color: #B5733A; }
@@ -54,7 +54,8 @@
             <img src="{{ asset('images/auth/register-seller.webp') }}" class="absolute inset-0 w-full h-full object-cover opacity-70 scale-110" alt="Interior">
             <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/60"></div>
             <div class="relative z-10 p-16 flex flex-col justify-between h-full w-full text-white">
-                <h1 class="text-2xl font-bold tracking-[0.4em]">DECOR.</h1>
+                <a href="{{ route('homepage') }}"
+                    class="text-2xl font-black tracking-tighter uppercase hover:opacity-80 transition-all">DECOR</a>
                 <div class="max-w-xs">
                     <p class="text-2xl font-playfair leading-relaxed mb-6">"Curating space is an act of intellectual luxury."</p>
                     <div class="w-16 h-[1.5px] bg-white/40"></div>
