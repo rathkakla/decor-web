@@ -468,7 +468,7 @@ class SellerController extends Controller
             foreach ($request->delete_images as $imageId) {
                 $img = ProductImage::where('id', $imageId)->where('product_id', $product->id)->first();
                 if ($img) {
-                    $oldPath = str_replace('/storage/', '', $img->img_url);
+                    $oldPath = $this->storageRelativePath($img->img_url);
                     Storage::disk('public')->delete($oldPath);
                     $img->delete();
                 }
@@ -503,7 +503,7 @@ class SellerController extends Controller
         // Hapus gambar fisik dari storage sebelum menghapus data
         $images = ProductImage::where('product_id', $product->id)->get();
         foreach ($images as $img) {
-            $path = str_replace('/storage/', '', $img->img_url);
+            $path = $this->storageRelativePath($img->img_url);
             Storage::disk('public')->delete($path);
         }
 
@@ -951,5 +951,16 @@ class SellerController extends Controller
 
         $voucher->delete();
         return redirect()->route('seller.vouchers.index')->with('success', 'Voucher berhasil dihapus.');
+    }
+
+    /**
+     * Ubah nilai img_url (path relatif atau URL absolut) menjadi path relatif
+     * di disk "public", mis. "products/x.png".
+     */
+    private function storageRelativePath(?string $url): string
+    {
+        $path = parse_url((string) $url, PHP_URL_PATH) ?: (string) $url;
+
+        return str_replace('storage/', '', ltrim($path, '/'));
     }
 }

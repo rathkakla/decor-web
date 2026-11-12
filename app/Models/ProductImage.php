@@ -15,6 +15,15 @@ class ProductImage extends Model
         'img_url',
     ];
 
+    /**
+     * Nilai kolom di database berupa path relatif (mis. "/storage/products/x.png").
+     * Kembalikan URL absolut supaya bisa langsung dipakai web maupun app mobile.
+     */
+    public function getImgUrlAttribute($value)
+    {
+        return storage_url($value);
+    }
+
     // Relasi balik ke Produk (Opsional tapi berguna banget)
     public function product()
     {

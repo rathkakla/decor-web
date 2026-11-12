@@ -23,14 +23,23 @@ if (! function_exists('storage_url')) {
             $urlPath = parse_url($path, PHP_URL_PATH) ?: '';
             $localHosts = ['127.0.0.1', 'localhost', '::1'];
 
-            if (in_array($host, $localHosts, true) && str_starts_with(ltrim($urlPath, '/'), 'storage/')) {
-                return asset(ltrim($urlPath, '/'));
+            if (! in_array($host, $localHosts, true)) {
+                return $path;
             }
 
-            return $path;
+            $path = $urlPath;
         }
 
-        return asset(ltrim($path, '/'));
+        // Sebagian data hanya menyimpan path relatif disk "public" tanpa
+        // prefix "storage/" (mis. "designers/portfolios/x.jpg"). Tanpa prefix
+        // tersebut URL yang dihasilkan akan 404, jadi tambahkan bila belum ada.
+        $relative = ltrim($path, '/');
+
+        if ($relative !== '' && ! str_starts_with($relative, 'storage/')) {
+            $relative = 'storage/' . $relative;
+        }
+
+        return asset($relative);
     }
 }
 

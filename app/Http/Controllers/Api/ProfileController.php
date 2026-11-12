@@ -28,7 +28,7 @@ class ProfileController extends Controller
             'full_name' => $user->full_name,
             'email' => $user->email,
             'phone' => $customer->phone ?? '',
-            'profile_image' => $customer->profile_image ?? '',
+            'profile_image' => storage_url($customer->profile_image, ''),
             'address' => $customer->mainAddress?->full_address ?? '',
         ];
 
