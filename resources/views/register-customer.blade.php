@@ -36,25 +36,35 @@
         .terms-container::-webkit-scrollbar { width: 6px; }
         .terms-container::-webkit-scrollbar-track { background: #F1F1F1; }
         .terms-container::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
+
+        /* Halaman register dikunci setinggi layar di desktop: tidak ada scroll halaman. */
+        @media (min-width: 1024px) {
+            html, body { height: 100%; overflow: hidden; }
+        }
+
+        /* Jaring aman: bila layar sangat pendek, hanya panel isian yang bergeser. */
+        .auth-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .auth-scroll::-webkit-scrollbar { display: none; }
     </style>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-white min-h-screen flex font-sans antialiased overflow-x-hidden">
+<body class="bg-white flex font-sans antialiased overflow-x-hidden lg:h-screen lg:overflow-hidden">
 
-    <section class="hidden lg:flex lg:w-1/2 relative bg-gray-900 items-end p-20 overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1593455483017-ed620ec55640?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+    <section class="hidden lg:flex lg:w-1/2 relative bg-gray-900 overflow-hidden">
+        <img src="{{ asset('images/auth/register-customer.webp') }}"
              class="absolute inset-0 w-full h-full object-cover opacity-70" alt="Interior">
-        
-        <div class="relative z-10 w-full">
-            <div class="flex items-center gap-4 mb-24 absolute top-[-30rem]">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/60"></div>
+
+        <div class="relative z-10 w-full h-full flex flex-col justify-between p-16">
+            <div class="flex items-center gap-4">
                 <span class="text-white font-extrabold text-2xl tracking-widest uppercase">DECOR</span>
                 <div class="h-[2px] w-12 bg-white mt-1"></div>
             </div>
 
-            <div class="space-y-6">
+            <div class="space-y-5 max-w-lg">
                 <p class="text-gray-300 text-xs font-bold uppercase tracking-[0.2em]">The Digital Curator</p>
-                <h1 class="text-white text-6xl font-extrabold leading-tight">
+                <h1 class="text-white text-5xl font-extrabold leading-tight">
                     Space is the breath <br> of art.
                 </h1>
                 <p class="text-gray-300 text-sm italic font-medium max-w-md leading-relaxed border-l-2 border-primary pl-4">
@@ -64,16 +74,16 @@
         </div>
     </section>
 
-    <section class="w-full lg:w-1/2 flex flex-col p-8 md:p-16 lg:p-20 relative">
-        
-        <div class="absolute top-10 right-10">
+    <section class="w-full lg:w-1/2 lg:h-full flex flex-col p-6 md:p-10 lg:p-12 relative lg:overflow-y-auto auth-scroll">
+
+        <div class="absolute top-5 right-5">
             <a href="/" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 hover:text-primary transition">
                 Back to gallery <i class="fa-solid fa-xmark text-sm"></i>
             </a>
         </div>
 
-        <div class="max-w-md mx-auto w-full flex-grow flex flex-col justify-center">
-            <div class="mb-10">
+        <div class="max-w-md mx-auto w-full my-auto py-2 flex flex-col">
+            <div class="mb-3">
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Begin your collection.</h2>
                 <p class="text-gray-500 text-sm">Enter your details to create an account.</p>
             </div>
@@ -89,22 +99,22 @@
     <form action="{{ route('register') }}" method="POST">
     @csrf
     
-    <div class="mb-6">
+    <div class="mb-3">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Username</label>
         <input type="text" name="username" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
     </div>
 
-    <div class="mb-6">
+    <div class="mb-3">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
         <input type="text" name="name" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
     </div>
 
-    <div class="mb-6">
+    <div class="mb-3">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
         <input type="email" name="email" required class="w-full border-b border-gray-200 py-2 focus:outline-none focus:border-primary text-sm">
     </div>
 
-    <div class="mb-6 relative">
+    <div class="mb-4 relative">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password</label>
         <div class="relative">
             <input type="password" id="password" name="password" required class="w-full border-b border-gray-200 py-2 pr-10 focus:outline-none focus:border-primary text-sm">
@@ -114,7 +124,7 @@
         </div>
     </div>
 
-    <div class="mb-10 relative">
+    <div class="mb-5 relative">
         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Confirm Password</label>
         <div class="relative">
             <input type="password" id="password_confirmation" name="password_confirmation" required class="w-full border-b border-gray-200 py-2 pr-10 focus:outline-none focus:border-primary text-sm">
@@ -124,14 +134,14 @@
         </div>
     </div>
 
-    <div class="flex items-start space-x-3 mb-8">
+    <div class="flex items-start space-x-3 mb-5">
         <input type="checkbox" id="terms-checkbox" disabled class="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-not-allowed">
         <label for="terms-checkbox" class="text-[10px] text-gray-400 leading-relaxed uppercase font-bold tracking-wider">
             Saya menyetujui <button type="button" onclick="openTerms()" class="text-primary underline">Syarat & Ketentuan</button> yang berlaku pada platform DECOR.
         </label>
     </div>
 
-    <button type="submit" id="submit-reg" disabled class="w-full bg-primary text-white py-4 rounded font-bold text-sm shadow-xl shadow-primary/20 opacity-50 cursor-not-allowed transition-all">
+    <button type="submit" id="submit-reg" disabled class="w-full bg-primary text-white py-3.5 rounded font-bold text-sm shadow-xl shadow-primary/20 opacity-50 cursor-not-allowed transition-all">
         Create Account
     </button>
 </form>
@@ -251,8 +261,8 @@
     }
 </script>
 
-            <div class="mt-10">
-                <div class="relative flex items-center justify-center mb-8">
+            <div class="mt-5">
+                <div class="relative flex items-center justify-center mb-4">
                     <div class="border-t border-gray-100 w-full"></div>
                     <span class="bg-white px-4 text-[9px] font-bold text-gray-300 uppercase tracking-[0.2em] absolute">Or join with</span>
                 </div>
@@ -267,16 +277,13 @@
                 </div>
             </div>
 
-            <div class="mt-auto pt-10 text-center">
+            <div class="mt-4 text-center">
                 <p class="text-[11px] text-gray-400 font-bold tracking-wide">
                     Already part of the studio? <a href="/login" class="text-primary hover:underline underline-offset-4">Sign in here.</a>
                 </p>
             </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 pointer-events-none -mb-10 text-center">
-            <h3 class="text-[150px] font-extrabold text-gray-50 tracking-tighter leading-none opacity-50">DECOR</h3>
-        </div>
     </section>
 
 </body>

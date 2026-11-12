@@ -72,14 +72,23 @@
         .terms-container::-webkit-scrollbar { width: 6px; }
         .terms-container::-webkit-scrollbar-track { background: #F1F1F1; }
         .terms-container::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
+
+        /* Halaman register dikunci setinggi layar di desktop: tidak ada scroll halaman. */
+        @media (min-width: 1024px) {
+            html, body { height: 100%; overflow: hidden; }
+        }
+
+        /* Jaring aman: bila layar sangat pendek, hanya panel isian yang bergeser. */
+        .auth-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .auth-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 
-<body class="bg-white antialiased">
+<body class="bg-white antialiased lg:h-screen lg:overflow-hidden">
 
-    <div class="flex flex-col lg:flex-row min-h-screen">
+    <div class="flex flex-col lg:flex-row lg:h-screen">
         <div class="w-full lg:w-5/12 h-64 lg:h-auto relative overflow-hidden bg-[#2D3E35]">
-            <img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200"
+            <img src="{{ asset('images/auth/register-designer.webp') }}"
                 class="absolute inset-0 w-full h-full object-cover opacity-70 scale-110" alt="Interior Design">
             <div class="relative z-10 p-8 lg:p-16 flex flex-col justify-between h-full text-white">
                 <h1 class="text-xl lg:text-2xl font-bold tracking-[0.4em]">DECOR</h1>
@@ -91,8 +100,8 @@
             </div>
         </div>
 
-        <div class="w-full lg:w-7/12 flex flex-col p-8 md:p-16 lg:p-20">
-            <div class="max-w-xl mx-auto w-full">
+        <div class="w-full lg:w-7/12 flex flex-col p-8 md:p-12 lg:p-14 lg:h-full lg:overflow-y-auto auth-scroll">
+            <div class="max-w-xl mx-auto w-full my-auto">
 
                 @if ($errors->any())
                     <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs font-bold rounded">
@@ -105,7 +114,7 @@
                     </div>
                 @endif
 
-                <div class="flex items-center space-x-3 mb-16">
+                <div class="flex items-center space-x-3 mb-8">
                     <div id="dot-1" class="step-dot active"></div>
                     <div id="dot-2" class="step-dot"></div>
                     <div id="dot-3" class="step-dot"></div>
@@ -114,20 +123,20 @@
                         33%</span>
                 </div>
 
-                <div class="mb-12">
-                    <h2 class="text-4xl lg:text-5xl font-light text-gray-800 leading-tight">Join the</h2>
-                    <h2 class="text-4xl lg:text-5xl font-black text-gray-800 italic font-playfair tracking-tight">
+                <div class="mb-8">
+                    <h2 class="text-3xl lg:text-4xl font-light text-gray-800 leading-tight">Join the</h2>
+                    <h2 class="text-3xl lg:text-4xl font-black text-gray-800 italic font-playfair tracking-tight">
                         Interior Designer</h2>
                 </div>
 
-                <form action="{{ route('register') }}" method="POST" class="space-y-12" novalidate>
+                <form action="{{ route('register') }}" method="POST" class="space-y-8" novalidate>
                     @csrf
                     <input type="hidden" name="role" value="designer">
 
-                    <div id="section-1" class="space-y-10 animate-in fade-in duration-700">
+                    <div id="section-1" class="space-y-6 animate-in fade-in duration-700">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">01 —
                             Identity</span>
-                        <div class="grid gap-8">
+                        <div class="grid gap-5">
                             <div class="flex flex-col">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Studio
                                     / Brand Name (Username)</label>
@@ -172,9 +181,9 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="pt-6">
+                        <div class="pt-2">
                             <button type="button" onclick="nextStep(2)"
-                                class="w-full bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center group">
+                                class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center group">
                                 Continue Professional Info
                                 <i
                                     class="fa-solid fa-arrow-right ml-4 transform group-hover:translate-x-2 transition-transform"></i>
@@ -182,10 +191,10 @@
                         </div>
                     </div>
 
-                    <div id="section-2" class="hidden space-y-10 animate-in fade-in duration-700">
+                    <div id="section-2" class="hidden space-y-6 animate-in fade-in duration-700">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">02 —
                             Professional</span>
-                        <div class="grid gap-8">
+                        <div class="grid gap-5">
                             <div class="flex flex-col">
                                 <label
                                     class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Designer's
@@ -196,7 +205,7 @@
                                     <span class="text-red-500 text-[10px] mt-1 uppercase font-bold">{{ $message }}</span>
                                 @enderror
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div class="flex flex-col">
                                     <label
                                         class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Phone
@@ -225,11 +234,11 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4 pt-6">
+                        <div class="flex items-center space-x-4 pt-2">
                             <button type="button" onclick="nextStep(1)"
-                                class="w-1/3 py-5 text-[9px] font-black uppercase text-gray-400 tracking-widest hover:text-gray-800 transition-colors">Back</button>
+                                class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest hover:text-gray-800 transition-colors">Back</button>
                             <button type="button" onclick="nextStep(3)"
-                                class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center group">
+                                class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center group">
                                 Continue Logistics
                                 <i
                                     class="fa-solid fa-arrow-right ml-4 transform group-hover:translate-x-2 transition-transform"></i>
@@ -237,10 +246,10 @@
                         </div>
                     </div>
 
-                    <div id="section-3" class="hidden space-y-10 animate-in fade-in duration-700">
+                    <div id="section-3" class="hidden space-y-6 animate-in fade-in duration-700">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">03 — Portfolio &
                             Office</span>
-                        <div class="space-y-8">
+                        <div class="space-y-5">
                             <div class="flex flex-col">
                                 <div class="flex justify-between items-center mb-1">
                                     <label class="text-[9px] font-black uppercase tracking-widest text-gray-400">Office
@@ -258,7 +267,7 @@
                                 <label
                                     class="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Professional Bio</label>
                                 <textarea name="bio" placeholder="Tell us about your design philosophy..."
-                                    class="input-underline text-sm font-medium h-24 resize-none">{{ old('bio') }}</textarea>
+                                    class="input-underline text-sm font-medium h-16 resize-none">{{ old('bio') }}</textarea>
                                 @error('bio')
                                     <span class="text-red-500 text-[10px] mt-1 uppercase font-bold">{{ $message }}</span>
                                 @enderror
@@ -279,11 +288,11 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4 pt-6">
+                        <div class="flex items-center space-x-4 pt-2">
                             <button type="button" onclick="nextStep(2)"
-                                class="w-1/3 py-5 text-[9px] font-black uppercase text-gray-400 tracking-widest hover:text-gray-800 transition-colors">Back</button>
+                                class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest hover:text-gray-800 transition-colors">Back</button>
                             <button type="submit" id="submit-reg" disabled
-                                class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed transition-all">
+                                class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed transition-all">
                                 Complete Registration
                             </button>
                         </div>
@@ -291,7 +300,7 @@
                 </form>
 
                 <div
-                    class="mt-20 pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-[8px] font-black uppercase tracking-widest text-gray-300">
+                    class="mt-4 pt-4 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-[8px] font-black uppercase tracking-widest text-gray-300">
                     <p>© 2026 DECOR. ARCHITECTURAL PRESTIGE & DESIGNER UTILITY.</p>
                 </div>
             </div>

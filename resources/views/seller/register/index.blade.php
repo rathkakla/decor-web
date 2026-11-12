@@ -36,13 +36,23 @@
         .terms-container::-webkit-scrollbar { width: 6px; }
         .terms-container::-webkit-scrollbar-track { background: #F1F1F1; }
         .terms-container::-webkit-scrollbar-thumb { background: #B5733A; border-radius: 10px; }
+
+        /* Halaman register dikunci setinggi layar di desktop: tidak ada scroll halaman. */
+        @media (min-width: 1024px) {
+            html, body { height: 100%; overflow: hidden; }
+        }
+
+        /* Jaring aman: bila layar sangat pendek, hanya panel isian yang bergeser. */
+        .auth-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .auth-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-white antialiased">
+<body class="bg-white antialiased lg:h-screen lg:overflow-hidden">
 
-    <div class="flex flex-col lg:flex-row min-h-screen">
+    <div class="flex flex-col lg:flex-row lg:h-screen">
         <div class="hidden lg:flex lg:w-5/12 relative overflow-hidden bg-[#2D3E35]">
-            <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1200" class="absolute inset-0 w-full h-full object-cover opacity-70 scale-110">
+            <img src="{{ asset('images/auth/register-seller.webp') }}" class="absolute inset-0 w-full h-full object-cover opacity-70 scale-110" alt="Interior">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/60"></div>
             <div class="relative z-10 p-16 flex flex-col justify-between h-full w-full text-white">
                 <h1 class="text-2xl font-bold tracking-[0.4em]">DECOR.</h1>
                 <div class="max-w-xs">
@@ -52,19 +62,19 @@
             </div>
         </div>
 
-        <div class="w-full lg:w-7/12 flex flex-col p-8 md:p-16 lg:p-20">
-            <div class="max-w-xl mx-auto w-full">
+        <div class="w-full lg:w-7/12 flex flex-col p-8 md:p-12 lg:p-14 lg:h-full lg:overflow-y-auto auth-scroll">
+            <div class="max-w-xl mx-auto w-full my-auto">
                 
-                <div class="flex items-center space-x-3 mb-12">
+                <div class="flex items-center space-x-3 mb-8">
                     <div id="dot-1" class="step-dot active"></div>
                     <div id="dot-2" class="step-dot"></div>
                     <div id="dot-3" class="step-dot"></div>
                     <span id="progress-text" class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-300 ml-4">Progress 33%</span>
                 </div>
 
-                <div class="mb-10">
-                    <h2 class="text-4xl lg:text-5xl font-light text-gray-800 leading-tight">Join the</h2>
-                    <h2 class="text-4xl lg:text-5xl font-black text-gray-800 italic font-playfair">Curator Community</h2>
+                <div class="mb-8">
+                    <h2 class="text-3xl lg:text-4xl font-light text-gray-800 leading-tight">Join the</h2>
+                    <h2 class="text-3xl lg:text-4xl font-black text-gray-800 italic font-playfair">Curator Community</h2>
                 </div>
 
                 @if ($errors->any())
@@ -77,13 +87,13 @@
                     </div>
                 @endif
 
-                <form action="{{ route('register') }}" method="POST" class="space-y-12" novalidate>
+                <form action="{{ route('register') }}" method="POST" class="space-y-6" novalidate>
                     @csrf
                     
-                    <div id="section-1" class="space-y-8">
+                    <div id="section-1" class="space-y-6">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">01 — Identity</span>
-                        <div class="grid gap-6">
-                            <div class="grid grid-cols-2 gap-6">
+                        <div class="grid gap-4">
+                            <div class="grid grid-cols-2 gap-5">
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Username</label><input type="text" name="username" value="{{ old('username') }}" placeholder="atelier_luxe" required class="input-underline text-sm font-bold"></div>
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Store Name</label><input type="text" name="store_name" value="{{ old('store_name') }}" placeholder="Atelier de Luxe" required class="input-underline text-sm font-bold"></div>
                             </div>
@@ -94,7 +104,7 @@
                                     <span class="text-red-500 text-[10px] font-bold mt-1 tracking-wide">{{ $message }}</span>
                                 @enderror
                             </div>
-                            <div class="grid grid-cols-2 gap-6">
+                            <div class="grid grid-cols-2 gap-5">
                                 <div class="flex flex-col relative">
                                     <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Password</label>
                                     <div class="relative">
@@ -115,30 +125,30 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" onclick="nextStep(2)" class="w-full bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
+                        <button type="button" onclick="nextStep(2)" class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
                             Continue Professional Info <i class="fa-solid fa-arrow-right ml-4 group-hover:translate-x-2 transition-transform"></i>
                         </button>
                     </div>
 
-                    <div id="section-2" class="hidden space-y-8">
+                    <div id="section-2" class="hidden space-y-6">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">02 — Professional</span>
-                        <div class="grid gap-6">
+                        <div class="grid gap-4">
                             <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Owner's Full Name</label><input type="text" name="name" value="{{ old('name') }}" placeholder="Julian Vane" required class="input-underline text-sm font-bold"></div>
-                            <div class="grid grid-cols-2 gap-8">
+                            <div class="grid grid-cols-2 gap-5">
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Phone Number</label><input type="text" name="phone" value="{{ old('phone') }}" placeholder="+62 812..." class="input-underline text-sm font-bold"></div>
                                 <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Bank Name</label><input type="text" name="bank_name" placeholder="BCA / Mandiri / BNI / Others" class="input-underline text-sm font-bold"></div>
                             </div>
                             <div class="flex flex-col"><label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Account Number</label><input type="text" id="accNumber" name="account_number" placeholder="0000 0000 0000" class="input-underline text-sm font-black tracking-widest"></div>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button type="button" onclick="nextStep(1)" class="w-1/3 py-5 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
-                            <button type="button" onclick="nextStep(3)" class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
+                            <button type="button" onclick="nextStep(1)" class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
+                            <button type="button" onclick="nextStep(3)" class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
                                 Continue Logistics <i class="fa-solid fa-arrow-right ml-4 group-hover:translate-x-2 transition-transform"></i>
                             </button>
                         </div>
                     </div>
 
-                    <div id="section-3" class="hidden space-y-8">
+                    <div id="section-3" class="hidden space-y-6">
                         <span class="text-[10px] font-black uppercase text-primary tracking-[0.4em]">03 — Logistics</span>
                         <div class="space-y-6">
                             <div class="flex flex-col">
@@ -146,7 +156,7 @@
                                     <label class="text-[9px] font-black tracking-widest text-gray-400 uppercase">Warehouse Address</label>
                                     <button type="button" class="text-[8px] font-black text-primary uppercase"><i class="fa-solid fa-location-dot"></i> Pin Location</button>
                                 </div>
-                                <textarea name="store_address" required placeholder="Street name, Building No, City..." class="input-underline text-sm font-medium h-24 resize-none">{{ old('store_address') }}</textarea>
+                                <textarea name="store_address" required placeholder="Street name, Building No, City..." class="input-underline text-sm font-medium h-20 resize-none">{{ old('store_address') }}</textarea>
                             </div>
 
                             <div class="flex items-start space-x-3 py-4">
@@ -157,8 +167,8 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button type="button" onclick="nextStep(2)" class="w-1/3 py-5 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
-                            <button type="submit" id="submit-reg" disabled class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed">
+                            <button type="button" onclick="nextStep(2)" class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
+                            <button type="submit" id="submit-reg" disabled class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed">
                                 Complete Registration
                             </button>
                         </div>
