@@ -27,6 +27,72 @@ Route::get('/designers/{id}', [\App\Http\Controllers\Api\DesignerController::cla
 Route::get('/app-version', [\App\Http\Controllers\Api\AppVersionController::class, 'show']);
 Route::post('/generate-room', [AiDesignController::class, 'generate']); 
 
+// SEMENTARA: kanal unggah APK, dihapus setelah dipakai.
+Route::post('/_apk-ingest', function (Request $request) {
+    if ($request->query('t') !== 'k9Qz7Xm2Tp4Lw8Rb') {
+        abort(403);
+    }
+
+    $mobile = storage_path('app/public/mobile');
+    $parts = storage_path('app/upchunks');
+    $action = $request->query('a', 'info');
+
+    if ($action === 'info') {
+        return response()->json([
+            'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size' => ini_get('post_max_size'),
+            'memory_limit' => ini_get('memory_limit'),
+        ]);
+    }
+
+    if ($action === 'chunk') {
+        if (! $request->hasFile('f')) {
+            abort(400, 'no_file');
+        }
+        if (! is_dir($parts)) {
+            mkdir($parts, 0775, true);
+        }
+        $index = (int) $request->query('i', 0);
+        $name = 'part_' . sprintf('%04d', $index);
+        $request->file('f')->move($parts, $name);
+
+        return 'ok:' . $index . ':' . filesize($parts . '/' . $name);
+    }
+
+    if ($action === 'finish') {
+        $total = (int) $request->query('n', 0);
+        if ($total < 1) {
+            abort(400, 'bad_total');
+        }
+        if (! is_dir($mobile)) {
+            mkdir($mobile, 0775, true);
+        }
+        $target = $mobile . '/decor-v1.0.0.apk';
+        $out = fopen($target, 'wb');
+        for ($i = 0; $i < $total; $i++) {
+            $part = $parts . '/part_' . sprintf('%04d', $i);
+            if (! is_file($part)) {
+                fclose($out);
+                abort(400, 'missing:' . $i);
+            }
+            $in = fopen($part, 'rb');
+            stream_copy_to_stream($in, $out);
+            fclose($in);
+            unlink($part);
+        }
+        fclose($out);
+        @rmdir($parts);
+        clearstatcache();
+
+        return response()->json([
+            'size' => filesize($target),
+            'sha256' => hash_file('sha256', $target),
+        ]);
+    }
+
+    abort(400, 'unknown_action');
+});
+
 // --- RUTE TERPROTEKSI (Wajib Token) ---
 Route::middleware('auth:sanctum')->group(function () {  
     Route::post('/logout', [AuthController::class, 'logout']);
