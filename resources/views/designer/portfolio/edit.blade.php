@@ -63,7 +63,7 @@
                         <label id="drop-area" class="block w-full aspect-square bg-white border-2 @error('image') border-red-500 @else border-dashed border-gray-200 @enderror rounded-[40px] flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors group relative overflow-hidden shadow-sm">
                             <input type="file" name="image" accept="image/*" onchange="previewImage(this)">
                             @if($portfolio->image_url)
-                                <img id="image-preview" src="{{ asset('storage/' . $portfolio->image_url) }}" class="absolute inset-0 w-full h-full object-cover">
+                                <img id="image-preview" src="{{ storage_url($portfolio->image_url) }}" class="absolute inset-0 w-full h-full object-cover">
                                 <div id="upload-placeholder" class="hidden text-center group-hover:scale-105 transition-transform">
                                     <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                                         <i class="fa-solid fa-camera"></i>

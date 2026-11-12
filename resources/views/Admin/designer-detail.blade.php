@@ -123,14 +123,9 @@ $menu_items = [
                             <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                                 <div class="h-40 overflow-hidden bg-gray-100">
                                     @php
-                                        $portImg = $port->image_url;
-                                        if (\Illuminate\Support\Str::startsWith($portImg, ['/storage', 'storage', 'http'])) {
-                                            $portImg = $portImg;
-                                        } else {
-                                            $portImg = 'storage/' . $portImg;
-                                        }
+                                        $portImg = storage_url($port->image_url, 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600');
                                     @endphp
-                                    <img src="{{ asset($portImg) }}" class="w-full h-full object-cover">
+                                    <img src="{{ $portImg }}" class="w-full h-full object-cover">
                                 </div>
                                 <div class="p-4">
                                     <h4 class="text-sm font-bold text-gray-900 mb-1 truncate">{{ $port->title }}</h4>

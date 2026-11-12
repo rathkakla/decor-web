@@ -119,14 +119,14 @@ $stats_view = [
 
             <!-- Thumbnail -->
             <div class="shrink-0">
-                <img src="{{ $p->image_url ? asset('storage/' . $p->image_url) : 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600' }}" 
+                <img src="{{ storage_url($p->image_url, 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600') }}" 
                      class="w-20 h-20 rounded-xl object-cover border border-gray-100 cursor-pointer hover:opacity-80 transition-opacity"
                      onclick="openDetail({{ json_encode([
                           'id' => $p->id,
                           'title' => $p->title,
                           'designer' => $p->designer->user->full_name ?? 'N/A',
                           'style' => $p->category ?? '-',
-                          'image' => $p->image_url ? asset('storage/' . $p->image_url) : '',
+                          'image' => storage_url($p->image_url, ''),
                           'description' => $p->description ?? '',
                           'dimensions' => $p->area ?? '-',
                           'duration' => $p->duration ?? '-',
@@ -140,7 +140,7 @@ $stats_view = [
                   'title' => $p->title,
                   'designer' => $p->designer->user->full_name ?? 'N/A',
                   'style' => $p->category ?? '-',
-                  'image' => $p->image_url ? asset('storage/' . $p->image_url) : '',
+                  'image' => storage_url($p->image_url, ''),
                   'description' => $p->description ?? '',
                   'dimensions' => $p->area ?? '-',
                   'duration' => $p->duration ?? '-',

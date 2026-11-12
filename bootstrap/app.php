@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Tunnel (ngrok/Cloudflare) mengirim request ke Apache sebagai HTTP
+        // dan menandai protokol aslinya lewat header X-Forwarded-*. Tanpa ini
+        // asset() tetap menghasilkan URL http:// walau halaman diakses via
+        // https://, sehingga gambar diblokir browser (mixed content).
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'role' => RoleMiddleware::class,
         ]);

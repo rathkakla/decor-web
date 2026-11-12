@@ -118,9 +118,9 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @forelse($designer->portfolios as $portfolio)
-                    <div class="group cursor-pointer" onclick="openPortfolioModal('{{ addslashes($portfolio->title) }}', '{{ asset('storage/' . $portfolio->image_url) }}', {{ $portfolio->is_360 ? 'true' : 'false' }}, '{{ $portfolio->category ?? 'Interior' }}', '{{ $portfolio->area ?? '-' }}', '{{ $portfolio->duration ?? '-' }}', '{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}')">
+                    <div class="group cursor-pointer" onclick="openPortfolioModal('{{ addslashes($portfolio->title) }}', '{{ storage_url($portfolio->image_url) }}', {{ $portfolio->is_360 ? 'true' : 'false' }}, '{{ $portfolio->category ?? 'Interior' }}', '{{ $portfolio->area ?? '-' }}', '{{ $portfolio->duration ?? '-' }}', '{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}')">
                         <div class="aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-50 mb-6 relative shadow-sm border border-gray-100">
-                            <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                            <img src="{{ storage_url($portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                             <div class="absolute bottom-6 left-6">
                                 <span class="bg-white/90 backdrop-blur text-[8px] font-black uppercase tracking-widest text-gray-900 px-4 py-2 rounded-full shadow-sm">
                                     {{ $portfolio->category ?? 'Interior' }}

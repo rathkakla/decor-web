@@ -147,7 +147,7 @@
                     @forelse($designer->portfolios as $portfolio)
                     <div class="group cursor-pointer" 
                          data-title="{{ $portfolio->title }}"
-                         data-image="{{ asset('storage/' . $portfolio->image_url) }}"
+                         data-image="{{ storage_url($portfolio->image_url) }}"
                          data-is360="{{ $portfolio->is_360 ? 'true' : 'false' }}"
                          data-category="{{ $portfolio->category ?? 'Interior' }}"
                          data-area="{{ $portfolio->area ?? '-' }}"
@@ -156,7 +156,7 @@
                          data-review="{{ $portfolio->consultation && $portfolio->consultation->review ? json_encode(['rating' => $portfolio->consultation->review->rating, 'comment' => $portfolio->consultation->review->comment, 'reviewer_name' => $portfolio->consultation->review->customer->full_name ?? 'Customer', 'designer_reply' => $portfolio->consultation->review->designer_reply]) : '' }}"
                          onclick="openPortfolioFromElement(this)">
                         <div class="aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-50 mb-6 relative shadow-sm border border-gray-100">
-                            <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                            <img src="{{ storage_url($portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                             <div class="absolute bottom-6 left-6">
                                 <span class="bg-white/90 backdrop-blur text-[8px] font-black uppercase tracking-widest text-gray-900 px-4 py-2 rounded-full shadow-sm">
                                     {{ $portfolio->category ?? 'Interior' }}

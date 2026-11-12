@@ -125,14 +125,14 @@
                      id="portfolio-card-{{ $portfolio->id }}"
                      data-id="{{ $portfolio->id }}"
                      data-title="{{ addslashes($portfolio->title) }}"
-                     data-image-url="{{ asset('storage/' . $portfolio->image_url) }}"
+                     data-image-url="{{ storage_url($portfolio->image_url) }}"
                      data-is-360="{{ $portfolio->is_360 ? 'true' : 'false' }}"
                      data-category="{{ $portfolio->category ?? 'Interior' }}"
                      data-area="{{ $portfolio->area ?? '-' }}"
                      data-duration="{{ $portfolio->duration ?? '-' }}"
                      data-description="{{ addslashes(str_replace(["\r", "\n"], " ", $portfolio->description ?? 'No description.')) }}">
                     <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden cursor-pointer" onclick="openPortfolioModalFromCard({{ $portfolio->id }})">
-                        <img src="{{ asset('storage/' . $portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <img src="{{ storage_url($portfolio->image_url) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         <div class="absolute top-6 left-6 flex flex-col gap-1.5">
                             <span class="text-[8px] bg-white/90 backdrop-blur text-gray-900 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-sm w-fit">
                                 {{ $portfolio->category ?? 'Interior' }}

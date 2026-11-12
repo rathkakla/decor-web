@@ -1,0 +1,24 @@
+# Traffic Policy ngrok untuk testing lokal.
+#
+# Tujuan: menambahkan header CORS hanya pada file /storage/*, karena saat app
+# dilayani `php artisan serve`, PHP built-in server tidak membaca
+# public/.htaccess sehingga gambar tidak mendapat header CORS.
+#
+# Pakai:
+#   ngrok http 8000 --traffic-policy-file ngrok-policy.yml
+#
+# Header sengaja dibatasi ke /storage/* supaya tidak dobel dengan header CORS
+# yang sudah dikirim Laravel untuk /api/*.
+
+on_http_response:
+  - expressions:
+      - "req.url.path.startsWith(\"/storage/\")"
+    actions:
+      - type: add-headers
+        config:
+          headers:
+            Access-Control-Allow-Origin: "*"
+            Access-Control-Allow-Methods: "GET, HEAD, OPTIONS"
+            Access-Control-Allow-Headers: "*"
+            Access-Control-Max-Age: "86400"
+            Cross-Origin-Resource-Policy: "cross-origin"

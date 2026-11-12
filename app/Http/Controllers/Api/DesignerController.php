@@ -40,7 +40,7 @@ class DesignerController extends Controller
                         return [
                             'id' => $portfolio->id,
                             'title' => $portfolio->title,
-                            'image_url' => asset('storage/' . $portfolio->image_url),
+                            'image_url' => storage_url($portfolio->image_url),
                             'description' => $portfolio->description,
                             'category' => $portfolio->category,
                             'budget' => $portfolio->budget,
@@ -117,7 +117,7 @@ class DesignerController extends Controller
                     return [
                         'id' => $portfolio->id,
                         'title' => $portfolio->title,
-                        'image_url' => asset('storage/' . $portfolio->image_url),
+                        'image_url' => storage_url($portfolio->image_url),
                         'description' => $portfolio->description,
                         'category' => $portfolio->category,
                         'budget' => $portfolio->budget,

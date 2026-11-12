@@ -97,7 +97,7 @@
                                 {{ $msg->message }}
                                 @if($msg->attachment)
                                     <div class="mt-2 text-right">
-                                        <a href="{{ Storage::url($msg->attachment) }}" target="_blank" class="text-white/80 underline text-[10px] hover:text-white"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
+                                        <a href="{{ asset('storage/' . $msg->attachment) }}" target="_blank" class="text-white/80 underline text-[10px] hover:text-white"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
                                     </div>
                                 @endif
                             </div>
@@ -108,7 +108,7 @@
                                 {{ $msg->message }}
                                 @if($msg->attachment)
                                     <div class="mt-2 text-left">
-                                        <a href="{{ Storage::url($msg->attachment) }}" target="_blank" class="text-primary/80 underline text-[10px] hover:text-primary"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
+                                        <a href="{{ asset('storage/' . $msg->attachment) }}" target="_blank" class="text-primary/80 underline text-[10px] hover:text-primary"><i class="fa-solid fa-paperclip mr-1"></i>Lampiran</a>
                                     </div>
                                 @endif
                             </div>

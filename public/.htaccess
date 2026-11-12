@@ -1,3 +1,16 @@
+<IfModule mod_headers.c>
+    # File di public/storage (dan gambar lain) disajikan langsung oleh Apache,
+    # sehingga tidak melewati middleware CORS Laravel. Header ini wajib ada
+    # agar Flutter Web / fetch lintas origin bisa memuat gambar.
+    <FilesMatch "\.(jpe?g|png|gif|webp|avif|svg|ico|bmp|mp4|webm|pdf|glb|gltf)$">
+        Header always set Access-Control-Allow-Origin "*"
+        Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+        Header always set Access-Control-Allow-Headers "*"
+        Header always set Access-Control-Max-Age "86400"
+        Header always set Cross-Origin-Resource-Policy "cross-origin"
+    </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
