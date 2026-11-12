@@ -11,6 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Tabel ini sudah dibuat oleh create_decor_final_schema (dan dipakai
+        // sebagai foreign key tabel lain). Lewati bila sudah ada supaya
+        // `php artisan migrate` tetap jalan di database baru.
+        if (Schema::hasTable('designers')) {
+            return;
+        }
+
         Schema::create('designers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
