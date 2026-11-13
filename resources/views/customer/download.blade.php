@@ -1,11 +1,11 @@
 <?php $site_name = "DECOR"; ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi — <?= $site_name ?></title>
+    <title>Get the App — <?= $site_name ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -50,22 +50,22 @@
 
                 <div>
                     <span class="text-[10px] uppercase tracking-[0.4em] text-primary font-bold">
-                        Aplikasi Android
+                        Android App
                     </span>
 
                     <h1 class="text-6xl md:text-7xl font-bold editorial-text mt-5 mb-6">
-                        Decor di saku<br><span class="text-primary italic">Anda.</span>
+                        Decor in your<br><span class="text-primary italic">pocket.</span>
                     </h1>
 
                     <p class="text-gray-500 leading-relaxed max-w-md mb-10">
-                        Katalog furnitur, konsultasi desainer, dan AI room design — langsung dari HP.
+                        Furniture catalogue, designer consultations, and AI room design — straight from your phone.
                     </p>
 
                     @if ($release)
                         <a href="{{ $release['url'] }}" download data-umami-event="download-apk"
                             class="inline-flex items-center gap-3 bg-primary text-white px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-opacity-90 transition">
                             <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
-                            Unduh APK &middot; v{{ $release['version'] }}
+                            Download APK &middot; v{{ $release['version'] }}
                         </a>
 
                         <div
@@ -92,16 +92,16 @@
                         <span
                             class="inline-flex items-center gap-3 bg-gray-100 text-gray-400 px-8 py-4 rounded-sm text-xs font-bold uppercase tracking-widest cursor-not-allowed select-none">
                             <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
-                            Segera tersedia
+                            Coming soon
                         </span>
 
                         <p class="mt-6 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold">
-                            Aplikasi sedang disiapkan
+                            The app is being prepared
                         </p>
 
                         <p class="mt-3 text-xs text-gray-400 leading-relaxed max-w-sm">
-                            Kami sedang menyelesaikan aplikasi Android Decor. Halaman ini akan otomatis
-                            menampilkan tombol unduh begitu versi pertama siap.
+                            We are putting the finishing touches on the Decor Android app. This page will
+                            automatically show the download button as soon as the first version is ready.
                         </p>
                     @endif
                 </div>
@@ -110,13 +110,13 @@
                 <div
                     class="hidden lg:flex flex-col items-center gap-5 bg-secondary/30 border border-secondary rounded-sm p-8 w-[220px]">
                     <span class="text-[9px] uppercase tracking-[0.3em] text-primary font-bold text-center">
-                        Scan dari HP
+                        Scan to open
                     </span>
 
                     <div id="qr" class="w-[150px] h-[150px] bg-white flex items-center justify-center"></div>
 
                     <p class="text-[9px] text-gray-400 text-center leading-relaxed">
-                        Buka kamera HP, arahkan ke kode untuk membuka halaman ini.
+                        Open your phone camera and point it at the code to open this page.
                     </p>
                 </div>
             </div>
@@ -125,15 +125,15 @@
         {{-- ── LANGKAH PEMASANGAN ───────────────────────────────────────── --}}
         <section class="content-container px-6 py-16 border-t border-gray-100">
             <h2 class="text-[10px] uppercase tracking-[0.4em] text-primary font-bold mb-10">
-                Cara memasang
+                How to install
             </h2>
 
             @php
                 $steps = [
-                    'Unduh berkas APK melalui tombol di atas.',
-                    'Buka berkas yang sudah terunduh dari notifikasi atau folder Unduhan.',
-                    'Jika HP meminta izin, aktifkan “Izinkan dari sumber ini” untuk browser yang dipakai, lalu kembali dan pasang.',
-                    'Buka Decor dan masuk dengan akun yang sudah Anda miliki.',
+                    'Download the APK using the button above.',
+                    'Open the downloaded file from your notification or the Downloads folder.',
+                    'If your phone asks for permission, allow “Install from this source” for the browser you are using, then go back and install.',
+                    'Open Decor and sign in with your existing account.',
                 ];
             @endphp
 
@@ -154,8 +154,8 @@
             <div class="bg-secondary/30 border border-secondary rounded-sm p-6 flex items-start gap-4 max-w-3xl">
                 <i class="fa-solid fa-shield-halved text-primary mt-0.5"></i>
                 <p class="text-xs text-gray-500 leading-relaxed">
-                    Aplikasi ini berasal dari tim Decor. Unduh hanya dari halaman ini — jangan dari
-                    sumber lain, karena berkas dari pihak ketiga tidak dapat kami jamin keamanannya.
+                    This app comes from the Decor team. Download it only from this page — not from other
+                    sources, since we cannot vouch for the safety of files obtained elsewhere.
                 </p>
             </div>
         </section>
@@ -164,7 +164,7 @@
         @if (count($history))
             <section class="content-container px-6 pb-20">
                 <h2 class="text-[10px] uppercase tracking-[0.4em] text-primary font-bold mb-6">
-                    Versi sebelumnya
+                    Previous versions
                 </h2>
 
                 <ul class="divide-y divide-gray-100 max-w-2xl">
@@ -178,7 +178,7 @@
                             </div>
                             <a href="{{ $old['url'] }}" download
                                 class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary/40 pb-0.5 hover:border-primary transition-colors">
-                                Unduh
+                                Download
                             </a>
                         </li>
                     @endforeach
@@ -193,9 +193,9 @@
             class="content-container flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold">
             <p>&copy; 2026 Decor Marketplace</p>
             <div class="flex items-center gap-6">
-                <a href="{{ route('homepage') }}" class="hover:text-primary transition-colors">Beranda</a>
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-colors">Katalog</a>
-                <a href="{{ route('customer.help-center') }}" class="hover:text-primary transition-colors">Bantuan</a>
+                <a href="{{ route('homepage') }}" class="hover:text-primary transition-colors">Home</a>
+                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-colors">Collections</a>
+                <a href="{{ route('customer.help-center') }}" class="hover:text-primary transition-colors">Help</a>
             </div>
         </div>
     </footer>
@@ -207,7 +207,7 @@
             if (!container) return;
 
             if (typeof QRCode === 'undefined') {
-                container.innerHTML = '<span class="text-[9px] text-gray-400 text-center px-2">QR tidak tersedia</span>';
+                container.innerHTML = '<span class="text-[9px] text-gray-400 text-center px-2">QR unavailable</span>';
                 return;
             }
 

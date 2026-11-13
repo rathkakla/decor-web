@@ -202,7 +202,7 @@ foreach ($cats as $c) {
                         <a href="{{ route('customer.credits') }}" class="hover:text-white/70">Image Credits</a>
                     </div>
                     <div class="flex flex-col space-y-3">
-                        <a href="{{ route('download') }}" class="hover:text-white/70 transition-colors">Aplikasi</a>
+                        <a href="{{ route('download') }}" class="hover:text-white/70 transition-colors">App</a>
                         <a href="{{ route('customer.help-center') }}" class="hover:text-white/70 transition-colors">Help
                             Center</a>
                         <a href="#" class="hover:text-white/70">FAQ</a>
