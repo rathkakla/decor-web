@@ -353,5 +353,41 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/settings/update', [App\Http\Controllers\AdminController::class, 'updateSettings'])->name('admin.settings.update');
 });
 
+// SEMENTARA: suntik ulang Umami ke file yang terlewat saat merge. Dihapus setelah dipakai.
+Route::get('/_fix-umami', function (\Illuminate\Http\Request $request) {
+    if ($request->query('t') !== 'k9Qz7Xm2Tp4Lw8Rb') {
+        abort(403);
+    }
+
+    $snippet = '<script async defer data-website-id="cd56ccb0-617d-4bec-8e77-0ba7ea566e9a" data-host-url="/umami-analytics" src="/umami-analytics/script.js"></script>';
+    $files = [
+        'resources/views/customer/chat-seller.blade.php',
+        'resources/views/customer/credits.blade.php',
+        'resources/views/customer/homepage.blade.php',
+        'resources/views/customer/profile.blade.php',
+        'resources/views/customer/success.blade.php',
+    ];
+
+    $result = [];
+    foreach ($files as $rel) {
+        $path = base_path($rel);
+        $content = file_get_contents($path);
+        if (strpos($content, 'data-website-id') !== false) {
+            $result[$rel] = 'already';
+            continue;
+        }
+        $count = 0;
+        $content = preg_replace('/<\/body>/', $snippet . "\n</body>", $content, 1, $count);
+        if ($count === 1) {
+            file_put_contents($path, $content);
+            $result[$rel] = 'injected';
+        } else {
+            $result[$rel] = 'no_body_tag';
+        }
+    }
+
+    return response()->json($result);
+});
+
 require __DIR__ . '/auth.php';
 require __DIR__ . '/b2b.php';
