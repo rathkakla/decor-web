@@ -272,5 +272,6 @@ $menu_items = [
         });
     }
 </script>
+<script async defer data-website-id="cd56ccb0-617d-4bec-8e77-0ba7ea566e9a" data-host-url="/umami-analytics" src="/umami-analytics/script.js"></script>
 </body>
 </html>
