@@ -46,6 +46,13 @@ $menu_items = [
     @include("Admin.partials.header", ["title" => "Seller Detail"])
     <div class="p-8 space-y-8 flex-1">
 
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center mb-6">
+            <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="flex items-center gap-2 mb-6 text-xs font-bold text-gray-500">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="home" class="w-3.5 h-3.5"></i> Dashboard</a>
         <span class="text-gray-300">/</span>
@@ -173,6 +180,47 @@ $menu_items = [
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Description</label>
                         <div class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">{{ $seller->store_description ?? 'Tidak ada data' }}</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2"><i data-feather="layers" class="w-4 h-4 text-primary"></i> Modul B2B</h3>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $seller->b2b_enabled ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-50 text-gray-500 border border-gray-200' }}">
+                        {{ $seller->b2b_enabled ? 'Aktif' : 'Nonaktif' }}
+                    </span>
+                </div>
+                <div class="p-6 space-y-4">
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                        @if($seller->b2b_enabled)
+                            Toko ini menerima RFQ pengadaan mebel kustom dan tampil di katalog vendor designer.
+                        @else
+                            Toko ini hanya melayani pesanan ritel. Aktifkan agar dapat menerima RFQ dan muncul di katalog vendor designer.
+                        @endif
+                    </p>
+
+                    <div class="grid grid-cols-1 gap-2 text-[11px]">
+                        <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                            <span class="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Kota</span>
+                            <span class="font-semibold text-gray-700">{{ $seller->city ?: '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                            <span class="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Kapasitas</span>
+                            <span class="font-semibold text-gray-700">{{ $seller->monthly_capacity ? $seller->monthly_capacity . ' unit/bln' : '-' }}</span>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                            <span class="block font-bold text-gray-400 uppercase tracking-widest text-[9px] mb-1">Spesialisasi Kayu</span>
+                            <span class="font-semibold text-gray-700">{{ collect($seller->wood_specialties ?? [])->implode(', ') ?: '-' }}</span>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-colors {{ $seller->b2b_enabled ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-primary text-white hover:bg-[#8C4E1E]' }}">
+                            <i data-feather="{{ $seller->b2b_enabled ? 'x-circle' : 'check-circle' }}" class="w-4 h-4"></i>
+                            {{ $seller->b2b_enabled ? 'Nonaktifkan B2B' : 'Aktifkan B2B' }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

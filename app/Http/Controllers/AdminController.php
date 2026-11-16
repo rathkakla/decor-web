@@ -283,6 +283,18 @@ class AdminController extends Controller
         return view('Admin.seller-detail', compact('seller'));
     }
 
+    public function toggleB2b($id)
+    {
+        $seller = Seller::findOrFail($id);
+        $seller->update(['b2b_enabled' => ! $seller->b2b_enabled]);
+
+        return redirect()
+            ->route('admin.seller-detail', $seller->id)
+            ->with('success', $seller->b2b_enabled
+                ? "Modul B2B diaktifkan untuk {$seller->store_name}. Toko kini tampil di katalog vendor designer."
+                : "Modul B2B dinonaktifkan untuk {$seller->store_name}.");
+    }
+
     public function designerDetail($id)
     {
         $designer = Designer::with(['user', 'portfolios'])->findOrFail($id);

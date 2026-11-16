@@ -331,6 +331,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/seller-monitor', [App\Http\Controllers\AdminController::class, 'sellerMonitor'])->name('admin.seller-monitor');
 
     Route::get('/seller-detail/{id}', [App\Http\Controllers\AdminController::class, 'sellerDetail'])->name('admin.seller-detail');
+    Route::post('/seller-detail/{id}/b2b', [App\Http\Controllers\AdminController::class, 'toggleB2b'])->name('admin.seller-b2b.toggle');
     Route::get('/designer-detail/{id}', [App\Http\Controllers\AdminController::class, 'designerDetail'])->name('admin.designer-detail');
 
     Route::get('/designer-monitor', [App\Http\Controllers\AdminController::class, 'designerMonitor'])->name('admin.designer-monitor');
