@@ -7,6 +7,7 @@ use App\Models\B2bMilestone;
 use App\Models\B2bOrder;
 use App\Models\Seller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProductionController extends Controller
@@ -34,18 +35,50 @@ class ProductionController extends Controller
 
         abort_unless($milestone->order_id === $order->id, 403, 'Milestone tidak valid.');
 
+        // Foto bukti QC wajib ada di setiap milestone. Bila milestone belum
+        // punya foto, unggahan baru diwajibkan sebelum progres boleh disimpan.
+        $hasPhoto = filled($milestone->photo_url);
+
         $validated = $request->validate([
             'progress_percent' => ['required', 'integer', 'min:0', 'max:100'],
             'target_date' => ['nullable', 'date'],
             'qc_notes' => ['nullable', 'string', 'max:1000'],
+            'photo' => [$hasPhoto ? 'nullable' : 'required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+        ], [
+            'progress_percent.required' => 'Persentase progres wajib diisi.',
+            'progress_percent.integer' => 'Persentase progres harus berupa angka.',
+            'progress_percent.min' => 'Persentase progres tidak boleh kurang dari 0%.',
+            'progress_percent.max' => 'Persentase progres maksimal 100%.',
+            'target_date.date' => 'Format target tanggal tidak valid.',
+            'qc_notes.max' => 'Catatan QC maksimal 1000 karakter.',
+            'photo.required' => 'Foto bukti QC wajib diunggah sebelum progres disimpan.',
+            'photo.file' => 'Foto bukti QC gagal diunggah. Silakan coba lagi.',
+            'photo.mimes' => 'Foto bukti QC harus berformat JPG, JPEG, atau PNG.',
+            'photo.max' => 'Ukuran foto bukti QC maksimal 5 MB.',
         ]);
 
-        $milestone->update($validated);
+        $data = [
+            'progress_percent' => $validated['progress_percent'],
+            'target_date' => $validated['target_date'] ?? null,
+            'qc_notes' => $validated['qc_notes'] ?? null,
+        ];
+
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('b2b/qc', 'public');
+
+            if ($milestone->photo_url) {
+                Storage::disk('public')->delete($milestone->photo_url);
+            }
+
+            $data['photo_url'] = $path;
+        }
+
+        $milestone->update($data);
 
         // Auto-update order status based on milestones
         $this->updateOrderStatus($order);
 
-        return back()->with('success', "Progress {$milestone->stage_name} diperbarui ke {$validated['progress_percent']}%.");
+        return back()->with('success', "Progres {$milestone->stage_name} diperbarui ke {$validated['progress_percent']}%.");
     }
 
     public function uploadQcPhoto(Request $request, B2bOrder $order, B2bMilestone $milestone): \Illuminate\Http\RedirectResponse
@@ -57,9 +90,18 @@ class ProductionController extends Controller
 
         $validated = $request->validate([
             'photo' => ['required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+        ], [
+            'photo.required' => 'Pilih foto bukti QC terlebih dahulu.',
+            'photo.file' => 'Foto bukti QC gagal diunggah. Silakan coba lagi.',
+            'photo.mimes' => 'Foto bukti QC harus berformat JPG, JPEG, atau PNG.',
+            'photo.max' => 'Ukuran foto bukti QC maksimal 5 MB.',
         ]);
 
         $path = $request->file('photo')->store('b2b/qc', 'public');
+
+        if ($milestone->photo_url) {
+            Storage::disk('public')->delete($milestone->photo_url);
+        }
 
         $milestone->update(['photo_url' => $path]);
 

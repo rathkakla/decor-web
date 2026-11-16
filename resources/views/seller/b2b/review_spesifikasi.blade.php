@@ -253,8 +253,20 @@
 
                         <!-- Kesimpulan & Action Buttons -->
                         <div class="pt-4 border-t border-gray-100 space-y-3">
-                            <p class="text-[11px] text-gray-500 italic">Silakan tinjau spesifikasi teknis dan kebutuhan material sebelum membuat penawaran.</p>
-                            
+                            @if($rfq->status === 'IN_ORDER')
+                                <p class="text-[11px] text-gray-500 italic">Proyek sudah menjadi order produksi. Kelola progres milestone dan bukti QC di halaman Manajemen Produksi & QC.</p>
+                                @if($rfq->order)
+                                    <a href="{{ b2b_route('seller.b2b.produksi', $rfq->order) }}" class="w-full bg-primary hover:bg-[#8C4E1E] text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md">
+                                        Kelola Produksi & QC <i class="fa-solid fa-arrow-right ml-2"></i>
+                                    </a>
+                                    <a href="{{ b2b_route('seller.b2b.surat_jalan', $rfq->order) }}" class="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all">
+                                        <i class="fa-solid fa-truck-fast mr-2 text-primary"></i> Surat Jalan & Payout
+                                    </a>
+                                @endif
+                            @else
+                                <p class="text-[11px] text-gray-500 italic">Silakan tinjau spesifikasi teknis dan kebutuhan material sebelum membuat penawaran.</p>
+                            @endif
+
                             @if($rfq->status === 'PENDING')
                                 <a href="{{ b2b_route('seller.b2b.quotation.create', $rfq) }}" class="w-full bg-primary hover:bg-[#8C4E1E] text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md">
                                     Lanjut ke Pembuatan Penawaran (Quotation) <i class="fa-solid fa-arrow-right ml-2"></i>

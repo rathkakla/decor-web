@@ -14,7 +14,7 @@ class RfqController extends Controller
     {
         $seller = $this->getSeller();
 
-        $query = B2bRfq::with(['designer.user', 'latestQuotation'])
+        $query = B2bRfq::with(['designer.user', 'latestQuotation', 'order'])
             ->where('seller_id', $seller->id)
             ->latest();
 
@@ -59,6 +59,7 @@ class RfqController extends Controller
             'latestQuotation',
             'negotiations.sender',
             'seller',
+            'order',
         ]);
 
         return view('seller.b2b.review_spesifikasi', compact('rfq'));

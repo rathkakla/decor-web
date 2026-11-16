@@ -23,6 +23,16 @@
             #sidebar.sidebar-hidden { transform: translateX(-100%); }
             #main-content.main-expanded { margin-left: 0 !important; }
         }
+        /* Sembunyikan spinner up-down bawaan browser pada input angka progres */
+        input[type="number"].progress-input::-webkit-outer-spin-button,
+        input[type="number"].progress-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"].progress-input {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -191,35 +201,53 @@
                                 <p class="text-xs text-gray-600 pl-0 sm:pl-10">{{ $milestone->qc_notes }}</p>
                             @endif
 
-                            <!-- Form Update Progress -->
-                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.update', [$order, $milestone]) }}" class="pl-0 sm:pl-10 pt-1 grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                            <!-- Form Gabungan: Update Progres + Upload Bukti QC -->
+                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.update', [$order, $milestone]) }}" enctype="multipart/form-data" data-milestone-form class="pl-0 sm:pl-10 pt-1 space-y-2">
                                 @csrf
-                                <div class="sm:col-span-3">
-                                    <label class="block text-[9px] font-bold text-gray-500 uppercase">Progres %</label>
-                                    <input type="number" name="progress_percent" min="0" max="100" value="{{ $milestone->progress_percent }}" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary" required>
+                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                                    <div class="sm:col-span-3">
+                                        <label class="block text-[9px] font-bold text-gray-500 uppercase">Progres %</label>
+                                        <input type="number" name="progress_percent" min="0" max="100" step="1" inputmode="numeric"
+                                               value=""
+                                               data-current="{{ $milestone->progress_percent }}"
+                                               placeholder="{{ $milestone->progress_percent }}"
+                                               class="progress-input w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary">
+                                    </div>
+                                    <div class="sm:col-span-3">
+                                        <label class="block text-[9px] font-bold text-gray-500 uppercase">Target Tanggal</label>
+                                        <input type="date" name="target_date" value="{{ $milestone->target_date?->format('Y-m-d') }}" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary">
+                                    </div>
+                                    <div class="sm:col-span-3">
+                                        <label class="block text-[9px] font-bold text-gray-500 uppercase">Catatan QC</label>
+                                        <input type="text" name="qc_notes" value="{{ $milestone->qc_notes }}" placeholder="Catatan singkat" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary">
+                                    </div>
+                                    <div class="sm:col-span-3">
+                                        <label class="block text-[9px] font-bold text-gray-500 uppercase">
+                                            Foto Bukti QC @if(! $milestone->photo_url)<span class="text-red-500">*</span>@endif
+                                        </label>
+                                        <input type="file" name="photo" accept=".jpg,.jpeg,.png" @if(! $milestone->photo_url) required @endif
+                                               class="w-full text-[10px] text-gray-500 border border-gray-200 rounded-lg p-1.5 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-primary/10 file:text-primary">
+                                        <p class="text-[9px] text-gray-400 mt-0.5">JPG/PNG &bull; maks 5 MB</p>
+                                    </div>
                                 </div>
-                                <div class="sm:col-span-4">
-                                    <label class="block text-[9px] font-bold text-gray-500 uppercase">Target Tanggal</label>
-                                    <input type="date" name="target_date" value="{{ $milestone->target_date?->format('Y-m-d') }}" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary">
-                                </div>
-                                <div class="sm:col-span-3">
-                                    <label class="block text-[9px] font-bold text-gray-500 uppercase">Catatan QC</label>
-                                    <input type="text" name="qc_notes" value="{{ $milestone->qc_notes }}" placeholder="Catatan singkat" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary">
-                                </div>
-                                <div class="sm:col-span-2">
-                                    <button type="submit" class="w-full bg-primary hover:bg-[#8C4E1E] text-white px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all">
-                                        Simpan
+
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-1">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        @if($milestone->photo_url)
+                                            <img src="{{ asset('storage/' . $milestone->photo_url) }}" alt="Foto QC {{ $milestone->stage_name }}" class="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0">
+                                            <span class="text-[10px] text-emerald-700 font-semibold">
+                                                <i class="fa-solid fa-circle-check mr-1"></i> Foto QC sudah tersimpan
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] text-amber-700 font-semibold">
+                                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Foto QC wajib diunggah sebelum progres disimpan
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white px-4 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap">
+                                        <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Progres & QC
                                     </button>
                                 </div>
-                            </form>
-
-                            <!-- Form Upload Foto QC -->
-                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.photo', [$order, $milestone]) }}" enctype="multipart/form-data" class="pl-0 sm:pl-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                @csrf
-                                <input type="file" name="photo" accept=".jpg,.jpeg,.png" required class="flex-1 text-[10px] text-gray-500 border border-gray-200 rounded-lg p-1.5">
-                                <button type="submit" class="bg-gray-900 hover:bg-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all">
-                                    <i class="fa-solid fa-camera mr-1"></i> Upload Bukti QC
-                                </button>
                             </form>
                         </div>
                     @empty
@@ -338,6 +366,37 @@
         window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
 
         window.toggleSidebar = toggleSidebar;
+    })();
+
+    // Progres %: placeholder bersih, clamp 0-100, fallback ke nilai lama saat kosong.
+    (function () {
+        document.querySelectorAll('form[data-milestone-form]').forEach(function (form) {
+            var input = form.querySelector('input[name="progress_percent"]');
+            if (!input) return;
+
+            input.addEventListener('input', function () {
+                var digits = input.value.replace(/[^0-9]/g, '');
+                if (digits === '') { input.value = ''; return; }
+                var n = parseInt(digits, 10);
+                if (isNaN(n)) return;
+                if (n > 100) n = 100;
+                input.value = String(n);
+            });
+
+            input.addEventListener('blur', function () {
+                if (input.value === '') return;
+                var n = parseInt(input.value, 10);
+                if (isNaN(n) || n < 0) input.value = '0';
+                else if (n > 100) input.value = '100';
+            });
+
+            form.addEventListener('submit', function () {
+                if (input.value === '') {
+                    input.value = input.dataset.current || '0';
+                }
+                if (parseInt(input.value, 10) > 100) input.value = '100';
+            });
+        });
     })();
     </script>
 <script async defer data-website-id="cd56ccb0-617d-4bec-8e77-0ba7ea566e9a" data-host-url="/umami-analytics" src="/umami-analytics/script.js"></script>

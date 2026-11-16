@@ -182,7 +182,16 @@
                                         <span class="{{ $cfg['class'] }} px-2.5 py-1 rounded-full text-[10px] font-bold">{{ $cfg['label'] }}</span>
                                     </td>
                                     <td class="py-4 px-6 text-right">
-                                        @if($rfq->status === 'PENDING')
+                                        @if($rfq->status === 'IN_ORDER' && $rfq->order)
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{{ b2b_route('seller.b2b.produksi', $rfq->order) }}" class="bg-primary hover:bg-[#8C4E1E] text-white px-3.5 py-2 rounded-lg font-bold text-xs inline-flex items-center transition-all shadow-sm whitespace-nowrap">
+                                                    Kelola Produksi <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                                                </a>
+                                                <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="border border-gray-200 hover:border-primary text-gray-700 px-3 py-2 rounded-lg font-semibold text-xs inline-flex items-center">
+                                                    Detail
+                                                </a>
+                                            </div>
+                                        @elseif($rfq->status === 'PENDING')
                                             <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="bg-primary hover:bg-[#8C4E1E] text-white px-3.5 py-2 rounded-lg font-bold text-xs inline-flex items-center transition-all shadow-sm">
                                                 Tinjau Proyek <i class="fa-solid fa-arrow-right ml-1.5"></i>
                                             </a>
