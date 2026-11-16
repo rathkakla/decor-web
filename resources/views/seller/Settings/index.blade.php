@@ -168,9 +168,7 @@
                 </div>
             </div>
 
-            <footer class="p-8 border-t border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-auto text-left">
-                Â© 2026 DECOR MARKETPLACE SELLER PORTAL. ALL RIGHTS RESERVED.
-            </footer>
+            @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
 
             <div id="fixed-action-bar" class="fixed bottom-0 left-64 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 px-10 py-5 flex items-center justify-between z-50 sidebar-transition">
                 <div class="flex items-center space-x-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">

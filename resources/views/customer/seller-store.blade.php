@@ -280,11 +280,7 @@
 </div><!-- /content-wrap -->
 
 <!-- ══════════════ FOOTER ══════════════ -->
-<footer class="bg-primary text-white py-12 px-6 mt-12">
-    <div class="max-w-6xl mx-auto text-center">
-        <p class="text-sm">©️ 2026 DECOR MARKETPLACE. ALL RIGHTS RESERVED.</p>
-    </div>
-</footer>
+@include('customer.partials.footer')
 
 <script>
 function switchTab(btn, id) {

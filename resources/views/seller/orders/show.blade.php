@@ -188,9 +188,7 @@
             </div>
         </div>
 
-        <footer class="px-8 py-6 border-t border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left mt-auto">
-            © 2026 DECOR MARKETPLACE SELLER PORTAL. ALL RIGHTS RESERVED.
-        </footer>
+        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
     </main>
 
     <script>

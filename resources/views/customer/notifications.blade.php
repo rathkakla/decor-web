@@ -70,11 +70,7 @@
         </div>
     </main>
 
-    <footer class="bg-white border-t border-gray-100 py-12 mt-20">
-        <div class="max-w-7xl mx-auto px-8 text-center">
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em]">Â© 2026 DECOR LUXURY FURNITURE. ALL RIGHTS RESERVED.</p>
-        </div>
-    </footer>
+    @include('customer.partials.footer')
 
 </body>
 </html>

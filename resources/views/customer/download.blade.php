@@ -188,17 +188,7 @@
     </main>
 
     {{-- ── FOOTER RINGKAS ───────────────────────────────────────────────── --}}
-    <footer class="border-t border-gray-100 py-10 px-6">
-        <div
-            class="content-container flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold">
-            <p>&copy; 2026 Decor Marketplace</p>
-            <div class="flex items-center gap-6">
-                <a href="{{ route('homepage') }}" class="hover:text-primary transition-colors">Home</a>
-                <a href="{{ route('customer.catalog') }}" class="hover:text-primary transition-colors">Collections</a>
-                <a href="{{ route('customer.help-center') }}" class="hover:text-primary transition-colors">Help</a>
-            </div>
-        </div>
-    </footer>
+    @include('customer.partials.footer')
 
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>

@@ -160,16 +160,7 @@
         </div>
     </main>
 
-    <footer class="w-full px-8 py-6 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest font-medium relative z-10">
-        <div class="mb-4 md:mb-0">
-            © 2024 Decor Admin Portal. Secure System Entry.
-        </div>
-        <div class="flex gap-6">
-            <a href="#" class="hover:text-gray-600 transition-colors">Privacy Policy</a>
-            <a href="#" class="hover:text-gray-600 transition-colors">System Status</a>
-            <a href="#" class="hover:text-gray-600 transition-colors">Contact Support</a>
-        </div>
-    </footer>
+    @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
 
     <script>
         function togglePassword() {

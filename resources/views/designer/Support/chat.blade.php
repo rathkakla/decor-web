@@ -138,9 +138,7 @@
             </div>
         </main>
 
-        <footer class="p-8 border-t border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white mt-auto text-center">
-            © 2026 DECOR DESIGNER PORTAL. ALL RIGHTS RESERVED.
-        </footer>
+        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
     </div>
 
     <script>

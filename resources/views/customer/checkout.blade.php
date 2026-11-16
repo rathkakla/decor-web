@@ -571,23 +571,7 @@
         });
     </script>
 
-    <footer class="bg-primary text-white py-12 px-6 mt-12">
-        <div class="max-w-6xl mx-auto"> 
-            <div class="flex flex-col md:flex-row justify-between items-start border-b border-white/20 pb-10 gap-10">
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-2 text-white">
-                        <div class="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
-                            <i class="fa-solid fa-couch text-sm"></i>
-                        </div>
-                        <span class="text-xl font-bold tracking-widest uppercase">{{ $site_name }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="pt-8 text-[10px] text-white/60 font-medium tracking-widest">
-                <p>©️ 2026 {{ $site_name }} MARKETPLACE. ALL RIGHTS RESERVED.</p>
-            </div>
-        </div>
-    </footer>
+    @include('customer.partials.footer')
 
 </body>
 </html>

@@ -220,13 +220,7 @@
         </div>
     </div>
 
-    <footer class="bg-primary text-white py-12 px-6 mt-12">
-        <div class="max-w-6xl mx-auto text-center"> 
-            <p class="text-[10px] text-white/60 font-medium tracking-widest uppercase">
-                ©️ 2026 DECOR MARKETPLACE. ALL RIGHTS RESERVED.
-            </p>
-        </div>
-    </footer>
+    @include('customer.partials.footer')
 
     <script>
         let activeViewer = null;

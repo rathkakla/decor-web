@@ -107,12 +107,6 @@
         </section>
     </main>
 
-    <footer class="bg-primary text-white py-12 px-6">
-        <div class="max-w-6xl mx-auto">
-            <div class="pt-8 text-[10px] text-white/60 font-medium tracking-widest text-center">
-                <p>©️ 2026 DECOR MARKETPLACE. ALL RIGHTS RESERVED.</p>
-            </div>
-        </div>
-    </footer>
+    @include('customer.partials.footer')
 </body>
 </html>

@@ -173,11 +173,7 @@
         </section>
     </main>
 
-    <footer class="bg-white border-t border-gray-50 py-10">
-        <div class="content-container px-6 text-center">
-            <p class="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">&copy; 2026 DECOR Premium Furniture. All Rights Reserved.</p>
-        </div>
-    </footer>
+    @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
 
 </body>
 </html>

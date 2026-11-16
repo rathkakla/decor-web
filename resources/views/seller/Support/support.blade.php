@@ -171,9 +171,7 @@
             </div>
         </div>
 
-        <footer class="p-8 border-t border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-auto text-left">
-            Â© 2026 DECOR MERCHANT SERVICE CENTER. ALL RIGHTS RESERVED.
-        </footer>
+        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
     </main>
 
     <script>
