@@ -40,7 +40,7 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan Kustom B2B</a>
+                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white hidden sm:inline">Kustom B2B</a>
                     <span class="text-white/50 hidden sm:inline">/</span>
                     <a href="{{ b2b_route('designer.b2b.quotation', $rfq->latestQuotation) }}" class="text-white/80 hover:text-white hidden sm:inline">Quotation</a>
                     <span class="text-white/50 hidden sm:inline">/</span>

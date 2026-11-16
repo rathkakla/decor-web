@@ -37,7 +37,7 @@
             @endif
         </a>
         <a href="{{ b2b_route('designer.b2b.katalog') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-            <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Kustom B2B
+            <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Kustom B2B
         </a>
 
         <!-- Chat -->

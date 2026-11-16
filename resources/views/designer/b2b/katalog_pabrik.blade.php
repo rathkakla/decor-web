@@ -40,7 +40,7 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <span class="text-white/80">Pesanan Kustom B2B</span>
+                    <span class="text-white/80">Kustom B2B</span>
                     <span class="text-white/50">/</span>
                     <span class="font-bold text-white">Katalog Pabrik & Workshop Terverifikasi</span>
                 </div>
@@ -90,7 +90,7 @@
                 <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div class="space-y-1.5 max-w-xl">
                         <span class="inline-block bg-white/15 text-white/90 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest">
-                            Pesanan Kustom B2B
+                            Kustom B2B
                         </span>
                         <h2 class="text-xl sm:text-2xl font-extrabold leading-snug tracking-tight">
                             Katalog Workshop &amp; Pabrik Mebel Kustom
