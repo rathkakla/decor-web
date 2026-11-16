@@ -14,16 +14,35 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
+
+        /* Hilangkan panah spinner atas/bawah pada input type number */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('seller.partials.sidebar')
 
-    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
+    <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
             <div class="flex items-center">
                 <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
@@ -33,26 +52,26 @@
                     <span class="text-[10px] text-white/80 mt-1">Form Surat Penawaran Resmi Proyek B2B</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-bold transition-all flex items-center">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Review Spek
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition-all flex items-center">
+                    <i class="fa-solid fa-arrow-left sm:mr-2"></i> <span class="hidden sm:inline">Kembali ke Review Spek</span>
                 </a>
             </div>
         </header>
 
-        <div class="p-8 space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight text-gray-900">{{ $isEdit ? 'Edit Surat Penawaran Harga' : 'Penerbitan Surat Penawaran Harga (Quotation B2B)' }}</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">{{ $isEdit ? 'Edit Surat Penawaran Harga' : 'Penerbitan Surat Penawaran Harga (Quotation B2B)' }}</h2>
                     <p class="text-xs text-gray-500 mt-1">Susun kalkulasi harga satuan mebel, ongkos kirim kargo truk peti kayu, dan skema termin pembayaran.</p>
                 </div>
-                <div class="text-right">
+                <div class="text-left sm:text-right">
                     <span class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">No. Dokumen:</span>
                     <p class="text-sm font-bold text-primary">{{ $quotation->quotation_number ?? '(Auto-generate saat disimpan)' }}</p>
                 </div>
             </div>
 
-            <form action="{{ $isEdit ? b2b_route('seller.b2b.quotation.update', $quotation) : b2b_route('seller.b2b.quotation.store') }}" method="POST" class="space-y-8">
+            <form action="{{ $isEdit ? b2b_route('seller.b2b.quotation.update', $quotation) : b2b_route('seller.b2b.quotation.store') }}" method="POST" class="space-y-6 sm:space-y-8">
                 @csrf
                 @if($isEdit)
                     @method('PUT')
@@ -60,7 +79,7 @@
                 <input type="hidden" name="rfq_id" value="{{ $rfq->id }}">
 
                 <!-- Quotation Card -->
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-8">
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
                     <!-- Info Header Proyek -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-100 text-xs">
                         <div>
@@ -84,7 +103,7 @@
                         </h3>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-xs">
+                            <table class="w-full text-left border-collapse text-xs min-w-[650px]">
                                 <thead>
                                     <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase text-[10px]">
                                         <th class="py-3 px-4">Deskripsi Item & Spesifikasi</th>
@@ -98,27 +117,33 @@
                                     @foreach($items as $index => $item)
                                         <tr class="quotation-item-row">
                                             <td class="py-3 px-4">
-                                                <div class="flex items-center space-x-3">
-                                                    <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
-                                                        <i class="fa-solid fa-cube"></i>
-                                                    </div>
-                                                    <div>
-                                                        <input type="text" name="items[{{ $index }}][name]" value="{{ $item['name'] ?? '' }}" class="font-bold text-gray-900 w-full border-0 focus:ring-0 bg-transparent" placeholder="Nama item" required>
-                                                        <input type="text" name="items[{{ $index }}][note]" value="{{ $item['note'] ?? '' }}" class="text-[10px] text-gray-500 w-full border-0 focus:ring-0 bg-transparent" placeholder="Spesifikasi">
-                                                    </div>
+                                                <div>
+                                                    <input type="text" name="items[{{ $index }}][name]" value="{{ $item['name'] ?? '' }}" class="font-bold text-gray-900 w-full border-0 focus:ring-0 bg-transparent p-0" placeholder="Nama item" required>
+                                                    <input type="text" name="items[{{ $index }}][note]" value="{{ $item['note'] ?? '' }}" class="text-[10px] text-gray-500 w-full border-0 focus:ring-0 bg-transparent p-0 mt-0.5" placeholder="Spesifikasi">
                                                 </div>
                                             </td>
                                             <td class="py-3 px-4 text-center">
-                                                <input type="number" name="items[{{ $index }}][qty]" value="{{ $item['qty'] ?? 1 }}" class="font-bold text-gray-700 w-20 text-center border-0 focus:ring-0 bg-transparent" min="1" required>
+                                                <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                                    <button type="button" class="qty-minus-btn w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-bold transition-colors cursor-pointer select-none" aria-label="Kurangi jumlah">−</button>
+                                                    <input type="number" name="items[{{ $index }}][qty]" value="{{ $item['qty'] ?? 1 }}" class="qty-input font-bold text-gray-700 w-10 text-center border-0 focus:ring-0 bg-transparent text-xs p-0" min="1" required>
+                                                    <button type="button" class="qty-plus-btn w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-bold transition-colors cursor-pointer select-none" aria-label="Tambah jumlah">+</button>
+                                                </div>
                                             </td>
                                             <td class="py-3 px-4">
-                                                <input type="number" name="items[{{ $index }}][unit_price]" value="{{ $item['unit_price'] ?? '' }}" class="font-bold text-gray-700 w-full border-0 focus:ring-0 bg-transparent" step="1000" min="0" placeholder="0" required>
+                                                @php
+                                                    $rawUnitPrice = isset($item['unit_price']) && (float) $item['unit_price'] > 0 ? (int) round((float) $item['unit_price']) : '';
+                                                @endphp
+                                                <div class="flex items-center border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white focus-within:border-primary transition-colors">
+                                                    <span class="text-[11px] font-bold text-gray-400 mr-1.5 select-none">Rp</span>
+                                                    <input type="text" inputmode="numeric" value="{{ $rawUnitPrice !== '' ? number_format($rawUnitPrice, 0, ',', '.') : '' }}" class="rupiah-display font-bold text-gray-700 w-full border-0 focus:ring-0 focus:outline-none bg-transparent p-0 text-xs" placeholder="0" required>
+                                                    <input type="hidden" name="items[{{ $index }}][unit_price]" value="{{ $rawUnitPrice }}" class="rupiah-raw">
+                                                </div>
                                             </td>
                                             <td class="py-3 px-4 text-right">
                                                 <span class="font-bold text-gray-900 item-subtotal" data-index="{{ $index }}">Rp 0</span>
                                             </td>
                                             <td class="py-3 px-2 text-center">
-                                                <button type="button" class="remove-item-btn text-gray-300 hover:text-red-500 transition-colors" title="Hapus item">
+                                                <button type="button" class="remove-item-btn text-gray-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer" title="Hapus item">
                                                     <i class="fa-solid fa-trash-can text-xs"></i>
                                                 </button>
                                             </td>
@@ -148,18 +173,35 @@
                     </div>
 
                     <!-- Biaya Detail Inputs -->
+                    @php
+                        $rawMaterial = isset($quotation->material_cost) && (float) $quotation->material_cost > 0 ? (int) round((float) $quotation->material_cost) : '';
+                        $rawLabor = isset($quotation->labor_cost) && (float) $quotation->labor_cost > 0 ? (int) round((float) $quotation->labor_cost) : '';
+                        $rawShipping = isset($quotation->shipping_cost) && (float) $quotation->shipping_cost > 0 ? (int) round((float) $quotation->shipping_cost) : '';
+                    @endphp
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Biaya Material (Rp)</label>
-                            <input type="number" name="material_cost" id="material_cost" value="{{ $quotation->material_cost ?? '' }}" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary" step="1000" min="0" required>
+                            <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:border-primary transition-colors">
+                                <span class="text-xs font-bold text-gray-400 mr-2 select-none">Rp</span>
+                                <input type="text" inputmode="numeric" id="material_cost_display" value="{{ $rawMaterial !== '' ? number_format($rawMaterial, 0, ',', '.') : '' }}" class="rupiah-display w-full text-sm font-semibold text-gray-800 border-0 focus:outline-none bg-transparent p-0" placeholder="0" required>
+                                <input type="hidden" name="material_cost" id="material_cost" value="{{ $rawMaterial }}" class="rupiah-raw">
+                            </div>
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Biaya Tukang/Pengerjaan (Rp)</label>
-                            <input type="number" name="labor_cost" id="labor_cost" value="{{ $quotation->labor_cost ?? '' }}" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary" step="1000" min="0" required>
+                            <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:border-primary transition-colors">
+                                <span class="text-xs font-bold text-gray-400 mr-2 select-none">Rp</span>
+                                <input type="text" inputmode="numeric" id="labor_cost_display" value="{{ $rawLabor !== '' ? number_format($rawLabor, 0, ',', '.') : '' }}" class="rupiah-display w-full text-sm font-semibold text-gray-800 border-0 focus:outline-none bg-transparent p-0" placeholder="0" required>
+                                <input type="hidden" name="labor_cost" id="labor_cost" value="{{ $rawLabor }}" class="rupiah-raw">
+                            </div>
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Biaya Ongkir (Rp)</label>
-                            <input type="number" name="shipping_cost" id="shipping_cost" value="{{ $quotation->shipping_cost ?? 0 }}" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary" step="1000" min="0">
+                            <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:border-primary transition-colors">
+                                <span class="text-xs font-bold text-gray-400 mr-2 select-none">Rp</span>
+                                <input type="text" inputmode="numeric" id="shipping_cost_display" value="{{ $rawShipping !== '' ? number_format($rawShipping, 0, ',', '.') : '' }}" class="rupiah-display w-full text-sm font-semibold text-gray-800 border-0 focus:outline-none bg-transparent p-0" placeholder="0">
+                                <input type="hidden" name="shipping_cost" id="shipping_cost" value="{{ $rawShipping !== '' ? $rawShipping : 0 }}" class="rupiah-raw" data-default-zero="1">
+                            </div>
                         </div>
                     </div>
 
@@ -229,11 +271,11 @@
                     </div>
 
                     <!-- Action Button -->
-                    <div class="pt-6 border-t border-gray-100 flex items-center justify-end space-x-4">
-                        <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition-all">
+                    <div class="pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
+                        <a href="{{ b2b_route('seller.b2b.rfq.review', $rfq) }}" class="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition-all text-center">
                             Kembali
                         </a>
-                        <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white px-8 py-3.5 rounded-xl font-bold text-xs flex items-center transition-all shadow-md">
+                        <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white px-6 sm:px-8 py-3.5 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md">
                             {{ $isEdit ? 'Perbarui' : 'Terbitkan & Kirim' }} Surat Penawaran Resmi ke Desainer <i class="fa-solid fa-paper-plane ml-2"></i>
                         </button>
                     </div>
@@ -243,20 +285,34 @@
     </main>
 
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
-        const sidebar = document.getElementById('sidebar');
-        const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+
+        // Format input rupiah (titik ribuan, tanpa leading zero yang bandel)
+        function syncRupiahInput(displayInput) {
+            const container = displayInput.parentElement;
+            const rawInput = container?.querySelector('.rupiah-raw');
+            let digits = displayInput.value.replace(/\D/g, '');
+            digits = digits.replace(/^0+/, '');
+
+            if (digits === '') {
+                displayInput.value = '';
+                if (rawInput) {
+                    rawInput.value = rawInput.dataset.defaultZero === '1' ? '0' : '';
+                }
+            } else {
+                const num = parseInt(digits, 10);
+                displayInput.value = num.toLocaleString('id-ID');
+                if (rawInput) {
+                    rawInput.value = String(num);
+                }
+            }
+        }
 
         // Quotation calculation logic
         function recalc() {
             let subtotal = 0;
             document.querySelectorAll('.quotation-item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('input[name*="[qty]"]').value) || 0;
-                const price = parseFloat(row.querySelector('input[name*="[unit_price]"]').value) || 0;
+                const qty = parseFloat(row.querySelector('input[name*="[qty]"]')?.value) || 0;
+                const price = parseFloat(row.querySelector('input[name*="[unit_price]"]')?.value) || 0;
                 const itemSubtotal = qty * price;
                 row.querySelector('.item-subtotal').textContent = 'Rp ' + itemSubtotal.toLocaleString('id-ID');
                 subtotal += itemSubtotal;
@@ -281,11 +337,34 @@
             document.getElementById('remaining-amount-display').textContent = 'Rp ' + remaining.toLocaleString('id-ID');
         }
 
-        document.querySelectorAll('#quotation-items input').forEach(input => {
-            input.addEventListener('input', recalc);
+        // Delegated input listener for all rupiah-display & qty inputs
+        document.addEventListener('input', (event) => {
+            if (event.target.classList.contains('rupiah-display')) {
+                syncRupiahInput(event.target);
+                recalc();
+            } else if (event.target.classList.contains('qty-input')) {
+                recalc();
+            }
         });
-        ['material_cost', 'labor_cost', 'shipping_cost'].forEach(id => {
-            document.getElementById(id)?.addEventListener('input', recalc);
+
+        // Stepper + / - volume item ala Shopee
+        document.getElementById('quotation-items')?.addEventListener('click', (event) => {
+            const minusBtn = event.target.closest('.qty-minus-btn');
+            const plusBtn = event.target.closest('.qty-plus-btn');
+            if (!minusBtn && !plusBtn) { return; }
+
+            const row = (minusBtn || plusBtn).closest('tr');
+            const qtyInput = row?.querySelector('.qty-input');
+            if (!qtyInput) { return; }
+
+            let current = parseInt(qtyInput.value, 10) || 1;
+            if (plusBtn) {
+                current += 1;
+            } else if (minusBtn && current > 1) {
+                current -= 1;
+            }
+            qtyInput.value = current;
+            recalc();
         });
 
         function reindexItems() {
@@ -305,52 +384,102 @@
             tr.className = 'quotation-item-row';
             tr.innerHTML = `
                 <td class="py-3 px-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-cube"></i>
-                        </div>
-                        <div>
-                            <input type="text" name="items[${index}][name]" class="font-bold text-gray-900 w-full border-0 focus:ring-0 bg-transparent" placeholder="Nama item" required>
-                            <input type="text" name="items[${index}][note]" class="text-[10px] text-gray-500 w-full border-0 focus:ring-0 bg-transparent" placeholder="Spesifikasi">
-                        </div>
+                    <div>
+                        <input type="text" name="items[${index}][name]" class="font-bold text-gray-900 w-full border-0 focus:ring-0 bg-transparent p-0" placeholder="Nama item" required>
+                        <input type="text" name="items[${index}][note]" class="text-[10px] text-gray-500 w-full border-0 focus:ring-0 bg-transparent p-0 mt-0.5" placeholder="Spesifikasi">
                     </div>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <input type="number" name="items[${index}][qty]" value="1" class="font-bold text-gray-700 w-20 text-center border-0 focus:ring-0 bg-transparent" min="1" required>
+                    <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <button type="button" class="qty-minus-btn w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-bold transition-colors cursor-pointer select-none" aria-label="Kurangi jumlah">−</button>
+                        <input type="number" name="items[${index}][qty]" value="1" class="qty-input font-bold text-gray-700 w-10 text-center border-0 focus:ring-0 bg-transparent text-xs p-0" min="1" required>
+                        <button type="button" class="qty-plus-btn w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-bold transition-colors cursor-pointer select-none" aria-label="Tambah jumlah">+</button>
+                    </div>
                 </td>
                 <td class="py-3 px-4">
-                    <input type="number" name="items[${index}][unit_price]" value="" class="font-bold text-gray-700 w-full border-0 focus:ring-0 bg-transparent" step="1000" min="0" placeholder="0" required>
+                    <div class="flex items-center border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white focus-within:border-primary transition-colors">
+                        <span class="text-[11px] font-bold text-gray-400 mr-1.5 select-none">Rp</span>
+                        <input type="text" inputmode="numeric" value="" class="rupiah-display font-bold text-gray-700 w-full border-0 focus:ring-0 focus:outline-none bg-transparent p-0 text-xs" placeholder="0" required>
+                        <input type="hidden" name="items[${index}][unit_price]" value="" class="rupiah-raw">
+                    </div>
                 </td>
                 <td class="py-3 px-4 text-right">
                     <span class="font-bold text-gray-900 item-subtotal" data-index="${index}">Rp 0</span>
                 </td>
                 <td class="py-3 px-2 text-center">
-                    <button type="button" class="remove-item-btn text-gray-300 hover:text-red-500 transition-colors" title="Hapus item">
+                    <button type="button" class="remove-item-btn text-gray-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all cursor-pointer" title="Hapus item">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
                 </td>
             `;
             tbody.appendChild(tr);
-            tr.querySelectorAll('input').forEach(input => input.addEventListener('input', recalc));
             reindexItems();
             recalc();
         });
 
-        // Hapus baris item (minimal 1 baris tersisa).
+        // Hapus baris item (minimal 1 baris tersisa) dengan dialog konfirmasi
         document.getElementById('quotation-items')?.addEventListener('click', (event) => {
             const btn = event.target.closest('.remove-item-btn');
             if (!btn) { return; }
 
             const tbody = document.getElementById('quotation-items');
-            if (tbody.querySelectorAll('tr').length <= 1) { return; }
+            if (tbody.querySelectorAll('tr').length <= 1) {
+                alert('Tidak dapat menghapus. Penawaran harus memiliki minimal 1 item.');
+                return;
+            }
 
-            btn.closest('tr').remove();
+            const row = btn.closest('tr');
+            const itemName = row.querySelector('input[name*="[name]"]')?.value.trim() || 'item ini';
+
+            if (!confirm(`Apakah Anda yakin ingin menghapus "${itemName}" dari rincian penawaran?`)) {
+                return;
+            }
+
+            row.remove();
             reindexItems();
             recalc();
         });
 
         // Initial calculation
         recalc();
+    </script>
+    <script>
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

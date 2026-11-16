@@ -1,5 +1,5 @@
 <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-    <div class="p-8">
+    <div class="p-6 sm:p-8">
         <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
         <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest italic font-bold">Designer Portal</p>
     </div>
@@ -37,7 +37,7 @@
             @endif
         </a>
         <a href="{{ b2b_route('designer.b2b.katalog') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ request()->routeIs('designer.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary' }}">
-            <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pengadaan B2B
+            <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Kustom B2B
         </a>
 
         <!-- Chat -->

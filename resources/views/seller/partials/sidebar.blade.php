@@ -1,5 +1,5 @@
 <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
-    <div class="p-8">
+    <div class="p-6 sm:p-8">
         <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
         <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Seller Portal</p>
     </div>
@@ -40,7 +40,7 @@
         </a>
         @if($sidebarSeller && $sidebarSeller->b2b_enabled)
             <a href="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-                <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan B2B Kustom
+                <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Kustom B2B
             </a>
         @endif
 

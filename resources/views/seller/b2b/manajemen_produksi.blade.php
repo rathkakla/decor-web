@@ -14,16 +14,25 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('seller.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         @php
             $rfq = $order->rfq;
             $seller = $rfq->seller;
@@ -37,21 +46,21 @@
         @endphp
 
         <!-- Topbar Header -->
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <button id="toggle-sidebar" class="text-white hover:text-gray-200 focus:outline-none">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white">Pesanan B2B</a>
-                    <span class="text-white/50">/</span>
+                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan B2B</a>
+                    <span class="text-white/50 hidden sm:inline">/</span>
                     <a href="{{ b2b_route('seller.b2b.negosiasi', $order->rfq) }}" class="text-white/80 hover:text-white">{{ $rfq->rfq_number }}</a>
                     <span class="text-white/50">/</span>
                     <span class="font-bold text-white">Manajemen Produksi & QC</span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold leading-none">{{ $seller->store_name }}</p>
                     <p class="text-[10px] text-white/80 mt-1">{{ $seller->svlk_verified ? 'Produsen Terverifikasi SVLK' : 'Produsen Mebel' }}</p>
@@ -61,7 +70,7 @@
         </header>
 
         <!-- Body Container -->
-        <div class="p-8 space-y-6 max-w-7xl">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold">
                     <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
@@ -135,9 +144,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Kolom Kiri: Timeline Milestone Produksi -->
-                <div class="lg:col-span-7 space-y-4">
+                <div class="xl:col-span-7 space-y-4">
                     <h3 class="text-sm font-bold text-gray-900 flex items-center">
                         <i class="fa-solid fa-list-check text-primary mr-2"></i> Timeline & Milestone Pekerjaan
                     </h3>
@@ -172,18 +181,18 @@
                                 </span>
                             </div>
 
-                            <div class="pl-10">
+                            <div class="pl-0 sm:pl-10">
                                 <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
                                     <div class="{{ $done ? 'bg-emerald-500' : 'bg-amber-500' }} h-1.5 rounded-full" style="width: {{ $milestone->progress_percent }}%"></div>
                                 </div>
                             </div>
 
                             @if($milestone->qc_notes)
-                                <p class="text-xs text-gray-600 pl-10">{{ $milestone->qc_notes }}</p>
+                                <p class="text-xs text-gray-600 pl-0 sm:pl-10">{{ $milestone->qc_notes }}</p>
                             @endif
 
                             <!-- Form Update Progress -->
-                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.update', [$order, $milestone]) }}" class="pl-10 pt-1 grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
+                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.update', [$order, $milestone]) }}" class="pl-0 sm:pl-10 pt-1 grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
                                 @csrf
                                 <div class="sm:col-span-3">
                                     <label class="block text-[9px] font-bold text-gray-500 uppercase">Progres %</label>
@@ -205,7 +214,7 @@
                             </form>
 
                             <!-- Form Upload Foto QC -->
-                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.photo', [$order, $milestone]) }}" enctype="multipart/form-data" class="pl-10 flex items-center gap-2">
+                            <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.photo', [$order, $milestone]) }}" enctype="multipart/form-data" class="pl-0 sm:pl-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                 @csrf
                                 <input type="file" name="photo" accept=".jpg,.jpeg,.png" required class="flex-1 text-[10px] text-gray-500 border border-gray-200 rounded-lg p-1.5">
                                 <button type="submit" class="bg-gray-900 hover:bg-black text-white px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all">
@@ -221,7 +230,7 @@
                 </div>
 
                 <!-- Kolom Kanan: Galeri Bukti QC & Log Catatan Workshop -->
-                <div class="lg:col-span-5 space-y-6">
+                <div class="xl:col-span-5 space-y-6">
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-sm font-bold text-gray-900 flex items-center">
@@ -292,14 +301,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

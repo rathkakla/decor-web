@@ -14,30 +14,39 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden, #sidebar.sidebar-closed { transform: translateX(-100%); }
+            #main-content.main-expanded, #main-content.main-full { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('designer.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         <!-- Topbar Header -->
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <button id="toggle-sidebar" class="text-white hover:text-gray-200 focus:outline-none">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <span class="text-white/80">Pengadaan B2B</span>
+                    <span class="text-white/80">Pesanan Kustom B2B</span>
                     <span class="text-white/50">/</span>
                     <span class="font-bold text-white">Katalog Pabrik & Workshop Terverifikasi</span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold leading-none">{{ auth()->user()->full_name ?? 'Designer' }}</p>
                     <p class="text-[10px] text-white/80 mt-1">Interior Designer &bull; {{ auth()->user()->designer->city ?? 'Indonesia' }}</p>
@@ -47,7 +56,7 @@
         </header>
 
         <!-- Body Container -->
-        <div class="p-8 space-y-8 max-w-7xl">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl">
             @isset($seller)
                 <!-- Mode Detail Pabrik -->
                 <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -76,79 +85,102 @@
                 </div>
             @endisset
 
-            <!-- Hero Search & Banner -->
-            <div class="bg-gradient-to-r from-[#2C1810] via-[#5C321E] to-primary rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
-                <div class="relative z-10 max-w-2xl space-y-3">
-                    <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
-                        B2B Custom Furniture Procurement
-                    </span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold leading-tight">Cari Produsen & Workshop Mebel untuk Proyek Klien Anda</h2>
-                    <p class="text-xs text-white/80 leading-relaxed">
-                        Terhubung langsung dengan 150+ pabrik kayu jati, rotan, dan metal terverifikasi SVLK. Dapatkan garansi rekening penampung (Escrow), inspeksi mutu, dan sistem tender RFQ transparan.
-                    </p>
-                    <div class="pt-2 flex flex-wrap gap-2 text-[11px]">
-                        <span class="bg-black/20 px-3 py-1 rounded-lg backdrop-blur-sm">&check; Perlindungan Escrow 100%</span>
-                        <span class="bg-black/20 px-3 py-1 rounded-lg backdrop-blur-sm">&check; Gambar CAD &amp; BoQ Terstandarisasi</span>
-                        <span class="bg-black/20 px-3 py-1 rounded-lg backdrop-blur-sm">&check; Legalitas SVLK Kayu Indonesia</span>
+            <!-- Hero Banner Minimalist -->
+            <div class="bg-gradient-to-r from-[#2C1810] via-[#5C321E] to-[#B5733A] rounded-2xl px-6 py-6 sm:px-8 sm:py-7 text-white relative overflow-hidden shadow-md">
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="space-y-1.5 max-w-xl">
+                        <span class="inline-block bg-white/15 text-white/90 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+                            Pesanan Kustom B2B
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold leading-snug tracking-tight">
+                            Katalog Workshop &amp; Pabrik Mebel Kustom
+                        </h2>
+                        <p class="text-xs text-white/80">
+                            Partner produksi terverifikasi SVLK dengan jaminan transaksi Escrow.
+                        </p>
                     </div>
-                </div>
-                <div class="absolute right-0 bottom-0 opacity-15 translate-x-10 translate-y-10">
-                    <i class="fa-solid fa-industry text-[220px]"></i>
+                    <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-white/90 shrink-0">
+                        <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
+                            <i class="fa-solid fa-shield-halved mr-1.5 text-amber-200"></i>Escrow 100%
+                        </span>
+                        <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
+                            <i class="fa-solid fa-certificate mr-1.5 text-amber-200"></i>SVLK Legal
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <!-- Filter & Search Controls -->
-            <form method="GET" action="{{ b2b_route('designer.b2b.katalog') }}" class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="relative flex-1 w-full">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pabrik, kota, atau spesialisasi material..." class="w-full pl-10 pr-4 py-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:border-primary">
+            <form method="GET" action="{{ b2b_route('designer.b2b.katalog') }}" class="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
+                <div class="relative flex-1 min-w-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pabrik, kota, atau material..." class="w-full h-10 pl-9 pr-4 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary transition-colors">
                 </div>
 
-                <div class="flex items-center space-x-3 w-full md:w-auto">
-                    <select name="city" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-xl px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:border-primary">
-                        <option value="">Semua Wilayah</option>
-                        @foreach(($cities ?? collect()) as $city)
-                            <option value="{{ $city }}" @selected(request('city') === $city)>{{ $city }}</option>
-                        @endforeach
-                    </select>
+                <div class="grid grid-cols-2 sm:flex items-center gap-2.5 shrink-0">
+                    <div class="relative w-full sm:w-auto">
+                        <select name="city" onchange="this.form.submit()" class="appearance-none w-full sm:w-auto h-10 pl-3.5 pr-8 text-xs font-semibold border border-gray-200 rounded-xl bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:border-primary transition-colors cursor-pointer">
+                            <option value="">Semua Wilayah</option>
+                            @foreach(($cities ?? collect()) as $city)
+                                <option value="{{ $city }}" @selected(request('city') === $city)>{{ $city }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
 
-                    <select name="wood_type" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-xl px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:border-primary">
-                        <option value="">Semua Material</option>
-                        @foreach(($woodTypes ?? collect()) as $wood)
-                            <option value="{{ $wood }}" @selected(request('wood_type') === $wood)>{{ $wood }}</option>
-                        @endforeach
-                    </select>
+                    <div class="relative w-full sm:w-auto">
+                        <select name="wood_type" onchange="this.form.submit()" class="appearance-none w-full sm:w-auto h-10 pl-3.5 pr-8 text-xs font-semibold border border-gray-200 rounded-xl bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:border-primary transition-colors cursor-pointer">
+                            <option value="">Semua Material</option>
+                            @foreach(($woodTypes ?? collect()) as $wood)
+                                <option value="{{ $wood }}" @selected(request('wood_type') === $wood)>{{ $wood }}</option>
+                            @endforeach
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
 
-                    <select name="min_capacity" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-xl px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:border-primary">
-                        <option value="">Semua Kapasitas</option>
-                        <option value="50" @selected(request('min_capacity') === '50')>Kapasitas: &ge; 50 unit/bln</option>
-                        <option value="100" @selected(request('min_capacity') === '100')>Kapasitas: &ge; 100 unit/bln</option>
-                        <option value="500" @selected(request('min_capacity') === '500')>Kapasitas: &ge; 500 unit/bln</option>
-                    </select>
+                    <div class="relative w-full sm:w-auto col-span-2 sm:col-span-1">
+                        <select name="min_capacity" onchange="this.form.submit()" class="appearance-none w-full sm:w-auto h-10 pl-3.5 pr-8 text-xs font-semibold border border-gray-200 rounded-xl bg-gray-50 hover:bg-white text-gray-700 focus:outline-none focus:border-primary transition-colors cursor-pointer">
+                            <option value="">Semua Kapasitas</option>
+                            <option value="50" @selected(request('min_capacity') === '50')>&ge; 50 unit/bln</option>
+                            <option value="100" @selected(request('min_capacity') === '100')>&ge; 100 unit/bln</option>
+                            <option value="500" @selected(request('min_capacity') === '500')>&ge; 500 unit/bln</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
 
-                    <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all">Cari</button>
+                    <button type="submit" class="h-10 bg-primary hover:bg-[#8C4E1E] text-white text-xs font-bold px-5 rounded-xl transition-all w-full sm:w-auto col-span-2 sm:col-span-1 shadow-sm flex items-center justify-center cursor-pointer">
+                        Cari
+                    </button>
                 </div>
             </form>
 
             <!-- List Vendor Pabrik B2B -->
             <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900">Pabrik & Workshop Rekomendasi Teratas</h3>
-                    <span class="text-xs text-gray-400">{{ $sellers->total() }} Vendor Terverifikasi SVLK</span>
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="text-sm font-bold text-gray-900">Pabrik &amp; Workshop Rekomendasi Teratas</h3>
+                    <span class="text-xs text-gray-400 whitespace-nowrap">{{ $sellers->total() }} Vendor Terverifikasi SVLK</span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 sm:gap-6">
                     @forelse($sellers as $seller)
                         @php
                             $specialties = collect($seller->wood_specialties ?? []);
                             $rating = $seller->rating ?? 0;
                             $existingRfq = $rfqsBySeller[$seller->id] ?? null;
+                            $initials = collect(explode(' ', trim($seller->store_name)))->filter()->take(2)->map(fn($w) => strtoupper(substr($w, 0, 1)))->implode('') ?: 'PD';
                         @endphp
-                        <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all space-y-4 relative">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <img src="{{ $seller->store_image_url }}" class="w-14 h-14 rounded-2xl object-cover" alt="{{ $seller->store_name }}">
-                                    <div>
+                        <div class="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all space-y-4 relative flex flex-col justify-between">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-center space-x-3.5 sm:space-x-4 min-w-0">
+                                    <div class="w-14 h-14 rounded-2xl overflow-hidden bg-[#FAF1E8] border border-primary/15 flex items-center justify-center shrink-0">
+                                        @if($seller->store_image_url)
+                                            <img src="{{ $seller->store_image_url }}" class="w-full h-full object-cover" alt="{{ $seller->store_name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <span class="hidden w-full h-full items-center justify-center font-extrabold text-base text-primary">{{ $initials }}</span>
+                                        @else
+                                            <span class="w-full h-full flex items-center justify-center font-extrabold text-base text-primary">{{ $initials }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="min-w-0">
                                         <div class="flex items-center space-x-2">
                                             <h4 class="font-extrabold text-sm text-gray-900">{{ $seller->store_name }}</h4>
                                             @if($seller->svlk_verified)
@@ -221,14 +253,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

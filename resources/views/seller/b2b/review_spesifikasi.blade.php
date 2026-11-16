@@ -14,42 +14,51 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('seller.partials.sidebar')
 
-    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
+    <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
             <div class="flex items-center">
                 <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
                 </button>
                 <div class="flex flex-col">
-                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pengadaan Kustom B2B</h2>
+                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pesanan Kustom B2B</h2>
                     <span class="text-[10px] text-white/80 mt-1">Review Spesifikasi & Dokumen Gambar Kerja</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg font-bold transition-all flex items-center">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Inbox
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition-all flex items-center">
+                    <i class="fa-solid fa-arrow-left sm:mr-2"></i> <span class="hidden sm:inline">Kembali ke Inbox</span>
                 </a>
             </div>
         </header>
 
-        <div class="p-8 space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
             <!-- Header Banner -->
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center space-x-4">
-                    <div class="w-14 h-14 rounded-2xl bg-orange-50 border border-primary/20 flex items-center justify-center text-primary text-2xl">
+            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start sm:items-center space-x-4">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-orange-50 border border-primary/20 flex-shrink-0 flex items-center justify-center text-primary text-xl sm:text-2xl">
                         <i class="fa-solid fa-file-pen"></i>
                     </div>
                     <div>
-                        <div class="flex items-center space-x-3">
-                            <h2 class="text-xl font-bold text-gray-900">{{ $rfq->project_name }}</h2>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ $rfq->project_name }}</h2>
                             <span class="bg-orange-100 text-orange-700 font-bold text-[10px] px-2.5 py-0.5 rounded-full">{{ $rfq->rfq_number }}</span>
                             @php
                                 $rfqStatus = [
@@ -72,9 +81,9 @@
             </div>
 
             <!-- Two-column Layout -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
                 <!-- Kiri: Berkas Gambar Kerja & BoQ -->
-                <div class="lg:col-span-7 space-y-6">
+                <div class="xl:col-span-7 space-y-6">
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                         <h3 class="font-bold text-sm text-gray-900 uppercase tracking-wider flex items-center">
                             <i class="fa-solid fa-draw-polygon text-primary mr-2"></i> Gambar Kerja & Visualisasi 3D
@@ -153,7 +162,7 @@
                         </h3>
 
                         <div class="overflow-x-auto border border-gray-100 rounded-xl">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[480px]">
                                 <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
                                     <tr>
                                         <th class="p-3">Item Furnitur</th>
@@ -207,7 +216,7 @@
                 </div>
 
                 <!-- Kanan: Analisis Workshop & Keputusan -->
-                <div class="lg:col-span-5 space-y-6">
+                <div class="xl:col-span-5 space-y-6">
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                         <h3 class="font-bold text-sm text-gray-900 uppercase tracking-wider flex items-center">
                             <i class="fa-solid fa-calculator text-primary mr-2"></i> Ketersediaan Bahan & Kapasitas
@@ -268,14 +277,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

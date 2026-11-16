@@ -14,8 +14,15 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden, #sidebar.sidebar-closed { transform: translateX(-100%); }
+            #main-content.main-expanded, #main-content.main-full { margin-left: 0 !important; }
+        }
 
         /* KHUSUS CETAK DOKUMEN BAST RESMI */
         @media print {
@@ -64,24 +71,26 @@
 
     @include('designer.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         <!-- Topbar Header -->
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white no-print">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white no-print">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <button id="toggle-sidebar" class="text-white hover:text-gray-200 focus:outline-none">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white">Pengadaan B2B</a>
-                    <span class="text-white/50">/</span>
-                    <a href="{{ b2b_route('designer.b2b.milestone', $order) }}" class="text-white/80 hover:text-white">Milestone #089</a>
-                    <span class="text-white/50">/</span>
+                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan Kustom B2B</a>
+                    <span class="text-white/50 hidden sm:inline">/</span>
+                    <a href="{{ b2b_route('designer.b2b.milestone', $order) }}" class="text-white/80 hover:text-white hidden sm:inline">{{ $order->order_number }}</a>
+                    <span class="text-white/50 hidden sm:inline">/</span>
                     <span class="font-bold text-white">Berita Acara Serah Terima (BAST)</span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold leading-none">{{ auth()->user()->full_name ?? 'Designer' }}</p>
                     <p class="text-[10px] text-white/80 mt-1">Interior Designer &bull; {{ auth()->user()->designer->city ?? 'Indonesia' }}</p>
@@ -102,7 +111,7 @@
             $remainingAmount = max($totalAmount - $dpAmount, 0);
         @endphp
 
-        <div class="page-container p-8 space-y-6 max-w-7xl">
+        <div class="page-container p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold no-print">
                     <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
@@ -182,19 +191,19 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Kolom Kiri: Dokumen BAST & Checklist Inspeksi Fisik di Lapangan -->
-                <form id="bast-document" method="POST" action="{{ b2b_route('designer.b2b.bast.sign', $order) }}" enctype="multipart/form-data" class="lg:col-span-8 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <form id="bast-document" method="POST" action="{{ b2b_route('designer.b2b.bast.sign', $order) }}" enctype="multipart/form-data" class="xl:col-span-8 bg-white p-4 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                     @csrf
 
                     <div class="border-b-2 border-gray-900 pb-6 flex items-start justify-between">
                         <div>
                             <span class="text-xs font-bold text-primary uppercase tracking-widest">OFFICIAL HANDOVER CERTIFICATE</span>
-                            <h3 class="text-lg font-black text-gray-900 mt-1">BERITA ACARA SERAH TERIMA BARANG (BAST)</h3>
+                            <h3 class="text-base sm:text-lg font-black text-gray-900 mt-1">BERITA ACARA SERAH TERIMA BARANG (BAST)</h3>
                             <p class="text-xs text-gray-500 font-mono mt-0.5">NOMOR: {{ $bast->bast_number ?? 'Akan dibuat saat ditandatangani' }}</p>
                         </div>
                         <div class="text-right">
-                            <span class="text-lg font-black tracking-widest text-primary uppercase">DECOR</span>
+                            <span class="text-base sm:text-lg font-black tracking-widest text-primary uppercase">DECOR</span>
                             <p class="text-[10px] text-gray-400">Escrow Verification Seal</p>
                         </div>
                     </div>
@@ -209,7 +218,7 @@
                     <div class="space-y-3">
                         <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Rincian {{ $totalUnits ?: count($rfq->items ?? []) }} Unit Furnitur:</h4>
                         <div class="overflow-x-auto border border-gray-200 rounded-xl">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[500px]">
                                 <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
                                     <tr>
                                         <th class="p-3">Item Furnitur</th>
@@ -269,7 +278,7 @@
                         </div>
 
                         @if($bast?->signed_at)
-                            <div class="grid grid-cols-2 gap-6 text-center text-xs pt-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-center text-xs pt-2">
                                 <div class="p-4 bg-gray-50 rounded-xl space-y-3">
                                     <p class="text-gray-500">Pihak Produsen (Workshop):</p>
                                     <div class="h-12 flex items-center justify-center font-bold text-primary italic">{{ $seller->store_name }}</div>
@@ -321,7 +330,7 @@
                 </form>
 
                 <!-- Kolom Kanan: Foto Pemasangan di Kafe & Sertifikat Garansi -->
-                <div id="right-column" class="lg:col-span-4 space-y-6 no-print">
+                <div id="right-column" class="xl:col-span-4 space-y-6 no-print">
                     <!-- Foto Real Setup di Lokasi -->
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                         <div class="flex items-center justify-between">
@@ -374,14 +383,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

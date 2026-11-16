@@ -14,32 +14,41 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden, #sidebar.sidebar-closed { transform: translateX(-100%); }
+            #main-content.main-expanded, #main-content.main-full { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('designer.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         <!-- Topbar Header -->
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <button id="toggle-sidebar" class="text-white hover:text-gray-200 focus:outline-none">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white">Pengadaan B2B</a>
-                    <span class="text-white/50">/</span>
+                    <a href="{{ b2b_route('designer.b2b.katalog') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan Kustom B2B</a>
+                    <span class="text-white/50 hidden sm:inline">/</span>
                     <a href="{{ b2b_route('designer.b2b.rfq.create.seller', $quotation->rfq->seller) }}" class="text-white/80 hover:text-white">RFQ #089</a>
                     <span class="text-white/50">/</span>
-                    <span class="font-bold text-white">Dokumen Penawaran Resmi Pabrik</span>
+                    <span class="font-bold text-white">Dokumen Penawaran Resmi</span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold leading-none">{{ auth()->user()->full_name ?? 'Designer' }}</p>
                     <p class="text-[10px] text-white/80 mt-1">Interior Designer &bull; {{ auth()->user()->designer->city ?? 'Indonesia' }}</p>
@@ -60,7 +69,7 @@
             $remaining = (float) $quotation->total_price - (float) $quotation->dp_amount;
         @endphp
 
-        <div class="p-8 space-y-6 max-w-6xl">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold">
                     <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
@@ -92,7 +101,7 @@
                         </span>
                         <span class="text-xs text-gray-400">Ref: {{ $quotation->quotation_number }}</span>
                     </div>
-                    <h2 class="text-xl font-extrabold text-gray-900">Penawaran Pengadaan Furnitur: {{ $rfq->project_name }}</h2>
+                    <h2 class="text-xl font-extrabold text-gray-900">Penawaran Pesanan Kustom: {{ $rfq->project_name }}</h2>
                     <p class="text-xs text-gray-500 mt-0.5">
                         Produsen: <b class="text-gray-700">{{ $seller->store_name }}</b>
                         &bull; Berlaku hingga: <b class="text-gray-700">{{ $quotation->valid_until?->format('d M Y') ?? '-' }}</b>
@@ -106,9 +115,9 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Kolom Kiri: Dokumen Resmi Penawaran (Quotation) -->
-                <div class="lg:col-span-8 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <div class="xl:col-span-8 bg-white p-4 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                     <!-- Kop Dokumen -->
                     <div class="border-b-2 border-primary/20 pb-6 flex items-start justify-between">
                         <div>
@@ -126,7 +135,7 @@
                     </div>
 
                     <!-- Ringkasan Proyek & Pemesan -->
-                    <div class="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl">
                         <div>
                             <p class="text-gray-400 uppercase font-bold text-[10px]">Ditujukan Kepada:</p>
                             <p class="font-bold text-gray-900 mt-1">{{ $rfq->designer->user->full_name ?? 'Desainer' }}</p>
@@ -153,7 +162,7 @@
                     <div>
                         <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">Rincian Item Manufaktur Sesuai BoQ:</h4>
                         <div class="overflow-x-auto border border-gray-100 rounded-xl">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[540px]">
                                 <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
                                     <tr>
                                         <th class="p-3">Deskripsi Item</th>
@@ -210,7 +219,7 @@
                 </div>
 
                 <!-- Kolom Kanan: Jadwal Termin Escrow & Action Approval -->
-                <div class="lg:col-span-4 space-y-6">
+                <div class="xl:col-span-4 space-y-6">
                     <!-- Escrow Payment Schedule -->
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                         <div class="flex items-center space-x-2 text-primary font-bold text-xs">
@@ -294,14 +303,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

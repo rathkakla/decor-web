@@ -11,7 +11,7 @@ use Illuminate\View\View;
 
 class RfqController extends Controller
 {
-    public function create(Request $request, Seller $seller = null): View
+    public function create(Request $request, Seller $seller = null): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
         $designer = $this->getDesigner();
 
@@ -40,7 +40,7 @@ class RfqController extends Controller
         $validated = $request->validate([
             'seller_id' => ['required', 'exists:sellers,id'],
             'project_name' => ['required', 'string', 'max:255'],
-            'wood_type' => ['required', 'string', 'max:100'],
+            'wood_type' => ['nullable', 'string', 'max:100'],
             'budget_ceiling' => ['nullable', 'numeric', 'min:0'],
             'deadline' => ['required', 'date', 'after_or_equal:today'],
             'delivery_address' => ['required', 'string'],
@@ -55,6 +55,12 @@ class RfqController extends Controller
             'moodboard_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ]);
 
+        if (!$request->hasFile('cad_file') && !$request->hasFile('boq_file') && !$request->hasFile('moodboard_file')) {
+            return back()
+                ->withErrors(['files' => 'Unggah minimal 1 berkas spesifikasi (Gambar Desain/CAD, BoQ, atau Moodboard/Referensi) agar pabrik dapat meninjau proyek Anda.'])
+                ->withInput();
+        }
+
         $seller = Seller::findOrFail($validated['seller_id']);
         abort_unless($seller->b2b_enabled && $seller->status === 'approved', 403, 'Pabrik tidak menerima RFQ saat ini.');
 
@@ -66,7 +72,7 @@ class RfqController extends Controller
             'designer_id' => $designer->id,
             'seller_id' => $seller->id,
             'project_name' => $validated['project_name'],
-            'wood_type' => $validated['wood_type'],
+            'wood_type' => ($validated['wood_type'] ?? null) ?: 'Sesuai Berkas / Spesifikasi',
             'budget_ceiling' => $validated['budget_ceiling'] ?? 0,
             'deadline' => $validated['deadline'],
             'delivery_address' => $validated['delivery_address'],

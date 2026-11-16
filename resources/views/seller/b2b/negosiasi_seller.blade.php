@@ -14,16 +14,25 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('seller.partials.sidebar')
 
-    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
+    <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
             <div class="flex items-center">
                 <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
@@ -33,9 +42,9 @@
                     <span class="text-[10px] text-white/80 mt-1">Komunikasi Proyek {{ $rfq->project_name }}</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <span class="bg-emerald-500/20 text-white text-xs px-3 py-1 rounded-full font-bold border border-white/20">
-                    <i class="fa-solid fa-shield-check mr-1.5"></i> Escrow Terlindungi
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <span class="bg-emerald-500/20 text-white text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 rounded-full font-bold border border-white/20 whitespace-nowrap">
+                    <i class="fa-solid fa-shield-check mr-1 sm:mr-1.5"></i> <span class="hidden sm:inline">Escrow </span>Terlindungi
                 </span>
             </div>
         </header>
@@ -54,7 +63,7 @@
             $dpHeld = $order && $order->payment_status !== 'UNPAID';
         @endphp
 
-        <div class="p-8 space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold">
                     <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
@@ -68,10 +77,10 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
                 <!-- Sisi Kiri: Status Proyek & Sampel Material -->
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <div class="xl:col-span-4 space-y-6">
+                    <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5 sm:space-y-6">
                         <div class="flex items-center space-x-3 pb-4 border-b border-gray-100">
                             <img src="https://ui-avatars.com/api/?name={{ urlencode($designerUser->full_name ?? 'Desainer') }}&background=FAF1E8&color=B5733A" class="w-12 h-12 rounded-full border-2 border-primary">
                             <div>
@@ -84,10 +93,10 @@
                         <!-- Card Sampel Kayu -->
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Persetujuan Sampel Fisik Material:</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Persetujuan Sampel Fisik:</p>
                                 <span class="{{ $sample['class'] }} text-[9px] font-bold px-2 py-0.5 rounded-full">{{ $sample['label'] }}</span>
                             </div>
-                            <div class="rounded-xl overflow-hidden border border-gray-200 aspect-video relative">
+                            <div class="h-36 sm:h-40 w-full rounded-xl overflow-hidden border border-gray-200 relative">
                                 <img src="https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=600&q=80" class="w-full h-full object-cover">
                                 <div class="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-sm p-2 rounded-lg text-xs border border-gray-200">
                                     <p class="font-bold text-gray-900">Sampel {{ $rfq->wood_type }}</p>
@@ -115,7 +124,7 @@
                                         <option value="PREPARING" @selected($rfq->sample_status === 'PREPARING')>Sedang Disiapkan</option>
                                         <option value="SENT_BY_COURIER" @selected($rfq->sample_status === 'SENT_BY_COURIER')>Dikirim via Kurir</option>
                                     </select>
-                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <input type="text" name="courier_name" value="{{ $rfq->courier_name }}" placeholder="Ekspedisi (JNE)" class="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-primary">
                                         <input type="text" name="tracking_number" value="{{ $rfq->tracking_number }}" placeholder="No. Resi" class="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-primary">
                                     </div>
@@ -162,32 +171,32 @@
                 </div>
 
                 <!-- Sisi Kanan: Thread Chat Negosiasi & Diskusi Teknis -->
-                <div class="lg:col-span-8 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-[680px]">
+                <div class="xl:col-span-8 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden h-[540px] sm:h-[620px] xl:h-[680px]">
                     <!-- Chat Header -->
-                    <div class="p-4 px-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div class="p-3 sm:p-4 px-4 sm:px-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                         <div class="flex items-center space-x-3">
-                            <i class="fa-solid fa-comments text-primary text-xl"></i>
+                            <i class="fa-solid fa-comments text-primary text-lg sm:text-xl"></i>
                             <div>
                                 <h4 class="font-bold text-xs text-gray-900">Thread Diskusi Spesifikasi Teknis Proyek</h4>
                                 <p class="text-[10px] text-gray-500">Seluruh riwayat chat mengikat perjanjian kontrak B2B resmi Decor</p>
                             </div>
                         </div>
-                        <span class="text-[10px] bg-orange-100 text-primary font-bold px-2.5 py-1 rounded-full">
+                        <span class="text-[10px] bg-orange-100 text-primary font-bold px-2.5 py-1 rounded-full whitespace-nowrap">
                             {{ $quotation->quotation_number ?? 'Belum ada penawaran' }}
                             @if($quotation) &bull; {{ str_replace('_', ' ', $quotation->status) }} @endif
                         </span>
                     </div>
 
                     <!-- Chat Body -->
-                    <div class="flex-1 p-6 overflow-y-auto space-y-4 text-xs">
+                    <div class="flex-1 p-3 sm:p-6 overflow-y-auto space-y-4 text-xs">
                         @forelse($rfq->negotiations as $chat)
                             @php $isOwn = $chat->sender_id === auth()->id(); @endphp
                             @if($isOwn)
-                                <div class="flex items-start space-x-3 max-w-xl ml-auto flex-row-reverse space-x-reverse">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->full_name ?? 'Saya') }}&background=B5733A&color=fff" class="w-8 h-8 rounded-full">
-                                    <div class="bg-primary text-white p-4 rounded-2xl rounded-tr-none space-y-1">
+                                <div class="flex items-start space-x-2 sm:space-x-3 max-w-[88%] sm:max-w-xl ml-auto flex-row-reverse space-x-reverse">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->full_name ?? 'Saya') }}&background=B5733A&color=fff" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full">
+                                    <div class="bg-primary text-white p-3 sm:p-4 rounded-2xl rounded-tr-none space-y-1">
                                         <p class="font-bold text-[11px] text-white">{{ $chat->sender->full_name ?? 'Anda' }} (Anda)</p>
-                                        <p class="text-white/95 whitespace-pre-line">{{ $chat->message }}</p>
+                                        <p class="text-white/95 whitespace-pre-line text-xs">{{ $chat->message }}</p>
                                         @if($chat->attachment_url)
                                             <a href="{{ asset('storage/' . $chat->attachment_url) }}" target="_blank" class="text-[10px] underline text-white/90 block">Lihat lampiran</a>
                                         @endif
@@ -195,11 +204,11 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="flex items-start space-x-3 max-w-xl">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($chat->sender->full_name ?? $designerUser->full_name ?? 'Desainer') }}&background=FAF1E8&color=B5733A" class="w-8 h-8 rounded-full border border-primary/20">
-                                    <div class="bg-gray-100 p-4 rounded-2xl rounded-tl-none space-y-1">
+                                <div class="flex items-start space-x-2 sm:space-x-3 max-w-[88%] sm:max-w-xl">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($chat->sender->full_name ?? $designerUser->full_name ?? 'Desainer') }}&background=FAF1E8&color=B5733A" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-primary/20">
+                                    <div class="bg-gray-100 p-3 sm:p-4 rounded-2xl rounded-tl-none space-y-1">
                                         <p class="font-bold text-[11px] text-gray-900">{{ $chat->sender->full_name ?? 'Desainer' }} (Desainer)</p>
-                                        <p class="text-gray-700 whitespace-pre-line">{{ $chat->message }}</p>
+                                        <p class="text-gray-700 whitespace-pre-line text-xs">{{ $chat->message }}</p>
                                         @if($chat->attachment_url)
                                             <a href="{{ asset('storage/' . $chat->attachment_url) }}" target="_blank" class="text-[10px] underline text-primary block">Lihat lampiran</a>
                                         @endif
@@ -226,12 +235,12 @@
                     </div>
 
                     <!-- Chat Input -->
-                    <form method="POST" action="{{ b2b_route('seller.b2b.negosiasi.message', $rfq) }}" enctype="multipart/form-data" class="p-4 border-t border-gray-100 bg-gray-50 space-y-2">
+                    <form method="POST" action="{{ b2b_route('seller.b2b.negosiasi.message', $rfq) }}" enctype="multipart/form-data" class="p-3 sm:p-4 border-t border-gray-100 bg-gray-50 space-y-2">
                         @csrf
-                        <div class="flex items-center space-x-3">
-                            <input type="text" name="message" required placeholder="Tuliskan respon atau update teknis ke desainer..." class="flex-1 text-xs border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-primary">
-                            <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white px-5 py-3 rounded-xl font-bold text-xs transition-all flex items-center">
-                                Kirim <i class="fa-solid fa-paper-plane ml-2"></i>
+                        <div class="flex items-center space-x-2 sm:space-x-3">
+                            <input type="text" name="message" required placeholder="Tuliskan respon atau update teknis ke desainer..." class="flex-1 text-xs border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 focus:outline-none focus:border-primary">
+                            <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs transition-all flex items-center whitespace-nowrap">
+                                <span class="hidden sm:inline mr-1.5">Kirim</span> <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </div>
                         <input type="file" name="attachment" accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf" class="text-[10px] text-gray-500">
@@ -241,14 +250,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

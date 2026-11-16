@@ -14,40 +14,49 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
     </style>
 </head>
 <body class="text-gray-800">
 
     @include('seller.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
+    <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white">
             <div class="flex items-center">
                 <button id="toggle-sidebar" class="text-white hover:opacity-80 mr-4 flex items-center justify-center transition-transform active:scale-95">
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
                 </button>
                 <div class="flex flex-col">
-                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pengadaan Kustom B2B</h2>
+                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pesanan Kustom B2B</h2>
                     <span class="text-[10px] text-white/80 mt-1">Inbox Permintaan Penawaran (RFQ Inbound)</span>
                 </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <i class="fa-regular fa-bell text-xl cursor-pointer"></i>
-                <div class="flex items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                    <span class="text-[10px] font-bold uppercase tracking-widest">{{ auth()->user()->seller->store_name ?? 'Seller' }}</span>
-                    <img src="{{ auth()->user()->seller->store_image_url ?? 'https://ui-avatars.com/api/?name=Seller&background=B5733A&color=fff' }}" class="w-8 h-8 rounded-lg border border-white/30 object-cover">
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <i class="fa-regular fa-bell text-lg sm:text-xl cursor-pointer"></i>
+                <div class="flex items-center space-x-2 sm:space-x-3 bg-white/10 px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/20">
+                    <span class="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">{{ auth()->user()->seller->store_name ?? 'Seller' }}</span>
+                    <img src="{{ auth()->user()->seller->store_image_url ?? 'https://ui-avatars.com/api/?name=Seller&background=B5733A&color=fff' }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-white/30 object-cover">
                 </div>
             </div>
         </header>
 
-        <div class="p-8 space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
             <!-- Breadcrumbs & Heading -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight text-gray-900">Permintaan Masuk Proyek B2B (RFQ)</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">Permintaan Masuk Proyek B2B (RFQ)</h2>
                     <p class="text-xs text-gray-500 mt-1">Kelola dan tinjau berkas gambar kerja CAD dari desainer interior untuk pengadaan mebel massal.</p>
                 </div>
                 <div class="flex items-center space-x-3">
@@ -58,7 +67,7 @@
             </div>
 
             <!-- Stats Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">RFQ Butuh Penawaran</p>
@@ -93,23 +102,25 @@
 
             <!-- RFQ Table Card -->
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <h3 class="font-bold text-base text-gray-900">Daftar Pengajuan Kustomisasi B2B Aktif</h3>
-                    <form method="GET" action="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center space-x-3">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama proyek atau desainer..." class="text-xs border border-gray-200 rounded-lg px-3 py-2 w-64 focus:outline-none focus:border-primary">
-                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary">
-                            <option value="">Semua Status</option>
-                            <option value="PENDING" @selected(request('status') === 'PENDING')>Butuh Penawaran</option>
-                            <option value="QUOTED" @selected(request('status') === 'QUOTED')>Dalam Analisis</option>
-                            <option value="IN_ORDER" @selected(request('status') === 'IN_ORDER')>Produksi</option>
-                            <option value="REJECTED" @selected(request('status') === 'REJECTED')>Ditolak</option>
-                        </select>
-                        <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white text-xs font-bold px-3 py-2 rounded-lg transition-all">Cari</button>
+                <div class="p-4 sm:p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="font-bold text-sm sm:text-base text-gray-900">Daftar Pengajuan Kustomisasi B2B Aktif</h3>
+                    <form method="GET" action="{{ b2b_route('seller.b2b.inbox') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama proyek atau desainer..." class="text-xs border border-gray-200 rounded-lg px-3 py-2 w-full sm:w-64 focus:outline-none focus:border-primary">
+                        <div class="flex items-center gap-2">
+                            <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary flex-1 sm:flex-none">
+                                <option value="">Semua Status</option>
+                                <option value="PENDING" @selected(request('status') === 'PENDING')>Butuh Penawaran</option>
+                                <option value="QUOTED" @selected(request('status') === 'QUOTED')>Dalam Analisis</option>
+                                <option value="IN_ORDER" @selected(request('status') === 'IN_ORDER')>Produksi</option>
+                                <option value="REJECTED" @selected(request('status') === 'REJECTED')>Ditolak</option>
+                            </select>
+                            <button type="submit" class="bg-primary hover:bg-[#8C4E1E] text-white text-xs font-bold px-4 py-2 rounded-lg transition-all">Cari</button>
+                        </div>
                     </form>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full text-left border-collapse text-xs min-w-[720px]">
                         <thead>
                             <tr class="bg-gray-50/70 border-b border-gray-100 text-gray-500 font-semibold uppercase text-[10px] tracking-wider">
                                 <th class="py-4 px-6">ID & Tanggal</th>
@@ -143,7 +154,7 @@
                                             $firstItem = collect($rfq->items ?? [])->first();
                                         @endphp
                                         <p class="font-bold text-gray-800">{{ $totalQty ?? count($rfq->items ?? []) }} Unit Mebel Kustom</p>
-                                        <p class="text-[10px] text-gray-500">{{ $firstItem['name'] ?? $rfq->wood_type }} {{ $rfq->wood_type ? '&bull; ' . $rfq->wood_type : '' }}</p>
+                                        <p class="text-[10px] text-gray-500">{{ $firstItem['name'] ?? $rfq->wood_type }} {{ $rfq->wood_type ? '• ' . $rfq->wood_type : '' }}</p>
                                     </td>
                                     <td class="py-4 px-6">
                                         <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($rfq->budget_ceiling, 0, ',', '.') }}</span>
@@ -208,14 +219,44 @@
         </div>
     </main>
 
+    
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
         const sidebar = document.getElementById('sidebar');
         const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>

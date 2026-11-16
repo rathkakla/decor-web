@@ -15,8 +15,15 @@
         .border-primary { border-color: #B5733A; }
         .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
         .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        .sidebar-hidden { transform: translateX(-100%); }
-        .main-expanded { margin-left: 0 !important; }
+        @media (max-width: 767px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+            #main-content { margin-left: 0 !important; }
+        }
+        @media (min-width: 768px) {
+            #sidebar.sidebar-hidden { transform: translateX(-100%); }
+            #main-content.main-expanded { margin-left: 0 !important; }
+        }
 
         /* KHUSUS CETAK DOKUMEN SURAT JALAN RESMI */
         @media print {
@@ -65,8 +72,10 @@
 
     @include('seller.partials.sidebar')
 
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
+
     <!-- Main Content -->
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         @php
             $rfq = $order->rfq;
             $seller = $rfq->seller;
@@ -87,21 +96,21 @@
         @endphp
 
         <!-- Topbar Header -->
-        <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white no-print">
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-primary flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm text-white no-print">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <button id="toggle-sidebar" class="text-white hover:text-gray-200 focus:outline-none">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white">Pesanan B2B</a>
-                    <span class="text-white/50">/</span>
+                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan B2B</a>
+                    <span class="text-white/50 hidden sm:inline">/</span>
                     <a href="{{ b2b_route('seller.b2b.produksi', $order) }}" class="text-white/80 hover:text-white">{{ $rfq->rfq_number }}</a>
                     <span class="text-white/50">/</span>
                     <span class="font-bold text-white">Surat Jalan & Pencairan Escrow</span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
                 <div class="text-right hidden sm:block">
                     <p class="text-xs font-bold leading-none">{{ $seller->store_name }}</p>
                     <p class="text-[10px] text-white/80 mt-1">{{ $seller->svlk_verified ? 'Produsen Terverifikasi SVLK' : 'Produsen Mebel' }}</p>
@@ -111,7 +120,7 @@
         </header>
 
         <!-- Body Container -->
-        <div class="page-container p-8 space-y-6 max-w-7xl">
+        <div class="page-container p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 text-xs font-semibold no-print">
                     <i class="fa-solid fa-circle-check mr-1"></i> {{ session('success') }}
@@ -166,7 +175,7 @@
             </div>
 
             <!-- Escrow Status & Payout Card -->
-            <div id="escrow-summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 no-print">
+            <div id="escrow-summary-cards" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 no-print">
                 <!-- Termin 1: DP -->
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-2">
                     <div class="flex items-center justify-between">
@@ -218,24 +227,24 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Kolom Kiri: Dokumen Fisik Surat Jalan / Form Pembuatan -->
                 @if($delivery)
-                    <div id="surat-jalan-document" class="lg:col-span-8 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                    <div id="surat-jalan-document" class="xl:col-span-8 bg-white p-4 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                         <!-- Kop Surat Jalan -->
                         <div class="border-b-2 border-gray-800 pb-6 flex items-start justify-between">
                             <div>
-                                <h3 class="text-lg font-black text-gray-900 tracking-wider">SURAT JALAN PENGIRIMAN FURNITUR B2B</h3>
+                                <h3 class="text-base sm:text-lg font-black text-gray-900 tracking-wider">SURAT JALAN PENGIRIMAN FURNITUR B2B</h3>
                                 <p class="text-xs text-gray-500 font-mono mt-0.5">NOMOR: {{ $delivery->surat_jalan_number }}</p>
                             </div>
                             <div class="text-right">
-                                <span class="text-lg font-black tracking-widest text-primary uppercase">DECOR</span>
+                                <span class="text-base sm:text-lg font-black tracking-widest text-primary uppercase">DECOR</span>
                                 <p class="text-[10px] text-gray-400">Integrated B2B Logistic</p>
                             </div>
                         </div>
 
                         <!-- Detail Pengirim & Penerima -->
-                        <div class="grid grid-cols-2 gap-6 text-xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-xs">
                             <div class="p-4 bg-gray-50 rounded-xl space-y-1">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pengirim / Workshop:</p>
                                 <p class="font-bold text-gray-900">{{ $seller->store_name }}</p>
@@ -274,7 +283,7 @@
                         <div>
                             <h4 class="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wider">Daftar Barang Muatan Truk:</h4>
                             <div class="overflow-x-auto border border-gray-200 rounded-xl">
-                                <table class="w-full text-left text-xs">
+                                <table class="w-full text-left text-xs min-w-[540px]">
                                     <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
                                         <tr>
                                             <th class="p-3">No</th>
@@ -388,7 +397,7 @@
                         </div>
                     </div>
                 @else
-                    <div class="lg:col-span-8 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+                    <div class="xl:col-span-8 bg-white p-4 sm:p-8 rounded-2xl border border-gray-100 shadow-sm space-y-5">
                         <div>
                             <h3 class="text-lg font-black text-gray-900 tracking-wider">TERBITKAN SURAT JALAN</h3>
                             <p class="text-xs text-gray-500 mt-1">
@@ -450,7 +459,7 @@
                 @endif
 
                 <!-- Kolom Kanan: Tracking & BAST Readiness -->
-                <div id="right-column" class="lg:col-span-4 space-y-6 no-print">
+                <div id="right-column" class="xl:col-span-4 space-y-6 no-print">
                     @if($delivery)
                         <!-- Update Status Pengiriman -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
@@ -564,13 +573,6 @@
     </div>
 
     <script>
-        const toggleBtn = document.getElementById('toggle-sidebar');
-        const sidebar = document.getElementById('sidebar');
-        const main = document.getElementById('main-content');
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('sidebar-hidden');
-            main.classList.toggle('main-expanded');
-        });
 
         // ------------------------------------------------ Tanda tangan digital
         (function () {
@@ -707,6 +709,44 @@
                 }
             });
         })();
+    </script>
+    <script>
+    // Sidebar drawer: satu implementasi untuk desktop & mobile.
+    (function () {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar || !toggleBtn) return;
+
+        const isMobile = () => window.innerWidth < 768;
+
+        const closeMobile = () => {
+            sidebar.classList.remove('sidebar-open');
+            if (backdrop) backdrop.classList.add('hidden');
+        };
+
+        const toggleSidebar = () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('sidebar-open')) {
+                    closeMobile();
+                } else {
+                    sidebar.classList.add('sidebar-open');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.toggle('sidebar-hidden');
+                if (main) main.classList.toggle('main-expanded');
+            }
+        };
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
+        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
+
+        window.toggleSidebar = toggleSidebar;
+    })();
     </script>
 </body>
 </html>
