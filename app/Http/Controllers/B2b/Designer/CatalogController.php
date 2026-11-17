@@ -46,6 +46,7 @@ class CatalogController extends Controller
         $sellers = $query->latest()->paginate(12)->withQueryString();
 
         $rfqsBySeller = $this->latestRfqsBySeller($designer, $sellers->pluck('id')->all());
+        $totalRfqsCount = B2bRfq::where('designer_id', $designer->id)->count();
 
         // Get unique values for filter dropdowns
         $cities = Seller::where('b2b_enabled', true)
@@ -63,7 +64,7 @@ class CatalogController extends Controller
             ->sort()
             ->values();
 
-        return view('designer.b2b.katalog_pabrik', compact('sellers', 'cities', 'woodTypes', 'rfqsBySeller'));
+        return view('designer.b2b.katalog_pabrik', compact('sellers', 'cities', 'woodTypes', 'rfqsBySeller', 'totalRfqsCount'));
     }
 
     public function show(Seller $seller): View
@@ -77,6 +78,7 @@ class CatalogController extends Controller
         // Tampilkan hanya pabrik terpilih, tetap memakai paginator agar view konsisten.
         $sellers = Seller::whereKey($seller->id)->paginate(12);
         $rfqsBySeller = $this->latestRfqsBySeller($designer, [$seller->id]);
+        $totalRfqsCount = B2bRfq::where('designer_id', $designer->id)->count();
 
         $cities = Seller::where('b2b_enabled', true)
             ->whereNotNull('city')
@@ -93,7 +95,43 @@ class CatalogController extends Controller
             ->sort()
             ->values();
 
-        return view('designer.b2b.katalog_pabrik', compact('sellers', 'cities', 'woodTypes', 'seller', 'rfqsBySeller'));
+        return view('designer.b2b.katalog_pabrik', compact('sellers', 'cities', 'woodTypes', 'seller', 'rfqsBySeller', 'totalRfqsCount'));
+    }
+
+    /**
+     * Riwayat & progres seluruh proyek B2B milik designer.
+     */
+    public function history(Request $request): View
+    {
+        $designer = $this->getDesigner();
+
+        $query = B2bRfq::with(['seller', 'latestQuotation', 'order'])
+            ->where('designer_id', $designer->id)
+            ->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('project_name', 'like', "%{$search}%")
+                    ->orWhere('rfq_number', 'like', "%{$search}%")
+                    ->orWhereHas('seller', fn ($sq) => $sq->where('store_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $rfqs = $query->paginate(15)->withQueryString();
+
+        $stats = [
+            'total' => B2bRfq::where('designer_id', $designer->id)->count(),
+            'pending' => B2bRfq::where('designer_id', $designer->id)->where('status', B2bRfq::STATUS_PENDING)->count(),
+            'quoted' => B2bRfq::where('designer_id', $designer->id)->where('status', B2bRfq::STATUS_QUOTED)->count(),
+            'in_order' => B2bRfq::where('designer_id', $designer->id)->where('status', B2bRfq::STATUS_IN_ORDER)->count(),
+        ];
+
+        return view('designer.b2b.riwayat_pesanan', compact('rfqs', 'stats'));
     }
 
     /**

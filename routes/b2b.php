@@ -69,8 +69,9 @@ Route::middleware(['auth', 'role:designer'])
     ->name('designer.b2b.')
     ->group(function () {
 
-    // Katalog Pabrik
+    // Katalog Pabrik & Riwayat Pesanan B2B
     Route::get('/katalog', [CatalogController::class, 'index'])->name('katalog');
+    Route::get('/riwayat', [CatalogController::class, 'history'])->name('riwayat');
     Route::get('/katalog/{seller}', [CatalogController::class, 'show'])->name('katalog.show');
 
     // RFQ Create

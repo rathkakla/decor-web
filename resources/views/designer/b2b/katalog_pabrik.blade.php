@@ -100,6 +100,13 @@
                         </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-white/90 shrink-0">
+                        <a href="{{ b2b_route('designer.b2b.riwayat') }}" class="bg-white hover:bg-gray-100 text-primary px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>Riwayat &amp; Progres Proyek</span>
+                            @if(($totalRfqsCount ?? 0) > 0)
+                                <span class="bg-primary text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">{{ $totalRfqsCount }}</span>
+                            @endif
+                        </a>
                         <span class="bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl backdrop-blur-sm">
                             <i class="fa-solid fa-shield-halved mr-1.5 text-amber-200"></i>Escrow 100%
                         </span>

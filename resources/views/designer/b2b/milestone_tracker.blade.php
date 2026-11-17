@@ -139,7 +139,7 @@
                     <span class="text-primary text-sm font-extrabold">{{ $progress }}% Rampung</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div class="bg-gradient-to-r from-amber-500 to-primary h-3 rounded-full transition-all duration-500" style="width: {{ $progress }}%"></div>
+                    <div class="bg-gradient-to-r from-amber-500 to-[#B5733A] h-3 rounded-full transition-all duration-500" style="width: {{ $progress }}%"></div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 text-center text-xs">
@@ -412,7 +412,7 @@
                     </div>
 
                     <!-- Call to Action BAST -->
-                    <div class="bg-gradient-to-br from-[#2C1810] to-primary p-6 rounded-2xl text-white space-y-4 shadow-lg">
+                    <div class="bg-gradient-to-br from-[#2C1810] to-[#B5733A] p-6 rounded-2xl text-white space-y-4 shadow-lg">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg">
                                 <i class="fa-solid fa-file-signature"></i>

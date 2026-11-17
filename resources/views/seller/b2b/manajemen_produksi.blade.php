@@ -111,11 +111,8 @@
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <a href="{{ b2b_route('seller.b2b.negosiasi', $order->rfq) }}" class="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all flex items-center">
+                    <a href="{{ b2b_route('seller.b2b.negosiasi', $order->rfq) }}" class="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all flex items-center whitespace-nowrap">
                         <i class="fa-solid fa-comments mr-2"></i> Diskusi Teknis
-                    </a>
-                    <a href="{{ b2b_route('seller.b2b.surat_jalan', $order) }}" class="bg-primary hover:bg-[#8C4E1E] text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md flex items-center">
-                        Surat Jalan & Pengiriman <i class="fa-solid fa-truck-fast ml-2"></i>
                     </a>
                 </div>
             </div>
@@ -130,7 +127,7 @@
                     <span class="text-primary text-sm font-extrabold">{{ $progress }}% Rampung</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div class="bg-gradient-to-r from-amber-500 to-primary h-3 rounded-full transition-all duration-500" style="width: {{ $progress }}%"></div>
+                    <div class="bg-gradient-to-r from-amber-500 to-[#B5733A] h-3 rounded-full transition-all duration-500" style="width: {{ $progress }}%"></div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 text-center text-xs">
                     <div class="p-3 bg-gray-50 rounded-xl">
@@ -306,7 +303,7 @@
                     </div>
 
                     <!-- Call to Action Card -->
-                    <div class="bg-gradient-to-br from-amber-900 to-primary p-6 rounded-2xl text-white space-y-4 shadow-lg">
+                    <div class="bg-gradient-to-br from-amber-900 to-[#B5733A] p-6 rounded-2xl text-white space-y-4 shadow-lg">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg">
                                 <i class="fa-solid fa-truck-ramp-box"></i>
