@@ -217,7 +217,7 @@
                         @if($order->payout_status === 'REQUESTED')
                             Permintaan payout diajukan {{ $order->payout_requested_at?->format('d M Y H:i') ?? '' }}.
                         @elseif($order->payout_status === 'PAID')
-                            Dana telah ditransfer ke rekening pabrik.
+                            Dana telah ditransfer ke rekening pabrik{{ $order->payout_paid_at ? ' pada '.$order->payout_paid_at->format('d M Y H:i') : '' }}.
                         @elseif($order->payout_status === 'AVAILABLE')
                             Dana siap dicairkan.
                         @else
