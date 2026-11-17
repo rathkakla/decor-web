@@ -44,11 +44,12 @@ class SellerController extends Controller
             $q->whereIn('status', ['processing', 'shipped', 'delivered', 'completed']);
         })->sum(DB::raw('price * quantity'));
 
-        // 3b. Pendapatan B2B yang sudah selesai (BAST ditandatangani & dana dirilis)
+        // 3b. Pendapatan B2B yang dananya sudah dirilis ke seller (BAST ditandatangani).
+        // Patokan utamanya payment_status, karena status produksi bisa tertinggal
+        // (mis. DELIVERED) walau escrow sudah dicairkan ke seller.
         $b2bRevenue = B2bOrder::whereHas('rfq', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
-        })->where('status', B2bOrder::STATUS_COMPLETED)
-            ->where('payment_status', B2bOrder::PAYMENT_RELEASED)
+        })->where('payment_status', B2bOrder::PAYMENT_RELEASED)
             ->sum('total_amount');
 
         $estimatedRevenue += $b2bRevenue;
