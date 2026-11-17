@@ -8,6 +8,7 @@
         $customerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'customer'))->where('status', 'pending')->count();
         $sellerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count();
         $designerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count();
+        $b2bPayoutCount = \App\Models\B2bOrder::where('payout_status', \App\Models\B2bOrder::PAYOUT_REQUESTED)->count();
     @endphp
 
     <!-- MENU UTAMA (ATAS) -->
@@ -32,6 +33,18 @@
         </a>
         <a href="{{ route('admin.portfolio-validation') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.portfolio-validation') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-image mr-3 w-5 text-center"></i> Portfolio Validation
+        </a>
+
+        <!-- Keuangan B2B -->
+        <span class="block px-4 py-2 mt-4 text-[9px] font-black tracking-widest text-gray-400 uppercase">Keuangan</span>
+
+        <a href="{{ route('admin.b2b-payout') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.b2b-payout*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <div class="flex items-center">
+                <i class="fa-solid fa-money-bill-transfer mr-3 w-5 text-center"></i> Pencairan B2B
+            </div>
+            @if($b2bPayoutCount > 0)
+                <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $b2bPayoutCount }}</span>
+            @endif
         </a>
 
         <!-- Support Sections -->

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\Voucher;
 use App\Models\Support;
+use App\Models\B2bOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SellerController extends Controller
@@ -42,6 +43,15 @@ class SellerController extends Controller
         })->whereHas('order', function ($q) {
             $q->whereIn('status', ['processing', 'shipped', 'delivered', 'completed']);
         })->sum(DB::raw('price * quantity'));
+
+        // 3b. Pendapatan B2B yang sudah selesai (BAST ditandatangani & dana dirilis)
+        $b2bRevenue = B2bOrder::whereHas('rfq', function ($q) use ($seller) {
+            $q->where('seller_id', $seller->id);
+        })->where('status', B2bOrder::STATUS_COMPLETED)
+            ->where('payment_status', B2bOrder::PAYMENT_RELEASED)
+            ->sum('total_amount');
+
+        $estimatedRevenue += $b2bRevenue;
 
         // 4. Rating Toko (Rata-rata review produk)
         $averageRating = Review::whereHas('product', function ($q) use ($seller) {

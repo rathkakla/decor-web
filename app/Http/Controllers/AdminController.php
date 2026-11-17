@@ -7,6 +7,7 @@ use App\Models\Designer;
 use App\Models\Seller;
 use App\Models\Customer;
 use App\Models\Support;
+use App\Models\B2bOrder;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -300,6 +301,61 @@ class AdminController extends Controller
         $designer = Designer::with(['user', 'portfolios'])->findOrFail($id);
         return view('Admin.designer-detail', compact('designer'));
     }
+
+    /**
+     * Daftar pengajuan pencairan dana B2B (payout escrow).
+     */
+    public function b2bPayout(Request $request)
+    {
+        $statusFilter = $request->get('status', B2bOrder::PAYOUT_REQUESTED);
+        if (! in_array($statusFilter, [B2bOrder::PAYOUT_REQUESTED, B2bOrder::PAYOUT_PAID], true)) {
+            $statusFilter = B2bOrder::PAYOUT_REQUESTED;
+        }
+
+        $orders = B2bOrder::with(['rfq.seller.user', 'rfq.designer.user'])
+            ->where('payout_status', $statusFilter)
+            ->orderByRaw('COALESCE(payout_requested_at, updated_at) DESC')
+            ->paginate(15)
+            ->withQueryString();
+
+        $requestedQuery = B2bOrder::where('payout_status', B2bOrder::PAYOUT_REQUESTED);
+        $paidQuery = B2bOrder::where('payout_status', B2bOrder::PAYOUT_PAID);
+
+        $stats = [
+            'requested' => (clone $requestedQuery)->count(),
+            'requested_amount' => (clone $requestedQuery)->sum('total_amount'),
+            'paid' => (clone $paidQuery)->count(),
+            'paid_amount' => (clone $paidQuery)->sum('total_amount'),
+        ];
+
+        return view('Admin.b2b-payout', compact('orders', 'stats', 'statusFilter'));
+    }
+
+    /**
+     * Setujui pencairan dana B2B: REQUESTED -> PAID.
+     */
+    public function approveB2bPayout($id)
+    {
+        $order = B2bOrder::with('rfq.seller')->findOrFail($id);
+
+        if ($order->payout_status !== B2bOrder::PAYOUT_REQUESTED) {
+            return redirect()
+                ->route('admin.b2b-payout')
+                ->with('error', "Pencairan {$order->order_number} tidak dalam status menunggu persetujuan.");
+        }
+
+        $order->update([
+            'payout_status' => B2bOrder::PAYOUT_PAID,
+            'payout_paid_at' => now(),
+        ]);
+
+        $store = $order->rfq?->seller?->store_name ?? 'seller';
+
+        return redirect()
+            ->route('admin.b2b-payout')
+            ->with('success', "Pencairan {$order->order_number} untuk {$store} ditandai sudah dibayar.");
+    }
+
     public function customerSupport(Request $request)
     {
         $statusFilter = $request->get('status', 'semua');

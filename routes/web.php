@@ -332,6 +332,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     Route::get('/seller-detail/{id}', [App\Http\Controllers\AdminController::class, 'sellerDetail'])->name('admin.seller-detail');
     Route::post('/seller-detail/{id}/b2b', [App\Http\Controllers\AdminController::class, 'toggleB2b'])->name('admin.seller-b2b.toggle');
+
+    // Pencairan dana B2B (payout escrow)
+    Route::get('/b2b-payout', [App\Http\Controllers\AdminController::class, 'b2bPayout'])->name('admin.b2b-payout');
+    Route::post('/b2b-payout/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveB2bPayout'])->name('admin.b2b-payout.approve');
     Route::get('/designer-detail/{id}', [App\Http\Controllers\AdminController::class, 'designerDetail'])->name('admin.designer-detail');
 
     Route::get('/designer-monitor', [App\Http\Controllers\AdminController::class, 'designerMonitor'])->name('admin.designer-monitor');
