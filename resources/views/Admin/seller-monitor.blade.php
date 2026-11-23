@@ -160,17 +160,17 @@ $menu_items = [
 
                 <!-- Metrics -->
                 <div class="grid grid-cols-3 gap-[1px] bg-gray-100 border border-gray-100 rounded-xl my-5 overflow-hidden">
-                    <div class="bg-gray-50 py-3 text-center">
-                        <div class="text-sm font-bold text-gray-900">{{ $s->transactions }}</div>
-                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Orders</div>
+                    <div class="bg-gray-50 py-4 text-center">
+                        <div class="text-lg font-bold text-gray-900 leading-tight">{{ $s->transactions }}</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Orders</div>
                     </div>
-                    <div class="bg-gray-50 py-3 text-center">
-                        <div class="text-[11px] font-bold text-gray-900 leading-tight">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
-                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Revenue</div>
+                    <div class="bg-gray-50 py-4 text-center">
+                        <div class="text-lg font-bold text-gray-900 leading-tight">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Revenue</div>
                     </div>
-                    <div class="bg-gray-50 py-3 text-center">
-                        <div class="text-[11px] font-bold text-gray-900 leading-tight">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
-                        <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Admin Fee</div>
+                    <div class="bg-gray-50 py-4 text-center">
+                        <div class="text-lg font-bold text-gray-900 leading-tight">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Admin Fee</div>
                     </div>
                 </div>
 
