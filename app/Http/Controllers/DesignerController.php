@@ -23,6 +23,7 @@ class DesignerController extends Controller
             ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
             ->whereNotNull('chat_expires_at')
             ->where('chat_expires_at', '<', now())
+            ->where('is_chat_paused', false)
             ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
         $selectedYear = $request->get('year', date('Y'));
 
@@ -114,6 +115,7 @@ class DesignerController extends Controller
             ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
             ->whereNotNull('chat_expires_at')
             ->where('chat_expires_at', '<', now())
+            ->where('is_chat_paused', false)
             ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $query = Consultation::where('designer_id', $designer->id)
@@ -145,6 +147,7 @@ class DesignerController extends Controller
             ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
             ->whereNotNull('chat_expires_at')
             ->where('chat_expires_at', '<', now())
+            ->where('is_chat_paused', false)
             ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $consultation = Consultation::where('id', $id)
@@ -397,6 +400,9 @@ class DesignerController extends Controller
         ]);
 
         $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_paused) {
+            return back()->with('error', 'Sesi chat sedang dijeda. Tekan Resume untuk melanjutkan.');
+        }
         if ($consultation->is_chat_expired) {
             return back()->with('error', 'Waktu chat konsultasi telah habis.');
         }
@@ -420,6 +426,77 @@ class DesignerController extends Controller
         }
 
         return back()->with('success', 'Pesan berhasil dikirim');
+    }
+
+    /**
+     * Jeda sesi chat konsultasi berbayar (sisi desainer).
+     */
+    public function pauseConsultationChat($id)
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+
+        $consultation = Consultation::where('id', $id)
+            ->where('designer_id', $designer->id)
+            ->firstOrFail();
+
+        if ($consultation->consultation_type !== 'chat_consultation') {
+            return back()->with('error', 'Hanya sesi chat konsultasi yang dapat dijeda.');
+        }
+
+        if ($consultation->status !== Consultation::STATUS_ACTIVE) {
+            return back()->with('error', 'Sesi chat tidak dalam status aktif.');
+        }
+
+        if ($consultation->is_chat_paused) {
+            return back()->with('info', 'Sesi chat sudah dalam keadaan dijeda.');
+        }
+
+        $remaining = $consultation->chat_expires_at
+            ? max(0, now()->diffInSeconds($consultation->chat_expires_at, false))
+            : 0;
+
+        $consultation->update([
+            'is_chat_paused' => true,
+            'chat_paused_at' => now(),
+            'remaining_chat_seconds' => $remaining,
+        ]);
+
+        return back()->with('success', 'Sesi chat dijeda. Sisa waktu ' . gmdate('i:s', $remaining) . ' tersimpan.');
+    }
+
+    /**
+     * Lanjutkan sesi chat konsultasi dari sisa waktu yang tersimpan (sisi desainer).
+     */
+    public function resumeConsultationChat($id)
+    {
+        $designer = Designer::where('user_id', Auth::id())->firstOrFail();
+
+        $consultation = Consultation::where('id', $id)
+            ->where('designer_id', $designer->id)
+            ->firstOrFail();
+
+        if ($consultation->consultation_type !== 'chat_consultation') {
+            return back()->with('error', 'Hanya sesi chat konsultasi yang dapat dilanjutkan.');
+        }
+
+        if ($consultation->status !== Consultation::STATUS_ACTIVE) {
+            return back()->with('error', 'Sesi chat tidak dalam status aktif.');
+        }
+
+        if (! $consultation->is_chat_paused) {
+            return back()->with('info', 'Sesi chat tidak sedang dijeda.');
+        }
+
+        $remaining = (int) ($consultation->remaining_chat_seconds ?? 0);
+
+        $consultation->update([
+            'is_chat_paused' => false,
+            'chat_paused_at' => null,
+            'remaining_chat_seconds' => null,
+            'chat_expires_at' => now()->addSeconds($remaining),
+        ]);
+
+        return back()->with('success', 'Sesi chat dilanjutkan.');
     }
 
     public function uploadConsultationAttachment(Request $request, $id)
@@ -500,6 +577,12 @@ class DesignerController extends Controller
 
         $path = $request->file('image')->store('designers/portfolios', 'public');
 
+        // Jika designer sudah pernah punya portofolio yang di-approve oleh admin,
+        // maka upload portofolio selanjutnya otomatis langsung approved.
+        $hasApprovedPortfolio = DesignerPortfolio::where('designer_id', $designer->id)
+            ->where('status', 'approved')
+            ->exists();
+
         DesignerPortfolio::create([
             'designer_id' => $designer->id,
             'consultation_id' => null,
@@ -511,6 +594,7 @@ class DesignerController extends Controller
             'budget' => $request->budget,
             'area' => $request->area,
             'duration' => $request->duration,
+            'status' => $hasApprovedPortfolio ? 'approved' : 'pending',
         ]);
 
         return redirect()->route('designer.portfolio.index')->with('success', 'Portfolio berhasil ditambahkan!');

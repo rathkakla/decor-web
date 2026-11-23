@@ -42,8 +42,8 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-32">
             @forelse($designers as $designer)
-            <div class="group">
-                <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 mb-6 relative">
+            <div class="group flex flex-col h-full">
+                <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 mb-6 relative shrink-0">
                     @php
                         $image = $designer->designer_image 
                             ? asset('storage/' . $designer->designer_image) 
@@ -60,10 +60,10 @@
                         <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">{{ $designer->specialty }}</p>
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 leading-relaxed mb-6 line-clamp-3">{{ $designer->bio ?? 'No bio provided.' }}</p>
-               <a href="{{ route('customer.designer.profile', $designer->id) }}" class="block w-full">
+                <p class="text-xs text-gray-500 leading-relaxed mb-6 line-clamp-3 flex-1">{{ $designer->bio ?? 'No bio provided.' }}</p>
+                <a href="{{ route('customer.designer.profile', $designer->id) }}" class="block w-full mt-auto">
                     <button class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-opacity-90 transition">
-                        View Portofolio
+                        View Portfolio
                     </button>
                 </a>
             </div>

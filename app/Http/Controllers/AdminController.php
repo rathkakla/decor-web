@@ -79,12 +79,38 @@ class AdminController extends Controller
     public function warnUser(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        $message = $request->get('message', 'Anda telah melakukan pelanggaran peraturan platform.');
+        $duration = $request->get('duration');
+        $reason = $request->get('reason') ?: $request->get('message', 'Anda telah melakukan pelanggaran peraturan platform.');
+
+        if ($duration === 'deactivate') {
+            if ($user->seller) {
+                $user->seller->update([
+                    'status' => 'rejected',
+                    'rejection_reason' => 'Akun dinonaktifkan melalui Tindakan Audit: ' . $reason,
+                ]);
+            }
+            if ($user->designer) {
+                $user->designer->update([
+                    'status' => 'rejected',
+                    'rejection_reason' => 'Akun dinonaktifkan melalui Tindakan Audit: ' . $reason,
+                ]);
+            }
+            $user->notify(new \App\Notifications\ViolationWarning("[AKUN DINONAKTIFKAN] Alasan Audit: {$reason}"));
+            return back()->with('success', "Akun {$user->full_name} telah dinonaktifkan berdasarkan hasil audit.");
+        }
+
+        $fullMessage = $duration
+            ? "[AUDIT SUSPENSI {$duration} HARI] Alasan: {$reason}"
+            : $reason;
         
         // Notify the user
-        $user->notify(new \App\Notifications\ViolationWarning($message));
+        $user->notify(new \App\Notifications\ViolationWarning($fullMessage));
         
-        return back()->with('success', 'Warning notification has been sent to ' . $user->full_name);
+        $feedback = $duration
+            ? "Sanksi Audit (Ban {$duration} Hari) berhasil diterapkan kepada {$user->full_name}."
+            : "Warning notification has been sent to {$user->full_name}";
+
+        return back()->with('success', $feedback);
     }
 
     public function deleteUser($id)
@@ -98,7 +124,7 @@ class AdminController extends Controller
     {
         $statusFilter = $request->get('status', 'semua');
         
-        $query = \App\Models\Product::with(['seller.user', 'category']);
+        $query = \App\Models\Product::with(['seller.user', 'category', 'images']);
         
         if ($statusFilter && $statusFilter !== 'semua') {
             $query->where('status', $statusFilter);
@@ -110,6 +136,7 @@ class AdminController extends Controller
             'pending' => \App\Models\Product::where('status', 'pending')->count(),
             'approved' => \App\Models\Product::where('status', 'approved')->count(),
             'rejected' => \App\Models\Product::where('status', 'rejected')->count(),
+            'total' => \App\Models\Product::count(),
         ];
         
         return view('Admin.product-validation', compact('products', 'stats', 'statusFilter'));
@@ -194,7 +221,7 @@ class AdminController extends Controller
         $designers = Designer::with(['user', 'portfolios'])->get()->map(function($designer) {
             // Get consultation stats
             $consultations = \App\Models\Consultation::where('designer_id', $designer->id);
-            $projectCount = $consultations->where('status', 'done')->count();
+            $projectCount = $consultations->where('status', \App\Models\Consultation::STATUS_COMPLETED)->count();
             
             // Revenue from accepted quotes
             $revenue = \App\Models\ConsultationQuote::whereHas('consultation', function($q) use ($designer) {
@@ -204,12 +231,13 @@ class AdminController extends Controller
             return (object)[
                 'id' => 'DES-' . str_pad($designer->id, 3, '0', STR_PAD_LEFT),
                 'db_id' => $designer->id,
+                'user_id' => $designer->user_id,
                 'name' => $designer->user->full_name,
                 'spec' => $designer->specialty,
                 'projects' => $projectCount,
                 'rate' => 0, // Placeholder
                 'rating' => 4.9, // Placeholder
-                'status' => $designer->status === 'approved' ? 'Verified' : ucfirst($designer->status),
+                'status' => $designer->status === 'approved' ? ($projectCount > 0 ? 'Verified' : 'Warning') : ucfirst($designer->status),
                 'revenue' => 'Rp ' . number_format($revenue / 1000000, 1) . 'M',
                 'joined' => $designer->created_at->format('M Y'),
             ];
@@ -217,9 +245,9 @@ class AdminController extends Controller
 
         $stats = [
             ['label' => 'Total Designers', 'value' => $designers->count(), 'icon' => 'pen-tool', 'note' => 'registered'],
-            ['label' => 'Verified', 'value' => $designers->where('status', 'Verified')->count(), 'icon' => 'check-circle', 'note' => 'active partners'],
-            ['label' => 'Suspended', 'value' => $designers->where('status', 'Suspended')->count(), 'icon' => 'pause-circle', 'note' => 'under review'],
-            ['label' => 'Banned', 'value' => $designers->where('status', 'Banned')->count(), 'icon' => 'x-circle', 'note' => 'removed'],
+            ['label' => 'Active', 'value' => $designers->where('status', 'Verified')->count(), 'icon' => 'check-circle', 'note' => 'taking projects'],
+            ['label' => 'Warning', 'value' => $designers->whereIn('status', ['Warning', 'Pending', 'Suspended'])->count(), 'icon' => 'alert-triangle', 'note' => 'under review'],
+            ['label' => 'Banned', 'value' => $designers->whereIn('status', ['Banned', 'Rejected'])->count(), 'icon' => 'x-circle', 'note' => 'removed'],
         ];
 
         return view('Admin.designer-monitor', compact('designers', 'stats'));
@@ -230,14 +258,25 @@ class AdminController extends Controller
         $status = $request->get('status', 'pending');
 
         if ($type === 'seller') {
-            $accounts = Seller::with('user')->where('status', $status)->latest()->get();
+            $query = Seller::with('user');
         } else {
-            $accounts = Designer::with('user')->where('status', $status)->latest()->get();
+            $query = Designer::with('user');
         }
+
+        if ($status && $status !== 'semua') {
+            $query->where('status', $status);
+        }
+
+        $accounts = $query->latest()->get();
+
+        $totalVerified = Seller::where('status', 'approved')->count() + Designer::where('status', 'approved')->count();
+        $totalRejected = Seller::where('status', 'rejected')->count() + Designer::where('status', 'rejected')->count();
 
         $stats = [
             'pending_sellers' => Seller::where('status', 'pending')->count(),
             'pending_designers' => Designer::where('status', 'pending')->count(),
+            'total_verified' => $totalVerified,
+            'total_rejected' => $totalRejected,
         ];
 
         return view('Admin.account-validation', compact('accounts', 'stats', 'type', 'status'));
@@ -248,11 +287,11 @@ class AdminController extends Controller
         $type = $request->get('type');
         if ($type === 'seller') {
             $account = Seller::findOrFail($id);
+            $account->update(['status' => 'approved', 'rejection_reason' => null]);
         } else {
             $account = Designer::findOrFail($id);
+            $account->update(['status' => 'approved', 'rejection_reason' => null]);
         }
-
-        $account->update(['status' => 'approved', 'rejection_reason' => null]);
 
         return back()->with('success', 'Account has been approved successfully.');
     }
@@ -281,7 +320,16 @@ class AdminController extends Controller
     public function sellerDetail($id)
     {
         $seller = Seller::with(['user', 'products.images'])->findOrFail($id);
-        return view('Admin.seller-detail', compact('seller'));
+
+        $orders = \App\Models\Order::whereHas('orderItems.product', function ($q) use ($seller) {
+            $q->where('seller_id', $seller->id);
+        })->where('status', 'completed');
+
+        $lastOrder = $orders->latest()->first();
+        $lastTransactionDate = $lastOrder ? $lastOrder->created_at : null;
+        $isWarning = ($seller->status === 'approved') && (!$lastTransactionDate || $lastTransactionDate->diffInDays(now()) > 30);
+
+        return view('Admin.seller-detail', compact('seller', 'isWarning'));
     }
 
     public function toggleB2b($id)
@@ -299,7 +347,13 @@ class AdminController extends Controller
     public function designerDetail($id)
     {
         $designer = Designer::with(['user', 'portfolios'])->findOrFail($id);
-        return view('Admin.designer-detail', compact('designer'));
+
+        $completedCount = \App\Models\Consultation::where('designer_id', $designer->id)
+            ->where('status', \App\Models\Consultation::STATUS_COMPLETED)
+            ->count();
+        $isWarning = ($designer->status === 'approved' && $completedCount === 0) || in_array($designer->status, ['suspended', 'warning']);
+
+        return view('Admin.designer-detail', compact('designer', 'isWarning'));
     }
 
     /**

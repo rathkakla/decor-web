@@ -169,7 +169,7 @@ class CustomerController extends Controller
             $query->latest();
         }
 
-        $products = $query->get();
+        $products = $query->paginate(9)->withQueryString();
 
         return view('customer.catalog', compact('products', 'categories', 'materials', 'styles'));
     }
@@ -281,7 +281,7 @@ class CustomerController extends Controller
     public function placeOrder(Request $request)
     {
         $request->validate([
-            'payment_method' => 'required|in:bank_transfer,cod',
+            'payment_method' => 'required|in:bank_transfer,qris',
             'address_id' => 'required|exists:addresses,id'
         ]);
 
@@ -400,7 +400,7 @@ class CustomerController extends Controller
         $order = Order::where('customer_id', $customer->id)->findOrFail($id);
 
         if ($order->status === 'pending') {
-            if ($order->payment_method === 'bank_transfer') {
+            if (in_array($order->payment_method, ['bank_transfer', 'qris'], true)) {
                 $request->validate([
                     'payment_proof' => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 ]);
@@ -849,6 +849,7 @@ class CustomerController extends Controller
             ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
             ->whereNotNull('chat_expires_at')
             ->where('chat_expires_at', '<', now())
+            ->where('is_chat_paused', false)
             ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $consultations = \App\Models\Consultation::with('designer.user')
@@ -880,6 +881,7 @@ class CustomerController extends Controller
             ->where('status', \App\Models\Consultation::STATUS_ACTIVE)
             ->whereNotNull('chat_expires_at')
             ->where('chat_expires_at', '<', now())
+            ->where('is_chat_paused', false)
             ->update(['status' => \App\Models\Consultation::STATUS_COMPLETED]);
 
         $tab = $request->query('tab', 'semua');
@@ -982,6 +984,9 @@ class CustomerController extends Controller
         }
 
         $consultation = \App\Models\Consultation::findOrFail($id);
+        if ($consultation->is_chat_paused) {
+            return back()->with('error', 'Sesi chat sedang dijeda. Tekan Resume untuk melanjutkan.');
+        }
         if ($consultation->is_chat_expired) {
             return back()->with('error', 'Waktu chat konsultasi telah habis.');
         }
@@ -1012,6 +1017,79 @@ class CustomerController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Jeda sesi chat konsultasi berbayar tanpa menghanguskan sisa waktu timer.
+     */
+    public function pauseConsultationChat($id)
+    {
+        $user = Auth::user();
+        $customer = \App\Models\Customer::where('user_id', $user->id)->firstOrFail();
+
+        $consultation = \App\Models\Consultation::where('id', $id)
+            ->where('customer_id', $customer->id)
+            ->firstOrFail();
+
+        if ($consultation->consultation_type !== 'chat_consultation') {
+            return back()->with('error', 'Hanya sesi chat konsultasi yang dapat dijeda.');
+        }
+
+        if ($consultation->status !== \App\Models\Consultation::STATUS_ACTIVE) {
+            return back()->with('error', 'Sesi chat tidak dalam status aktif.');
+        }
+
+        if ($consultation->is_chat_paused) {
+            return back()->with('info', 'Sesi chat sudah dalam keadaan dijeda.');
+        }
+
+        $remaining = $consultation->chat_expires_at
+            ? max(0, now()->diffInSeconds($consultation->chat_expires_at, false))
+            : 0;
+
+        $consultation->update([
+            'is_chat_paused' => true,
+            'chat_paused_at' => now(),
+            'remaining_chat_seconds' => $remaining,
+        ]);
+
+        return back()->with('success', 'Sesi chat dijeda. Sisa waktu ' . gmdate('i:s', $remaining) . ' tersimpan.');
+    }
+
+    /**
+     * Lanjutkan sesi chat konsultasi dari sisa waktu yang tersimpan.
+     */
+    public function resumeConsultationChat($id)
+    {
+        $user = Auth::user();
+        $customer = \App\Models\Customer::where('user_id', $user->id)->firstOrFail();
+
+        $consultation = \App\Models\Consultation::where('id', $id)
+            ->where('customer_id', $customer->id)
+            ->firstOrFail();
+
+        if ($consultation->consultation_type !== 'chat_consultation') {
+            return back()->with('error', 'Hanya sesi chat konsultasi yang dapat dilanjutkan.');
+        }
+
+        if ($consultation->status !== \App\Models\Consultation::STATUS_ACTIVE) {
+            return back()->with('error', 'Sesi chat tidak dalam status aktif.');
+        }
+
+        if (! $consultation->is_chat_paused) {
+            return back()->with('info', 'Sesi chat tidak sedang dijeda.');
+        }
+
+        $remaining = (int) ($consultation->remaining_chat_seconds ?? 0);
+
+        $consultation->update([
+            'is_chat_paused' => false,
+            'chat_paused_at' => null,
+            'remaining_chat_seconds' => null,
+            'chat_expires_at' => now()->addSeconds($remaining),
+        ]);
+
+        return back()->with('success', 'Sesi chat dilanjutkan.');
     }
 
     // Alur Baru: Accept Offer
@@ -1116,7 +1194,7 @@ class CustomerController extends Controller
         return back()->with('success', 'Bukti pembayaran proyek berhasil dikirim! Menunggu validasi desainer.');
     }
 
-    public function chatWithSeller($seller_id = null)
+    public function chatWithSeller(Request $request, $seller_id = null)
     {
         $user = Auth::user();
         $customer = \App\Models\Customer::where('user_id', $user->id)->first();
@@ -1146,15 +1224,23 @@ class CustomerController extends Controller
 
         $activeSeller = null;
         $messages = [];
+        $activeProduct = null;
+        $productId = $request->query('product_id');
 
         if ($seller_id) {
             $activeSeller = \App\Models\Seller::with('user')->findOrFail($seller_id);
+
+            if ($productId) {
+                $activeProduct = \App\Models\Product::with('images')
+                    ->where('seller_id', $activeSeller->id)
+                    ->find($productId);
+            }
 
             $messages = \App\Models\Chat::where(function ($q) use ($user, $activeSeller) {
                 $q->where('sender_id', $user->id)->where('receiver_id', $activeSeller->user_id);
             })->orWhere(function ($q) use ($user, $activeSeller) {
                 $q->where('sender_id', $activeSeller->user_id)->where('receiver_id', $user->id);
-            })->orderBy('created_at', 'asc')->get();
+            })->with('product.images')->orderBy('created_at', 'asc')->get();
 
             // Mark as read
             \App\Models\Chat::where('sender_id', $activeSeller->user_id)
@@ -1163,7 +1249,7 @@ class CustomerController extends Controller
                 ->update(['is_read' => true]);
         }
 
-        return view('customer.chat-seller', compact('user', 'customer', 'conversations', 'activeSeller', 'messages'));
+        return view('customer.chat-seller', compact('user', 'customer', 'conversations', 'activeSeller', 'messages', 'activeProduct'));
     }
 
     public function sendChatMessage(Request $request)
@@ -1184,11 +1270,30 @@ class CustomerController extends Controller
             $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
         }
 
+        // Kartu produk hanya dilampirkan sekali per produk dalam satu percakapan,
+        // supaya tidak menumpuk saat customer mengirim beberapa pesan berturut-turut.
+        $productId = $request->product_id;
+        if ($productId) {
+            $alreadyAttached = \App\Models\Chat::where('product_id', $productId)
+                ->where(function ($q) use ($request) {
+                    $q->where(function ($pair) use ($request) {
+                        $pair->where('sender_id', Auth::id())->where('receiver_id', $request->receiver_id);
+                    })->orWhere(function ($pair) use ($request) {
+                        $pair->where('sender_id', $request->receiver_id)->where('receiver_id', Auth::id());
+                    });
+                })
+                ->exists();
+
+            if ($alreadyAttached) {
+                $productId = null;
+            }
+        }
+
         \App\Models\Chat::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $request->receiver_id,
             'message' => $request->message ?? '',
-            'product_id' => $request->product_id,
+            'product_id' => $productId,
             'attachment' => $attachmentPath,
         ]);
 

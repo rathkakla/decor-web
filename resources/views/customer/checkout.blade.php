@@ -115,15 +115,15 @@
                             </label>
 
                             <label class="block relative cursor-pointer group">
-                                <input type="radio" name="payment_method" value="cod" class="peer sr-only" required>
+                                <input type="radio" name="payment_method" value="qris" class="peer sr-only" required>
                                 <div class="flex items-center justify-between p-5 border border-gray-200 rounded-xl bg-white peer-checked:border-2 peer-checked:border-primary peer-checked:bg-orange-50/30 transition-all">
                                     <div class="flex items-center space-x-4">
                                         <div class="w-10 h-10 bg-white border border-gray-100 rounded flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
-                                            <i class="fa-solid fa-wallet"></i>
+                                            <i class="fa-solid fa-qrcode"></i>
                                         </div>
                                         <div>
-                                            <p class="text-sm font-bold text-gray-800">Cash on Delivery (COD)</p>
-                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest">Pay when it arrives</p>
+                                            <p class="text-sm font-bold text-gray-800">QRIS (Instant Scan)</p>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest">GoPay, OVO, DANA, ShopeePay & Mobile Banking</p>
                                         </div>
                                     </div>
                                     <div class="w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center peer-checked:border-primary">
@@ -229,7 +229,7 @@
 
                         <div class="flex justify-between items-end mb-8 pt-4 border-t border-gray-200">
                             <span class="text-lg font-bold">Total</span>
-                            <span class="text-2xl font-black text-primary italic" id="final-total">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
+                            <span class="text-2xl font-black text-primary" id="final-total">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
                         </div>
 
                         <button type="submit" class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30 {{ $subtotal == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $subtotal == 0 ? 'disabled' : '' }}>

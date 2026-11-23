@@ -120,8 +120,8 @@
         </option>
     </select>
     
-    <span class="text-[11px] font-bold uppercase tracking-widest text-gray-300">
-        {{ $products->count() }} items
+    <span class="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+        {{ $products->total() }} items
     </span>
 </div>
             </div>
@@ -195,8 +195,9 @@
         </div>
     </aside>
 </form>
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-10 pt-2">
-                @foreach ($products as $i => $p)
+            <div class="flex flex-col">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-10 pt-2">
+                @forelse ($products as $i => $p)
                 <div class="product-card group cursor-pointer fade-up">
                     <div class="relative aspect-[4/5] bg-gray-50 rounded-xl overflow-hidden mb-4">
                         <img src="{{ $p->images->first()->img_url ?? 'https://via.placeholder.com/600x800' }}" 
@@ -229,12 +230,68 @@
                                 {{ $p->name }}
                             </h3>
                             <span class="text-[13px] font-bold text-gray-800 shrink-0">
-                                Rp.{{ number_format($p->price, 0) }}
+                                Rp {{ number_format($p->price, 0, ',', '.') }}
                             </span>
                         </div>
                     </div>
                 </div>
-                @endforeach
+                @empty
+                <div class="col-span-full py-16 text-center text-gray-400">
+                    <i class="fa-solid fa-box-open text-3xl mb-3 opacity-40"></i>
+                    <p class="text-xs font-bold uppercase tracking-widest">Produk tidak ditemukan.</p>
+                </div>
+                @endforelse
+                </div>
+
+                <!-- Marketplace Pagination Bar -->
+                @if($products->total() > 0)
+                <div class="mt-12 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p class="text-xs font-semibold text-gray-500">
+                        Halaman <span class="font-bold text-gray-900">{{ $products->currentPage() }}</span> dari <span class="font-bold text-gray-900">{{ $products->lastPage() }}</span>
+                        <span class="text-gray-300 mx-1.5">&bull;</span>
+                        Menampilkan <span class="font-bold text-gray-900">{{ $products->firstItem() }}–{{ $products->lastItem() }}</span> dari <span class="font-bold text-gray-900">{{ $products->total() }}</span> produk
+                    </p>
+
+                    @if($products->hasPages())
+                    <nav class="flex items-center gap-1.5" aria-label="Pagination">
+                        {{-- Previous --}}
+                        @if($products->onFirstPage())
+                            <span class="px-3 h-9 inline-flex items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-gray-300 text-xs font-bold cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-left text-[10px] mr-1.5"></i> Prev
+                            </span>
+                        @else
+                            <a href="{{ $products->previousPageUrl() }}" class="px-3 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary text-xs font-bold transition-colors">
+                                <i class="fa-solid fa-chevron-left text-[10px] mr-1.5"></i> Prev
+                            </a>
+                        @endif
+
+                        {{-- Page Numbers --}}
+                        @for($page = 1; $page <= $products->lastPage(); $page++)
+                            @if($page == $products->currentPage())
+                                <span class="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold shadow-sm">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $products->url($page) }}" class="w-9 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary text-xs font-bold transition-colors">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endfor
+
+                        {{-- Next --}}
+                        @if($products->hasMorePages())
+                            <a href="{{ $products->nextPageUrl() }}" class="px-3 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary text-xs font-bold transition-colors">
+                                Next <i class="fa-solid fa-chevron-right text-[10px] ml-1.5"></i>
+                            </a>
+                        @else
+                            <span class="px-3 h-9 inline-flex items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-gray-300 text-xs font-bold cursor-not-allowed">
+                                Next <i class="fa-solid fa-chevron-right text-[10px] ml-1.5"></i>
+                            </span>
+                        @endif
+                    </nav>
+                    @endif
+                </div>
+                @endif
             </div>
         </div>
 

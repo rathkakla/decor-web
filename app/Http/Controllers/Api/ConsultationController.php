@@ -130,6 +130,9 @@ class ConsultationController extends Controller
         ]);
 
         $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_paused) {
+            return response()->json(['success' => false, 'message' => 'Sesi chat sedang dijeda.'], 400);
+        }
         if ($consultation->is_chat_expired) {
             return response()->json(['success' => false, 'message' => 'Waktu chat konsultasi telah habis.'], 400);
         }
@@ -154,6 +157,9 @@ class ConsultationController extends Controller
         ]);
 
         $consultation = Consultation::findOrFail($id);
+        if ($consultation->is_chat_paused) {
+            return response()->json(['success' => false, 'message' => 'Sesi chat sedang dijeda.'], 400);
+        }
         if ($consultation->is_chat_expired) {
             return response()->json(['success' => false, 'message' => 'Waktu chat konsultasi telah habis.'], 400);
         }

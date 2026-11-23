@@ -1,23 +1,7 @@
 <?php
 $admin_name = Auth::user()->full_name;
 $admin_role = "ADMIN";
-
-$customerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'customer'))->where('status', 'pending')->count();
-$sellerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count();
-$designerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count();
-
-$menu_items = [
-    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
-    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
-    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
-    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
-    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones", "badge" => $sellerSupportCount],
-    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool", "badge" => $designerSupportCount],
-    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle", "badge" => $customerSupportCount],
-    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
-    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
-];
+$totalTickets = ($stats['open'] ?? 0) + ($stats['replied'] ?? 0) + ($stats['resolved'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,21 +34,28 @@ $menu_items = [
 
 <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
     @include("Admin.partials.header", ["title" => "Customer Support"])
-    <div class="p-8 space-y-8 flex-1">
+    <div class="p-8 space-y-6 flex-1">
 
-    <div class="mb-8">
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center">
+            <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div>
         <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Communication Hub</div>
         <div class="text-2xl font-bold text-gray-900">Customer Support Center</div>
-        <div class="text-xs text-gray-500 mt-1">Tanggapi keluhan akses akun, verifikasi email, dan pertanyaan umum dari pelanggan.</div>
+        <div class="text-xs text-gray-500 mt-1">Tanggapi keluhan akses akun, verifikasi pembayaran, dan pertanyaan umum dari pelanggan.</div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
             <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-500"></div>
             <div class="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mb-4">
                 <i data-feather="alert-circle" class="w-5 h-5"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 text-red-500"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <h3 class="text-2xl font-bold text-gray-900"><?= str_pad($stats['open'], 2, '0', STR_PAD_LEFT) ?></h3>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Open</p>
             <p class="text-[10px] font-black text-gray-500 mt-1">butuh respon</p>
         </div>
@@ -73,7 +64,7 @@ $menu_items = [
             <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center mb-4">
                 <i data-feather="message-square" class="w-5 h-5"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 text-blue-500"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <h3 class="text-2xl font-bold text-gray-900"><?= str_pad($stats['replied'], 2, '0', STR_PAD_LEFT) ?></h3>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Replied</p>
             <p class="text-[10px] font-black text-gray-500 mt-1">sudah dibalas</p>
         </div>
@@ -82,99 +73,111 @@ $menu_items = [
             <div class="w-10 h-10 rounded-lg bg-green-50 text-green-500 flex items-center justify-center mb-4">
                 <i data-feather="check-circle" class="w-5 h-5"></i>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 text-green-500"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></h3>
+            <h3 class="text-2xl font-bold text-gray-900"><?= str_pad($stats['resolved'], 2, '0', STR_PAD_LEFT) ?></h3>
             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Resolved</p>
             <p class="text-[10px] font-black text-gray-500 mt-1">selesai</p>
         </div>
-    </div>
-
-    <div class="flex items-center gap-4 mb-6">
-        <form action="{{ route('admin.customer-support') }}" method="GET" class="flex-1 relative">
-            @if(request('status'))
-                <input type="hidden" name="status" value="{{ request('status') }}">
-            @endif
-            <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            <input type="text" name="search" value="{{ request('search') }}" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" placeholder="Cari tiket, customer, atau subjek…">
-            <button type="submit" class="hidden"></button>
-        </form>
-        <div class="flex gap-1 bg-white border border-gray-100 shadow-sm rounded-xl p-1">
-            <a href="{{ route('admin.customer-support', ['status' => 'semua']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'semua' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Semua</a>
-            <a href="{{ route('admin.customer-support', ['status' => 'pending']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'pending' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Open</a>
-            <a href="{{ route('admin.customer-support', ['status' => 'replied']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'replied' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Diproses</a>
-            <a href="{{ route('admin.customer-support', ['status' => 'resolved']) }}" class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'resolved' ? 'bg-orange-50 text-primary' : 'text-gray-500 hover:bg-gray-50' }}">Selesai</a>
+        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm transition-transform hover:-translate-y-1 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary"></div>
+            <div class="w-10 h-10 rounded-lg bg-orange-50 text-primary flex items-center justify-center mb-4">
+                <i data-feather="layers" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900"><?= str_pad($totalTickets, 2, '0', STR_PAD_LEFT) ?></h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Total Tiket</p>
+            <p class="text-[10px] font-black text-gray-500 mt-1">semua laporan</p>
         </div>
     </div>
 
-    <!-- Ticket List -->
-    <div class="space-y-4">
-        @forelse ($tickets as $t)
-        @php
-            $sl = strtolower($t->status);
-            $leftBorder = match($sl) {
-                'pending' => 'border-l-4 border-red-500',
-                'replied' => 'border-l-4 border-blue-500',
-                'resolved' => 'border-l-4 border-green-500',
-                default => 'border-l-4 border-gray-500'
-            };
-        @endphp
-        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow group {{ $leftBorder }} ticket-row" id="row-{{ $t->id }}">
-
-            <!-- ID + Time -->
-            <div class="w-[130px]">
-                <span class="inline-block px-2 py-1 bg-orange-50 text-primary text-[9px] font-black uppercase tracking-widest rounded-md mb-1.5 font-mono">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
-                <div class="flex items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">
-                    <i data-feather="clock" class="w-3 h-3 mr-1.5"></i> {{ $t->created_at->diffForHumans() }}
+    <!-- Table Card with Filter & Pagination -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <div class="relative flex-1 max-w-md">
+                    <i data-feather="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="ticketSearch" value="{{ request('search') }}" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary focus:bg-white transition-colors" placeholder="Cari ID tiket, nama customer, atau subjek…">
                 </div>
             </div>
-
-            <!-- Sender -->
-            <div class="w-1/5">
-                <div class="text-sm font-bold text-gray-900 truncate">{{ $t->user->full_name }}</div>
-                <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-amber-50 text-amber-600">
-                    Support
-                </span>
+            <div class="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1 self-start lg:self-auto">
+                <a href="{{ route('admin.customer-support', ['status' => 'semua']) }}" class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'semua' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-primary' }}">Semua</a>
+                <a href="{{ route('admin.customer-support', ['status' => 'pending']) }}" class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'pending' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-primary' }}">Open</a>
+                <a href="{{ route('admin.customer-support', ['status' => 'replied']) }}" class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'replied' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-primary' }}">Replied</a>
+                <a href="{{ route('admin.customer-support', ['status' => 'resolved']) }}" class="px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors {{ $statusFilter == 'resolved' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-primary' }}">Resolved</a>
             </div>
-
-            <!-- Subject -->
-            <div class="flex-1">
-                <div class="text-xs font-semibold text-gray-600 line-clamp-2">{{ $t->subject }}</div>
-            </div>
-
-            <!-- Status -->
-            <div class="w-[140px]">
-                @php
-                    $selectCls = match($sl) {
-                        'pending' => 'bg-red-50 text-red-600 border-red-200',
-                        'replied' => 'bg-blue-50 text-blue-600 border-blue-200',
-                        'resolved' => 'bg-green-50 text-green-600 border-green-200',
-                        default => 'bg-gray-50 text-gray-600 border-gray-200'
-                    };
-                @endphp
-                <select class="w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer {{ $selectCls }}" onchange="updateTicketStatus(this, {{ $t->id }})">
-                    <option value="pending" {{ $sl === 'pending' ? 'selected' : '' }}>Open</option>
-                    <option value="replied" {{ $sl === 'replied' ? 'selected' : '' }}>Replied</option>
-                    <option value="resolved" {{ $sl === 'resolved' ? 'selected' : '' }}>Resolved</option>
-                </select>
-            </div>
-
-            <!-- Action -->
-            <div class="w-[140px] flex justify-end">
-                <button class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-[10px] font-bold bg-primary text-white hover:bg-[#8A5229] transition-colors whitespace-nowrap w-full"
-                        onclick="openChat('{{ $t->id }}', '{{ addslashes($t->user->full_name) }}', '{{ addslashes($t->subject) }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
-                    <i data-feather="message-circle" class="w-3.5 h-3.5 mr-1.5"></i> View & Reply
-                </button>
-            </div>
-
         </div>
-        @empty
-        <div class="text-center py-12 bg-white rounded-xl border border-gray-100 text-gray-400 shadow-sm">
-            <i data-feather="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
-            <p class="text-sm font-semibold">Belum ada tiket bantuan dari pelanggan.</p>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/70 border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                        <th class="py-3.5 px-6">ID Tiket</th>
+                        <th class="py-3.5 px-6">Pelanggan</th>
+                        <th class="py-3.5 px-6">Subjek & Pesan</th>
+                        <th class="py-3.5 px-6">Waktu</th>
+                        <th class="py-3.5 px-6">Status</th>
+                        <th class="py-3.5 px-6 text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-xs" id="ticketTableBody">
+                    @forelse ($tickets as $t)
+                    @php
+                        $sl = strtolower($t->status);
+                        $selectCls = match($sl) {
+                            'pending' => 'bg-red-50 text-red-600 border-red-200',
+                            'replied' => 'bg-blue-50 text-blue-600 border-blue-200',
+                            'resolved' => 'bg-green-50 text-green-600 border-green-200',
+                            default => 'bg-gray-50 text-gray-600 border-gray-200'
+                        };
+                    @endphp
+                    <tr class="ticket-row hover:bg-gray-50/70 transition-colors"
+                        data-search="{{ strtolower('#' . str_pad($t->id, 4, '0', STR_PAD_LEFT) . ' ' . $t->user->full_name . ' ' . $t->subject . ' ' . $t->message) }}">
+                        <td class="py-3.5 px-6">
+                            <span class="inline-block px-2.5 py-1 bg-orange-50 text-primary text-[10px] font-black uppercase tracking-widest rounded-md font-mono">#{{ str_pad($t->id, 4, '0', STR_PAD_LEFT) }}</span>
+                        </td>
+                        <td class="py-3.5 px-6">
+                            <div class="font-bold text-gray-900">{{ $t->user->full_name }}</div>
+                            <div class="text-[10px] font-mono text-gray-400 mt-0.5">{{ $t->user->email }}</div>
+                        </td>
+                        <td class="py-3.5 px-6 max-w-md">
+                            <div class="font-bold text-gray-900 truncate">{{ $t->subject }}</div>
+                            <div class="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{{ $t->message }}</div>
+                        </td>
+                        <td class="py-3.5 px-6 text-[11px] font-semibold text-gray-500">
+                            {{ $t->created_at->diffForHumans() }}
+                        </td>
+                        <td class="py-3.5 px-6 w-[140px]">
+                            <select class="w-full px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors cursor-pointer {{ $selectCls }}" onchange="updateTicketStatus(this, {{ $t->id }})">
+                                <option value="pending" {{ $sl === 'pending' ? 'selected' : '' }}>Open</option>
+                                <option value="replied" {{ $sl === 'replied' ? 'selected' : '' }}>Replied</option>
+                                <option value="resolved" {{ $sl === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            </select>
+                        </td>
+                        <td class="py-3.5 px-6 text-right">
+                            <button class="inline-flex items-center justify-center px-3.5 py-2 rounded-lg text-[10px] font-bold bg-primary text-white hover:bg-[#8A5229] transition-colors whitespace-nowrap"
+                                    onclick="openChat('{{ $t->id }}', '{{ addslashes($t->user->full_name) }}', '{{ addslashes($t->subject) }}', '{{ addslashes($t->message) }}', '{{ addslashes($t->admin_reply) }}')">
+                                <i data-feather="message-circle" class="w-3.5 h-3.5 mr-1.5"></i> View & Reply
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-gray-400">
+                            <i data-feather="inbox" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                            <p class="text-xs font-semibold">Belum ada tiket bantuan dari pelanggan.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        @endforelse
+
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs font-semibold text-gray-500" id="pageInfo">Menampilkan tiket bantuan</div>
+            <div class="flex items-center gap-1.5" id="paginationControls"></div>
+        </div>
     </div>
 
     </div>
+    @include("Admin.partials.footer")
 </main>
 
 <!-- ══════════ CHAT MODAL ══════════ -->
@@ -195,9 +198,7 @@ $menu_items = [
             </button>
         </div>
 
-        <div class="chat-body" id="chatWindow">
-            <!-- Messages will be injected here -->
-        </div>
+        <div class="chat-body" id="chatWindow"></div>
 
         <form id="replyForm" action="" method="POST" class="p-4 bg-white border-t border-gray-100 flex gap-2 shrink-0">
             @csrf
@@ -212,6 +213,49 @@ $menu_items = [
 <script>
     feather.replace({ 'stroke-width': 2 });
 
+    const allRows = Array.from(document.querySelectorAll('#ticketTableBody .ticket-row'));
+    const searchInput = document.getElementById('ticketSearch');
+    const pageInfo = document.getElementById('pageInfo');
+    const paginationControls = document.getElementById('paginationControls');
+    const perPage = 5;
+    let currentPage = 1;
+
+    function renderTable() {
+        const term = (searchInput?.value || '').toLowerCase().trim();
+
+        const filtered = allRows.filter(row => {
+            const s = row.getAttribute('data-search') || '';
+            return !term || s.includes(term);
+        });
+
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        allRows.forEach(r => r.style.display = 'none');
+        const start = (currentPage - 1) * perPage;
+        const end = Math.min(start + perPage, total);
+        filtered.slice(start, end).forEach(r => r.style.display = '');
+
+        pageInfo.textContent = total === 0
+            ? 'Tidak ada tiket yang cocok dengan filter'
+            : `Halaman ${currentPage} dari ${totalPages} — Menampilkan ${start + 1}–${end} dari ${total} tiket`;
+
+        paginationControls.innerHTML = '';
+        if (totalPages > 1) {
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.className = `w-8 h-8 rounded-lg text-xs font-bold transition-colors ${i === currentPage ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary hover:text-primary'}`;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                paginationControls.appendChild(btn);
+            }
+        }
+    }
+
+    searchInput?.addEventListener('input', () => { currentPage = 1; renderTable(); });
+    renderTable();
+
     function updateTicketStatus(sel, id) {
         const val = sel.value;
         const clsMap = {
@@ -219,16 +263,7 @@ $menu_items = [
             'replied': 'bg-blue-50 text-blue-600 border-blue-200',
             'resolved': 'bg-green-50 text-green-600 border-green-200'
         };
-        const borderMap = {
-            'pending': 'border-l-4 border-red-500',
-            'replied': 'border-l-4 border-blue-500',
-            'resolved': 'border-l-4 border-green-500'
-        };
-        
-        sel.className = `w-full px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors appearance-none cursor-pointer ${clsMap[val]}`;
-        
-        const row = sel.closest('.ticket-row');
-        row.className = row.className.replace(/border-l-4 border-\w+-500/, borderMap[val]);
+        sel.className = `w-full px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border focus:outline-none transition-colors cursor-pointer ${clsMap[val]}`;
 
         fetch(`{{ url('admin/support') }}/${id}/status`, {
             method: 'PATCH',

@@ -87,8 +87,30 @@
                 <div class="flex-grow p-10 overflow-y-auto space-y-8 chat-scroll">
                     @forelse($messages as $msg)
                         <div class="flex {{ $msg->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
-                            <div class="max-w-[70%] {{ $msg->sender_id == Auth::id() ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-50 border border-gray-100 text-gray-700 rounded-tl-none' }} px-6 py-4 rounded-[2rem] text-[13px] shadow-sm">
-                                @if($msg->attachment)
+                            <div class="max-w-[70%] space-y-2">
+                                @if($msg->product)
+                                    @php
+                                        $productImage = $msg->product->images->first()->img_url ?? null;
+                                    @endphp
+                                    <a href="{{ route('customer.product-detail', $msg->product_id) }}" class="block bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:border-primary/40 transition-colors">
+                                        <div class="flex items-center gap-3">
+                                            @if($productImage)
+                                                <img src="{{ $productImage }}" alt="{{ $msg->product->name }}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+                                            @else
+                                                <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 shrink-0">
+                                                    <i class="fa-solid fa-image"></i>
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0">
+                                                <p class="text-[10px] font-black text-gray-800 uppercase truncate">{{ $msg->product->name }}</p>
+                                                <p class="text-[10px] font-bold text-primary">Rp {{ number_format($msg->product->price, 0, ',', '.') }}</p>
+                                                <p class="text-[9px] text-gray-400 font-semibold">Lihat produk <i class="fa-solid fa-arrow-right text-[8px] ml-1"></i></p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @endif
+                                <div class="{{ $msg->sender_id == Auth::id() ? 'bg-primary text-white rounded-tr-none' : 'bg-gray-50 border border-gray-100 text-gray-700 rounded-tl-none' }} px-6 py-4 rounded-[2rem] text-[13px] shadow-sm">
+                                    @if($msg->attachment)
                                     @php
                                         $ext = pathinfo($msg->attachment, PATHINFO_EXTENSION);
                                         $isImage = in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']);
@@ -114,6 +136,7 @@
                                 <div class="text-[9px] mt-1 {{ $msg->sender_id == Auth::id() ? 'text-white/70' : 'text-gray-400' }}">
                                     {{ $msg->created_at->format('H:i') }}
                                 </div>
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -125,9 +148,32 @@
                 </div>
 
                 <div class="p-6 bg-white border-t border-gray-50">
+                    @if($activeProduct)
+                        @php
+                            $activeProductImage = $activeProduct->images->first()->img_url ?? null;
+                        @endphp
+                        <div class="mb-3 flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-2xl p-3">
+                            @if($activeProductImage)
+                                <img src="{{ $activeProductImage }}" alt="{{ $activeProduct->name }}" class="w-11 h-11 rounded-xl object-cover shrink-0">
+                            @else
+                                <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-gray-300 shrink-0">
+                                    <i class="fa-solid fa-image"></i>
+                                </div>
+                            @endif
+                            <div class="min-w-0 flex-grow">
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Menanyakan produk</p>
+                                <p class="text-[11px] font-black text-gray-800 truncate">{{ $activeProduct->name }}</p>
+                                <p class="text-[10px] font-bold text-primary">Rp {{ number_format($activeProduct->price, 0, ',', '.') }}</p>
+                            </div>
+                            <a href="{{ route('customer.product-detail', $activeProduct->id) }}" class="shrink-0 text-[9px] font-black uppercase tracking-widest text-primary hover:underline">Lihat</a>
+                        </div>
+                    @endif
                     <form action="{{ route('customer.chat-seller.send') }}" method="POST" enctype="multipart/form-data" class="bg-gray-50 rounded-full flex items-center px-4 py-1 focus-within:bg-white focus-within:border-gray-100 transition-all border border-transparent">
                         @csrf
                         <input type="hidden" name="receiver_id" value="{{ $activeSeller->user_id }}">
+                        @if($activeProduct)
+                            <input type="hidden" name="product_id" value="{{ $activeProduct->id }}">
+                        @endif
                         
                         <input type="file" name="attachment" id="chat-attachment" class="hidden" onchange="document.getElementById('attachment-preview').classList.remove('hidden'); document.getElementById('file-name').textContent = this.files[0].name;">
                         

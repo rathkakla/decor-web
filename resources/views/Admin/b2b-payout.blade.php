@@ -162,6 +162,7 @@
             @endif
         </div>
     </div>
+    @include("Admin.partials.footer")
 </main>
 
 <script>

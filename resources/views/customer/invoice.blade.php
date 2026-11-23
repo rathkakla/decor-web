@@ -23,6 +23,7 @@
         .badge { padding: 5px 10px; color: #fff; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .bg-primary { background-color: #B5733A; }
     </style>
+@include('partials.typography')
 </head>
 <body>
     <div class="invoice-box">

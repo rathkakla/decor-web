@@ -1,3 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    .font-heading,
+    .hero-banner-text {
+        font-family: 'Poppins', sans-serif;
+        letter-spacing: -0.02em;
+    }
+
+    p, label, input, select, textarea, table, td, th, figcaption {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    p {
+        line-height: 1.6;
+    }
+
+    button[type="submit"],
+    .cta-button,
+    a.bg-primary,
+    button.bg-primary {
+        font-family: 'Poppins', sans-serif;
+    }
+}

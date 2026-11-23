@@ -151,7 +151,7 @@ $admin_role = "ADMIN";
             </div>
         </div>
 
-        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
+        @include('Admin.partials.footer')
     </main>
 
     <script>

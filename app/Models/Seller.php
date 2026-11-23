@@ -46,7 +46,7 @@ class Seller extends Model
         if ($this->store_image) {
             return asset('storage/' . $this->store_image);
         }
-        return $this->user->avatar_url;
+        return 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($this->store_name ?? 'seller');
     }
 
     public function getStoreBannerUrlAttribute()

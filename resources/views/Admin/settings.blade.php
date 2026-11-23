@@ -162,6 +162,7 @@ $menu_items = [
 
     </div>
     </div>
+    @include("Admin.partials.footer")
 </main>
 
 <script>

@@ -31,6 +31,7 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
     </style>
+@include('partials.typography')
 </head>
 <body class="text-gray-800 flex flex-col h-screen overflow-hidden">
 
@@ -63,12 +64,31 @@
             </div>
         </div>
         @else
-        <div class="flex items-center space-x-4">
-            @if($activeConsultation->consultation_type == 'chat_consultation' && $activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired && $status == 1)
-                <div id="chat-countdown" class="flex items-center space-x-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-xl border border-red-100 font-mono text-xs font-black shrink-0">
-                    <i class="fa-solid fa-clock animate-pulse"></i>
-                    <span id="countdown-timer">--:--</span>
-                </div>
+        <div class="flex items-center space-x-3">
+            @if($activeConsultation->consultation_type == 'chat_consultation' && $status == 1)
+                @if($activeConsultation->is_chat_paused)
+                    <div class="flex items-center space-x-2 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl border border-amber-100 text-[10px] font-black uppercase tracking-widest shrink-0">
+                        <i class="fa-solid fa-pause"></i>
+                        <span>Paused</span>
+                    </div>
+                    <form action="{{ route('customer.consultation.resume-chat', $activeConsultation->id) }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit" class="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#9E6432] transition-colors">
+                            <i class="fa-solid fa-play"></i> Resume
+                        </button>
+                    </form>
+                @elseif($activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired)
+                    <div id="chat-countdown" class="flex items-center space-x-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-xl border border-red-100 font-mono text-xs font-black shrink-0">
+                        <i class="fa-solid fa-clock animate-pulse"></i>
+                        <span id="countdown-timer">--:--</span>
+                    </div>
+                    <form action="{{ route('customer.consultation.pause-chat', $activeConsultation->id) }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit" class="flex items-center gap-1.5 bg-white text-gray-500 border border-gray-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-primary hover:border-primary/40 transition-colors">
+                            <i class="fa-solid fa-pause"></i> Pause
+                        </button>
+                    </form>
+                @endif
             @endif
             <div class="flex items-center space-x-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-600">{{ Auth::user()->full_name }}</span>
@@ -110,8 +130,10 @@
                         </div>
                         <div>
                             <p class="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                            <p class="text-[11px] font-black {{ $activeConsultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary') }}">
-                                @if($activeConsultation->is_chat_expired)
+                            <p class="text-[11px] font-black {{ $activeConsultation->is_chat_paused ? 'text-amber-500' : ($activeConsultation->is_chat_expired ? 'text-red-500' : ($status == 4 ? 'text-green-500' : 'text-primary')) }}">
+                                @if($activeConsultation->is_chat_paused)
+                                    Paused
+                                @elseif($activeConsultation->is_chat_expired)
                                     Expired
                                 @else
                                     {{ \App\Models\Consultation::getStatusLabel($status) }}
@@ -250,6 +272,18 @@
                         <a href="{{ route('customer.designers.book', $activeConsultation->designer_id) }}" class="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Book Consultation Lagi</a>
                     </div>
                 </div>
+            @elseif($activeConsultation->is_chat_paused)
+                <div class="absolute bottom-0 left-0 right-0 p-4 flex flex-col items-center gap-3">
+                    <div class="bg-amber-50/90 backdrop-blur-md border border-amber-200 rounded-2xl px-6 py-3 shadow-lg flex flex-col items-center gap-3">
+                        <p class="text-xs font-black text-amber-700 uppercase tracking-widest"><i class="fa-solid fa-pause mr-2"></i> Sesi chat sedang dijeda.</p>
+                        <form action="{{ route('customer.consultation.resume-chat', $activeConsultation->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="px-6 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+                                <i class="fa-solid fa-play mr-2"></i> Lanjutkan Chat
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @else
                 <div class="absolute bottom-0 left-0 right-0 p-4 {{ in_array($status, [0, 5, 6, 7]) ? 'opacity-20 pointer-events-none' : '' }}">
                     <div class="max-w-4xl mx-auto">
@@ -382,7 +416,7 @@
     </div>
     @endif
 
-    @if($activeConsultation && $activeConsultation->consultation_type == 'chat_consultation' && $activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired && $status == 1)
+    @if($activeConsultation && $activeConsultation->consultation_type == 'chat_consultation' && $activeConsultation->chat_expires_at && !$activeConsultation->is_chat_expired && !$activeConsultation->is_chat_paused && $status == 1)
     <script>
         (function() {
             const expiresAt = new Date("{{ $activeConsultation->chat_expires_at->toIso8601String() }}").getTime();

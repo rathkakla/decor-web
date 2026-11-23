@@ -163,6 +163,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/consultation/quote/{id}/download-rab', [CustomerController::class, 'downloadRab'])->name('consultation.download-rab');
         Route::post('/consultation/{id}/pay-final', [CustomerController::class, 'payFinalProject'])->name('consultation.pay-final');
         Route::post('/consultation/{id}/messages', [CustomerController::class, 'sendConsultationMessage'])->name('consultation.messages.send');
+        Route::post('/consultation/{id}/pause-chat', [CustomerController::class, 'pauseConsultationChat'])->name('consultation.pause-chat');
+        Route::post('/consultation/{id}/resume-chat', [CustomerController::class, 'resumeConsultationChat'])->name('consultation.resume-chat');
         Route::post('/consultation/{id}/review', [CustomerController::class, 'submitConsultationReview'])->name('consultation.review.submit');
 
         Route::get('/chat-seller/{seller_id?}', [CustomerController::class, 'chatWithSeller'])->name('chat-seller.with');
@@ -269,6 +271,8 @@ Route::middleware(['auth'])->prefix('designer')->name('designer.')->group(functi
     Route::get('/consultations/{id}', [App\Http\Controllers\DesignerController::class, 'consultationShow'])->name('consultations.show');
     Route::post('/consultations/{id}/quote', [App\Http\Controllers\DesignerController::class, 'sendQuote'])->name('consultations.send-quote');
     Route::post('/consultations/{id}/messages', [App\Http\Controllers\DesignerController::class, 'sendConsultationMessage'])->name('consultations.messages.send');
+    Route::post('/consultations/{id}/pause-chat', [App\Http\Controllers\DesignerController::class, 'pauseConsultationChat'])->name('consultations.pause-chat');
+    Route::post('/consultations/{id}/resume-chat', [App\Http\Controllers\DesignerController::class, 'resumeConsultationChat'])->name('consultations.resume-chat');
     Route::post('/consultations/{id}/attachments', [App\Http\Controllers\DesignerController::class, 'uploadConsultationAttachment'])->name('consultations.attachments.upload');
     Route::patch('/consultations/{id}/status', [App\Http\Controllers\DesignerController::class, 'updateConsultationStatus'])->name('consultations.update-status');
     Route::post('/consultations/{id}/validate-payment', [App\Http\Controllers\DesignerController::class, 'validatePayment'])->name('consultations.validate-payment');

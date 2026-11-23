@@ -1,3 +1,4 @@
+@include('partials.typography')
 <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
     <div class="content-container flex justify-between items-center py-4 px-6 mx-auto max-w-[1200px]">
         <div class="flex items-center space-x-8 flex-1">

@@ -1,19 +1,6 @@
 @php
 $admin_name = Auth::user()->full_name;
 $admin_role = "ADMIN";
-
-$menu_items = [
-    ["label" => "Dashboard",              "path" => route('admin.dashboard'),              "icon" => "grid"],
-    ["label" => "User Management",        "path" => route('admin.user-management'),        "icon" => "users"],
-    ["label" => "Account Validation",     "path" => route('admin.account.validation'),     "icon" => "shield"],
-    ["label" => "Seller Monitor",         "path" => route('admin.seller-monitor'),         "icon" => "shopping-bag"],
-    ["label" => "Designer Monitor",       "path" => route('admin.designer-monitor'),       "icon" => "pen-tool"],
-    ["label" => "Seller Support",         "path" => route('admin.seller-support'),         "icon" => "headphones"],
-    ["label" => "Designer Support",       "path" => route('admin.designer-support'),       "icon" => "pen-tool"],
-    ["label" => "Customer Support",       "path" => route('admin.customer-support'),       "icon" => "message-circle"],
-    ["label" => "Product Validation",     "path" => route('admin.product.validation'),     "icon" => "check-circle"],
-    ["label" => "Portofolio Validation",  "path" => route('admin.portfolio-validation'),  "icon" => "image"],
-];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -44,34 +31,72 @@ $menu_items = [
 
 <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen bg-[#F8F6F4]">
     @include("Admin.partials.header", ["title" => "Seller Detail"])
-    <div class="p-8 space-y-8 flex-1">
+    <div class="p-8 space-y-6 flex-1">
 
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center mb-6">
+        <div class="bg-green-50 border border-green-200 text-green-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center">
             <i data-feather="check-circle" class="w-4 h-4 mr-3"></i>
             {{ session('success') }}
         </div>
     @endif
 
-    <div class="flex items-center gap-2 mb-6 text-xs font-bold text-gray-500">
-        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="home" class="w-3.5 h-3.5"></i> Dashboard</a>
-        <span class="text-gray-300">/</span>
-        <a href="{{ route('admin.account.validation') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="shield" class="w-3.5 h-3.5"></i> Account Validation</a>
-        <span class="text-gray-300">/</span>
-        <span class="text-primary">{{ $seller->store_name }}</span>
+    <!-- Breadcrumb -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs font-bold text-gray-500">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="home" class="w-3.5 h-3.5"></i> Dashboard</a>
+            <span class="text-gray-300">/</span>
+            @if($seller->status === 'approved')
+                <a href="{{ route('admin.seller-monitor') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="shopping-bag" class="w-3.5 h-3.5"></i> Seller Monitor</a>
+            @else
+                <a href="{{ route('admin.account.validation', ['type' => 'seller']) }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="shield" class="w-3.5 h-3.5"></i> Account Validation</a>
+            @endif
+            <span class="text-gray-300">/</span>
+            <span class="text-primary">{{ $seller->store_name }}</span>
+        </div>
+        <a href="{{ $seller->status === 'approved' ? route('admin.seller-monitor') : route('admin.account.validation', ['type' => 'seller']) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:text-primary hover:border-primary/40 transition-colors shadow-sm">
+            <i data-feather="arrow-left" class="w-3.5 h-3.5"></i> Kembali
+        </a>
     </div>
 
+    @if(isset($isWarning) && $isWarning)
+    <!-- Banner Audit & Suspensi (Muncul Otomatis saat Seller Status Warning) -->
+    <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
+        <div class="flex items-start gap-4 flex-1">
+            <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <i data-feather="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2 mb-0.5">
+                    <h3 class="text-base font-bold text-amber-900">Status Toko: Warning (Perlu Tindakan Audit)</h3>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-amber-200/70 text-amber-800">Inactive &gt; 30 Days</span>
+                </div>
+                <p class="text-xs text-amber-700 leading-relaxed">Toko ini tidak memiliki aktivitas transaksi dalam 30 hari terakhir atau terindikasi membutuhkan evaluasi kepatuhan. Anda dapat menjatuhkan sanksi Audit (Suspensi Sementara 7 / 14 / 30 Hari).</p>
+            </div>
+        </div>
+        <div class="shrink-0">
+            <button type="button" onclick="openAuditModal()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition-colors shadow-sm">
+                <i data-feather="shield" class="w-4 h-4"></i> Tindakan Audit
+            </button>
+        </div>
+    </div>
+    @endif
+
     @if($seller->status == 'pending')
-    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
-        <div class="flex-1">
-            <h3 class="text-lg font-bold text-amber-600 mb-1">Account Review Pending</h3>
-            <p class="text-xs text-amber-700 leading-relaxed">Mohon tinjau informasi toko dan produk yang diupload oleh seller ini sebelum memberikan persetujuan aktivasi akun.</p>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
+        <div class="flex items-start gap-4 flex-1">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <i data-feather="alert-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-amber-800 mb-0.5">Account Review Pending</h3>
+                <p class="text-xs text-amber-700 leading-relaxed">Mohon tinjau informasi toko, kapabilitas B2B, dan produk yang diupload oleh seller ini sebelum memberikan persetujuan aktivasi akun.</p>
+            </div>
         </div>
         <div class="flex gap-3 shrink-0">
             <form action="{{ route('admin.account.approve', $seller->id) }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" value="seller">
-                <button type="submit" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-green-500 hover:bg-green-600 text-white transition-colors shadow-sm">
+                <button type="submit" class="flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-green-600 hover:bg-green-700 text-white transition-colors shadow-sm">
                     <i data-feather="check" class="w-4 h-4"></i> Approve Account
                 </button>
             </form>
@@ -82,11 +107,12 @@ $menu_items = [
     </div>
     @endif
 
-    <div class="bg-white border border-gray-100 rounded-xl p-8 mb-6 shadow-sm relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-1 {{ $seller->status == 'pending' ? 'bg-amber-500' : 'bg-green-500' }}"></div>
-        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+    <!-- Hero Profile Card -->
+    <div class="bg-white border border-gray-100 rounded-xl p-7 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 {{ $seller->status == 'pending' ? 'bg-amber-500' : ($seller->status == 'approved' ? 'bg-green-500' : 'bg-red-500') }}"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-5">
-                <div class="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 overflow-hidden text-primary">
+                <div class="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 overflow-hidden text-primary shadow-sm">
                     @if($seller->store_image_url)
                         <img src="{{ $seller->store_image_url }}" class="w-full h-full object-cover">
                     @else
@@ -94,15 +120,28 @@ $menu_items = [
                     @endif
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ $seller->store_name }}</h2>
+                    <div class="flex items-center gap-2.5 flex-wrap mb-1.5">
+                        <h2 class="text-2xl font-bold text-gray-900">{{ $seller->store_name }}</h2>
+                        @if($seller->svlk_verified)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <i data-feather="award" class="w-3 h-3"></i> SVLK Verified
+                            </span>
+                        @endif
+                    </div>
                     <div class="flex items-center gap-3 flex-wrap">
-                        <span class="font-mono text-[10px] text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md">ID: {{ str_pad($seller->id, 4, '0', STR_PAD_LEFT) }}</span>
-                        <span class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500"><i data-feather="tag" class="w-3.5 h-3.5"></i> Seller</span>
+                        <span class="font-mono text-[10px] text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md">ID: SEL-{{ str_pad($seller->id, 4, '0', STR_PAD_LEFT) }}</span>
+                        <span class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500"><i data-feather="user" class="w-3.5 h-3.5 text-primary"></i> {{ $seller->user->full_name }}</span>
+                        <span class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500"><i data-feather="map-pin" class="w-3.5 h-3.5 text-primary"></i> {{ $seller->city ?: 'Indonesia' }}</span>
                         <span class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400"><i data-feather="calendar" class="w-3.5 h-3.5"></i> Joined {{ $seller->created_at->format('d M Y') }}</span>
                     </div>
                 </div>
             </div>
-            <div class="flex flex-col items-end gap-2">
+            <div class="flex items-center gap-2.5">
+                @if(isset($isWarning) && $isWarning)
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-200">
+                        <i data-feather="alert-triangle" class="w-3.5 h-3.5"></i> WARNING
+                    </span>
+                @endif
                 @php
                     $statusCls = match(strtolower($seller->status)) {
                         'pending' => 'bg-amber-50 text-amber-600 border border-amber-200',
@@ -111,122 +150,195 @@ $menu_items = [
                         default => 'bg-gray-50 text-gray-600 border border-gray-200'
                     };
                 @endphp
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest {{ $statusCls }}">
-                    <i data-feather="info" class="w-3 h-3"></i> {{ strtoupper($seller->status) }}
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest {{ $statusCls }}">
+                    <i data-feather="info" class="w-3.5 h-3.5"></i> {{ strtoupper($seller->status) }}
                 </span>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2"><i data-feather="package" class="w-4 h-4 text-primary"></i> Produk yang diupload</h3>
+    <!-- Top Grid: Informasi Toko & Modul B2B Side-by-Side -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        <!-- Card 1: Informasi Toko -->
+        <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/40">
+                <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <i data-feather="info" class="w-4 h-4 text-primary"></i> Informasi Toko
+                </h3>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Profil Retail</span>
+            </div>
+            <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Owner Name</label>
+                        <div class="text-xs font-bold text-gray-900">{{ $seller->user->full_name }}</div>
+                    </div>
+                    <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Email & Kontak</label>
+                        <div class="text-xs font-bold text-gray-900 truncate">{{ $seller->user->email }}</div>
+                    </div>
                 </div>
-                <div class="p-6 bg-gray-50/50">
-                    @if($seller->products->isEmpty())
-                        <div class="text-center py-8 text-gray-400">
-                            <i data-feather="package" class="w-10 h-10 mx-auto mb-3 opacity-50"></i>
-                            <p class="text-xs font-semibold">Belum ada produk yang diupload.</p>
-                        </div>
-                    @else
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($seller->products as $product)
-                            <div class="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
-                                <div class="h-40 overflow-hidden bg-gray-100">
-                                    @if($product->images->isNotEmpty())
-                                        @php
-                                            $imgUrl = $product->images->first()->img_url;
-                                            if (\Illuminate\Support\Str::startsWith($imgUrl, ['/storage', 'storage', 'http'])) {
-                                                $imgUrl = $imgUrl; // Already has path
-                                            } else {
-                                                $imgUrl = 'storage/' . $imgUrl;
-                                            }
-                                        @endphp
-                                        <img src="{{ asset($imgUrl) }}" class="w-full h-full object-cover">
-                                    @else
-                                        <img src="https://placehold.co/400" class="w-full h-full object-cover">
-                                    @endif
-                                </div>
-                                <div class="p-4">
-                                    <h4 class="text-sm font-bold text-gray-900 mb-1 truncate">{{ $product->name }}</h4>
-                                    <div class="text-xs font-bold text-primary mb-2">Rp {{ number_format($product->price, 0, ',', '.') }}</div>
-                                    <p class="text-[10px] text-gray-500 leading-relaxed line-clamp-2">{{ $product->description }}</p>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @endif
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Store Address</label>
+                    <div class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">{{ $seller->store_address ?? 'Tidak ada data' }}</div>
+                </div>
+                <div>
+                    <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Description</label>
+                    <div class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">{{ $seller->store_description ?? 'Tidak ada data' }}</div>
                 </div>
             </div>
         </div>
 
-        <div class="space-y-6">
-            <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2"><i data-feather="info" class="w-4 h-4 text-primary"></i> Informasi Toko</h3>
+        <!-- Card 2: Modul B2B (Sejajar & Rapi) -->
+        <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/40">
+                <div class="flex items-center gap-2">
+                    <i data-feather="layers" class="w-4 h-4 text-primary"></i>
+                    <h3 class="text-sm font-bold text-gray-900">Modul B2B & Kapasitas Pabrik</h3>
                 </div>
-                <div class="p-6 space-y-5">
-                    <div>
-                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Owner Name</label>
-                        <div class="text-sm font-bold text-gray-900">{{ $seller->user->full_name }}</div>
-                    </div>
-                    <div>
-                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Store Address</label>
-                        <div class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">{{ $seller->store_address ?? 'Tidak ada data' }}</div>
-                    </div>
-                    <div>
-                        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Description</label>
-                        <div class="text-xs text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">{{ $seller->store_description ?? 'Tidak ada data' }}</div>
-                    </div>
-                </div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $seller->b2b_enabled ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-100 text-gray-500 border border-gray-200' }}">
+                    <span class="w-1.5 h-1.5 rounded-full {{ $seller->b2b_enabled ? 'bg-green-500' : 'bg-gray-400' }}"></span>
+                    {{ $seller->b2b_enabled ? 'B2B Aktif' : 'B2B Nonaktif' }}
+                </span>
             </div>
-
-            <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2"><i data-feather="layers" class="w-4 h-4 text-primary"></i> Modul B2B</h3>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $seller->b2b_enabled ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-50 text-gray-500 border border-gray-200' }}">
-                        {{ $seller->b2b_enabled ? 'Aktif' : 'Nonaktif' }}
-                    </span>
-                </div>
-                <div class="p-6 space-y-4">
-                    <p class="text-xs text-gray-600 leading-relaxed">
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
+                <div class="space-y-4">
+                    <div class="p-3.5 rounded-xl border {{ $seller->b2b_enabled ? 'bg-orange-50/50 border-orange-100 text-gray-700' : 'bg-gray-50 border-gray-100 text-gray-500' }} text-xs leading-relaxed">
                         @if($seller->b2b_enabled)
-                            Toko ini menerima RFQ pengadaan mebel kustom dan tampil di katalog vendor designer.
+                            Toko ini terdaftar sebagai <strong>Mitra Pabrik B2B</strong>, dapat menerima tender RFQ pengadaan mebel kustom, dan tampil di katalog vendor desainer interior.
                         @else
-                            Toko ini hanya melayani pesanan ritel. Aktifkan agar dapat menerima RFQ dan muncul di katalog vendor designer.
+                            Toko ini saat ini hanya melayani penjualan ritel reguler. Aktifkan modul B2B agar toko dapat menerima tender RFQ dari desainer interior.
                         @endif
-                    </p>
+                    </div>
 
-                    <div class="grid grid-cols-1 gap-2 text-[11px]">
-                        <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-                            <span class="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Kota</span>
-                            <span class="font-semibold text-gray-700">{{ $seller->city ?: '-' }}</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+                            <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-1">Kota Workshop</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $seller->city ?: '-' }}</span>
                         </div>
-                        <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-                            <span class="font-bold text-gray-400 uppercase tracking-widest text-[9px]">Kapasitas</span>
-                            <span class="font-semibold text-gray-700">{{ $seller->monthly_capacity ? $seller->monthly_capacity . ' unit/bln' : '-' }}</span>
+                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+                            <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-1">Kapasitas Produksi</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $seller->monthly_capacity ? $seller->monthly_capacity . ' unit / bln' : '-' }}</span>
                         </div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-                            <span class="block font-bold text-gray-400 uppercase tracking-widest text-[9px] mb-1">Spesialisasi Kayu</span>
-                            <span class="font-semibold text-gray-700">{{ collect($seller->wood_specialties ?? [])->implode(', ') ?: '-' }}</span>
+                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5 col-span-2 sm:col-span-1">
+                            <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-1">Sertifikasi SVLK</span>
+                            <span class="text-xs font-bold {{ $seller->svlk_verified ? 'text-emerald-600' : 'text-gray-500' }}">
+                                {{ $seller->svlk_verified ? 'Terverifikasi' : 'Belum Ada' }}
+                            </span>
                         </div>
                     </div>
 
-                    <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-colors {{ $seller->b2b_enabled ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-primary text-white hover:bg-[#8C4E1E]' }}">
-                            <i data-feather="{{ $seller->b2b_enabled ? 'x-circle' : 'check-circle' }}" class="w-4 h-4"></i>
-                            {{ $seller->b2b_enabled ? 'Nonaktifkan B2B' : 'Aktifkan B2B' }}
-                        </button>
-                    </form>
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+                        <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-2">Spesialisasi Material Kayu</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            @forelse(($seller->wood_specialties ?? []) as $wood)
+                                <span class="px-2.5 py-1 rounded-md bg-white border border-gray-200 text-[10px] font-bold text-gray-700 shadow-sm">{{ $wood }}</span>
+                            @empty
+                                <span class="text-xs text-gray-400 italic">Belum diatur</span>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
+
+                <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST" class="pt-2 border-t border-gray-100">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm {{ $seller->b2b_enabled ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-primary text-white hover:bg-[#8C4E1E]' }}">
+                        <i data-feather="{{ $seller->b2b_enabled ? 'x-circle' : 'check-circle' }}" class="w-4 h-4"></i>
+                        {{ $seller->b2b_enabled ? 'Nonaktifkan Modul B2B' : 'Aktifkan Modul B2B untuk Toko Ini' }}
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
+    <!-- Bottom Card: Daftar Produk yang Diupload (Tabel + Filter) -->
+    <div class="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <i data-feather="package" class="w-4 h-4 text-primary"></i> Katalog Produk Toko ({{ $seller->products->count() }})
+                </h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">Daftar seluruh produk yang diunggah oleh {{ $seller->store_name }}.</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+                <i data-feather="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="sellerProdSearch" placeholder="Cari nama produk..." class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-primary focus:bg-white">
+            </div>
+        </div>
+
+        @if($seller->products->isEmpty())
+            <div class="text-center py-12 text-gray-400">
+                <i data-feather="package" class="w-10 h-10 mx-auto mb-3 opacity-50"></i>
+                <p class="text-xs font-semibold">Belum ada produk yang diupload oleh toko ini.</p>
+            </div>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/70 border-b border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                            <th class="py-3.5 px-6">Produk</th>
+                            <th class="py-3.5 px-6">Style / Material</th>
+                            <th class="py-3.5 px-6">Harga</th>
+                            <th class="py-3.5 px-6">Stok</th>
+                            <th class="py-3.5 px-6">Status Kurasi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-xs" id="sellerProdBody">
+                        @foreach($seller->products as $product)
+                            @php
+                                $imgUrl = $product->images->first()?->img_url ?? 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400';
+                                if (!\Illuminate\Support\Str::startsWith($imgUrl, ['/storage', 'storage', 'http'])) {
+                                    $imgUrl = asset('storage/' . $imgUrl);
+                                }
+                                $pSt = strtolower($product->status ?? 'approved');
+                                $pBadge = match($pSt) {
+                                    'pending' => 'bg-amber-50 text-amber-600 border-amber-200',
+                                    'approved' => 'bg-green-50 text-green-600 border-green-200',
+                                    'rejected' => 'bg-red-50 text-red-600 border-red-200',
+                                    default => 'bg-gray-50 text-gray-600 border-gray-200'
+                                };
+                            @endphp
+                            <tr class="hover:bg-gray-50/60 transition-colors seller-prod-row" data-search="{{ strtolower($product->name . ' ' . $product->style . ' ' . $product->material) }}">
+                                <td class="py-3.5 px-6">
+                                    <div class="flex items-center gap-3.5">
+                                        <img src="{{ $imgUrl }}" class="w-12 h-12 rounded-xl object-cover border border-gray-100 shrink-0">
+                                        <div class="max-w-xs">
+                                            <div class="font-bold text-gray-900 truncate">{{ $product->name }}</div>
+                                            <div class="text-[10px] text-gray-500 line-clamp-1 mt-0.5">{{ $product->description }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-6">
+                                    <div class="font-semibold text-gray-800">{{ $product->style ?: '-' }}</div>
+                                    <div class="text-[10px] text-gray-400">{{ $product->material ?: '-' }}</div>
+                                </td>
+                                <td class="py-3.5 px-6 font-bold text-primary">
+                                    Rp {{ number_format($product->price, 0, ',', '.') }}
+                                </td>
+                                <td class="py-3.5 px-6 font-semibold text-gray-700">
+                                    {{ $product->stock }} unit
+                                </td>
+                                <td class="py-3.5 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border {{ $pBadge }}">
+                                        {{ strtoupper($product->status ?? 'APPROVED') }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar (Per 5 Produk) -->
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs font-semibold text-gray-500" id="sellerProdPageInfo">Menampilkan katalog produk</div>
+                <div class="flex items-center gap-1.5" id="sellerProdPagination"></div>
+            </div>
+        @endif
     </div>
+
+    </div>
+    @include("Admin.partials.footer")
 </main>
 
 <div id="rejectModal" class="modal">
@@ -240,6 +352,64 @@ $menu_items = [
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeRejectModal()" class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs hover:bg-gray-200 transition-colors">Batal</button>
                 <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition-colors shadow-sm">Reject Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════ AUDIT / TEMPORARY BAN MODAL ══════════ -->
+<div id="auditModal" class="modal">
+    <div class="bg-white w-full max-w-md p-7 rounded-2xl shadow-2xl scale-95 transition-transform duration-300 transform" id="auditModalContent">
+        <form action="{{ route('admin.user.warn', $seller->user_id) }}" method="POST">
+            @csrf
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                    <i data-feather="shield" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Tindakan Audit & Suspensi</h3>
+                    <p class="text-[11px] text-gray-500">{{ $seller->store_name }} ({{ $seller->user->full_name }})</p>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pilih Jenis Tindakan Audit</label>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration" value="7" class="peer hidden" checked>
+                        <div class="text-center py-2.5 px-3 rounded-xl border border-gray-200 bg-gray-50 text-xs font-bold text-gray-600 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 transition-all">
+                            Ban 7 Days
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration" value="14" class="peer hidden">
+                        <div class="text-center py-2.5 px-3 rounded-xl border border-gray-200 bg-gray-50 text-xs font-bold text-gray-600 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 transition-all">
+                            Ban 14 Days
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration" value="30" class="peer hidden">
+                        <div class="text-center py-2.5 px-3 rounded-xl border border-gray-200 bg-gray-50 text-xs font-bold text-gray-600 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 transition-all">
+                            Ban 30 Days
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="duration" value="deactivate" class="peer hidden">
+                        <div class="text-center py-2.5 px-3 rounded-xl border border-red-200 bg-red-50/50 text-xs font-bold text-red-600 peer-checked:bg-red-600 peer-checked:border-red-600 peer-checked:text-white transition-all">
+                            Nonaktifkan Akun
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alasan Audit / Suspensi</label>
+                <textarea name="reason" required class="w-full h-28 p-3.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-gray-50" placeholder="Contoh: Toko tidak aktif melakukan transaksi lebih dari 30 hari atau ditemukan ketidaksesuaian standar layanan..."></textarea>
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeAuditModal()" class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs hover:bg-gray-200 transition-colors">Batal</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors shadow-sm">Terapkan Sanksi Audit</button>
             </div>
         </form>
     </div>
@@ -259,6 +429,79 @@ $menu_items = [
         content.classList.add('scale-95');
         setTimeout(() => modal.classList.remove('show'), 200);
     }
+    function openAuditModal() {
+        const modal = document.getElementById('auditModal');
+        const content = document.getElementById('auditModalContent');
+        modal.classList.add('show');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+    function closeAuditModal() {
+        const modal = document.getElementById('auditModal');
+        const content = document.getElementById('auditModalContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.remove('show'), 200);
+    }
+
+    const prodRows = Array.from(document.querySelectorAll('.seller-prod-row'));
+    const prodSearch = document.getElementById('sellerProdSearch');
+    const prodPageInfo = document.getElementById('sellerProdPageInfo');
+    const prodPagination = document.getElementById('sellerProdPagination');
+    const prodPerPage = 5;
+    let prodCurrentPage = 1;
+
+    function renderSellerProducts() {
+        if (!prodRows.length) return;
+        const term = (prodSearch?.value || '').toLowerCase().trim();
+        const filtered = prodRows.filter(row => {
+            const s = row.getAttribute('data-search') || '';
+            return !term || s.includes(term);
+        });
+
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / prodPerPage));
+        if (prodCurrentPage > totalPages) prodCurrentPage = totalPages;
+
+        prodRows.forEach(r => r.style.display = 'none');
+        const start = (prodCurrentPage - 1) * prodPerPage;
+        const end = Math.min(start + prodPerPage, total);
+        filtered.slice(start, end).forEach(r => r.style.display = '');
+
+        if (prodPageInfo) {
+            prodPageInfo.textContent = total === 0
+                ? 'Tidak ada produk yang cocok dengan pencarian'
+                : `Halaman ${prodCurrentPage} dari ${totalPages} — Menampilkan ${start + 1}–${end} dari ${total} produk`;
+        }
+
+        if (prodPagination) {
+            prodPagination.innerHTML = '';
+            if (totalPages > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '&laquo;';
+                prevBtn.disabled = prodCurrentPage === 1;
+                prevBtn.className = `px-3 h-8 rounded-lg text-xs font-bold border border-gray-200 bg-white text-gray-600 disabled:opacity-40 hover:border-primary hover:text-primary`;
+                prevBtn.onclick = () => { if (prodCurrentPage > 1) { prodCurrentPage--; renderSellerProducts(); } };
+                prodPagination.appendChild(prevBtn);
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.textContent = i;
+                    btn.className = `w-8 h-8 rounded-lg text-xs font-bold transition-colors ${i === prodCurrentPage ? 'bg-primary text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:border-primary hover:text-primary'}`;
+                    btn.onclick = () => { prodCurrentPage = i; renderSellerProducts(); };
+                    prodPagination.appendChild(btn);
+                }
+
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '&raquo;';
+                nextBtn.disabled = prodCurrentPage === totalPages;
+                nextBtn.className = `px-3 h-8 rounded-lg text-xs font-bold border border-gray-200 bg-white text-gray-600 disabled:opacity-40 hover:border-primary hover:text-primary`;
+                nextBtn.onclick = () => { if (prodCurrentPage < totalPages) { prodCurrentPage++; renderSellerProducts(); } };
+                prodPagination.appendChild(nextBtn);
+            }
+        }
+    }
+
+    prodSearch?.addEventListener('input', () => { prodCurrentPage = 1; renderSellerProducts(); });
+    renderSellerProducts();
 </script>
 
 <script>

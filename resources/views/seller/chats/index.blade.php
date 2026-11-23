@@ -133,13 +133,22 @@
                                 <div class="flex {{ $msg->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
                                     <div class="max-w-[70%] space-y-2">
                                         @if($msg->product)
-                                            <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm mb-2 flex items-center space-x-3">
-                                                <img src="{{ $msg->product->images->first() ? asset('storage/' . $msg->product->images->first()->image_path) : 'https://placehold.co/50' }}" class="w-10 h-10 rounded-lg object-cover">
+                                            @php
+                                                $chatProductImage = $msg->product->images->first()->img_url ?? null;
+                                            @endphp
+                                            <a href="{{ route('customer.product-detail', $msg->product_id) }}" target="_blank" class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm mb-2 flex items-center space-x-3 hover:border-primary/40 transition-colors">
+                                                @if($chatProductImage)
+                                                    <img src="{{ $chatProductImage }}" alt="{{ $msg->product->name }}" class="w-10 h-10 rounded-lg object-cover">
+                                                @else
+                                                    <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300">
+                                                        <i class="fa-solid fa-image text-[10px]"></i>
+                                                    </div>
+                                                @endif
                                                 <div>
                                                     <p class="text-[9px] font-black text-gray-800 uppercase truncate w-32">{{ $msg->product->name }}</p>
                                                     <p class="text-[8px] font-bold text-primary">Rp {{ number_format($msg->product->price, 0, ',', '.') }}</p>
                                                 </div>
-                                            </div>
+                                            </a>
                                         @endif
                                         <div class="p-4 text-[11px] font-semibold leading-relaxed shadow-sm {{ $msg->sender_id == Auth::id() ? 'bg-primary text-white chat-bubble-me' : 'bg-white text-gray-600 chat-bubble-them border border-gray-50' }}">
                                             @if($msg->attachment)

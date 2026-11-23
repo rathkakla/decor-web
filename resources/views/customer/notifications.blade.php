@@ -12,6 +12,7 @@
         .bg-primary { background-color: #B5733A; }
         .text-primary { color: #B5733A; }
     </style>
+@include('partials.typography')
 </head>
 <body class="text-gray-800">
 

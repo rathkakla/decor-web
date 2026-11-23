@@ -1,4 +1,8 @@
+@include('partials.typography')
 <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 sidebar-transition">
+    <style>
+        .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A !important; border-right: 4px solid #B5733A; }
+    </style>
     <div class="p-8">
         <h1 class="text-2xl font-bold tracking-widest text-primary uppercase leading-none">DECOR</h1>
         <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">Admin Portal</p>
@@ -9,6 +13,11 @@
         $sellerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count();
         $designerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count();
         $b2bPayoutCount = \App\Models\B2bOrder::where('payout_status', \App\Models\B2bOrder::PAYOUT_REQUESTED)->count();
+
+        $isPendingSellerDetail = Request::routeIs('admin.seller-detail') && isset($seller) && $seller->status !== 'approved';
+        $isApprovedSellerDetail = Request::routeIs('admin.seller-detail') && isset($seller) && $seller->status === 'approved';
+        $isPendingDesignerDetail = Request::routeIs('admin.designer-detail') && isset($designer) && $designer->status !== 'approved';
+        $isApprovedDesignerDetail = Request::routeIs('admin.designer-detail') && isset($designer) && $designer->status === 'approved';
     @endphp
 
     <!-- MENU UTAMA (ATAS) -->
@@ -19,13 +28,13 @@
         <a href="{{ route('admin.user-management') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.user-management') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-users mr-3 w-5 text-center"></i> User Management
         </a>
-        <a href="{{ route('admin.account.validation') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.account.validation') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-shield-halved mr-3 w-5 text-center"></i> Account Validation
+        <a href="{{ route('admin.account.validation') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.account.validation') || $isPendingSellerDetail || $isPendingDesignerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <i class="fa-solid fa-user-shield mr-3 w-5 text-center"></i> Account Validation
         </a>
-        <a href="{{ route('admin.seller-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.seller-monitor') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+        <a href="{{ route('admin.seller-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.seller-monitor') || $isApprovedSellerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-store mr-3 w-5 text-center"></i> Seller Monitor
         </a>
-        <a href="{{ route('admin.designer-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.designer-monitor') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+        <a href="{{ route('admin.designer-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.designer-monitor') || $isApprovedDesignerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-palette mr-3 w-5 text-center"></i> Designer Monitor
         </a>
         <a href="{{ route('admin.product.validation') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.product.validation') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
@@ -40,7 +49,7 @@
 
         <a href="{{ route('admin.b2b-payout') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.b2b-payout*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <div class="flex items-center">
-                <i class="fa-solid fa-money-bill-transfer mr-3 w-5 text-center"></i> Pencairan B2B
+                <i class="fa-solid fa-money-bill-wave mr-3 w-5 text-center"></i> Pencairan B2B
             </div>
             @if($b2bPayoutCount > 0)
                 <span class="bg-primary text-white text-[9px] px-2 py-0.5 rounded-full">{{ $b2bPayoutCount }}</span>

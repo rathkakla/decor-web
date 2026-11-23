@@ -20,10 +20,16 @@ class Consultation extends Model
         'consultation_type',
         'payment_proof',
         'chat_expires_at',
+        'is_chat_paused',
+        'chat_paused_at',
+        'remaining_chat_seconds',
     ];
 
     protected $casts = [
         'chat_expires_at' => 'datetime',
+        'is_chat_paused' => 'boolean',
+        'chat_paused_at' => 'datetime',
+        'remaining_chat_seconds' => 'integer',
     ];
 
     protected $appends = ['consultation_fee', 'final_amount', 'is_chat_expired'];
@@ -41,10 +47,31 @@ class Consultation extends Model
 
     public function getIsChatExpiredAttribute()
     {
+        // Sesi yang sedang dijeda tidak dianggap expired; timer berhenti selama jeda.
+        if ($this->is_chat_paused) {
+            return false;
+        }
+
         if ($this->consultation_type === 'chat_consultation' && $this->chat_expires_at) {
             return $this->chat_expires_at->isPast();
         }
         return false;
+    }
+
+    /**
+     * Sisa detik timer chat yang masih tersedia.
+     */
+    public function getChatRemainingSecondsAttribute()
+    {
+        if ($this->is_chat_paused && ! is_null($this->remaining_chat_seconds)) {
+            return (int) $this->remaining_chat_seconds;
+        }
+
+        if (! $this->chat_expires_at) {
+            return 0;
+        }
+
+        return max(0, now()->diffInSeconds($this->chat_expires_at, false));
     }
 
     protected static function boot()

@@ -280,7 +280,7 @@ class SellerController extends Controller
                     ->orWhere(function ($q) use ($authId, $userId) {
                         $q->where('sender_id', $userId)->where('receiver_id', $authId);
                     })
-                    ->with('product')
+                    ->with('product.images')
                     ->oldest()
                     ->get();
 
@@ -400,6 +400,13 @@ class SellerController extends Controller
             'price.min' => 'Harga produk tidak boleh kurang dari 0',
         ]);
 
+        // Jika seller sudah punya minimal 1 produk yang disetujui (approved),
+        // maka produk-produk berikutnya otomatis approved tanpa harus menunggu kurasi lagi.
+        $hasApprovedProduct = Product::where('seller_id', $seller->id)
+            ->where('status', 'approved')
+            ->exists();
+        $initialStatus = $hasApprovedProduct ? 'approved' : 'pending';
+
         // 1. Simpan data produk utama
         $product = Product::create([
             'seller_id' => $seller->id,
@@ -410,6 +417,7 @@ class SellerController extends Controller
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $request->stock,
+            'status' => $initialStatus,
         ]);
 
         // 2. Simpan gambar ke database
