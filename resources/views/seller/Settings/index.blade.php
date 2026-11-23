@@ -110,6 +110,46 @@
                 </div>
 
                 <div class="space-y-6">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center">Layanan Pesanan Proyek (B2B) <span class="ml-4 h-[1px] flex-1 bg-gray-100"></span></h3>
+                    <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                        <div class="flex items-start gap-4">
+                            <div class="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-industry"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-gray-800">Terima Pesanan Kustom B2B</span>
+                                    @if(($seller->b2b_status ?? 'not_registered') === 'pending')
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">Menunggu Verifikasi</span>
+                                    @elseif($seller->b2b_status === 'approved' && $seller->b2b_enabled)
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">Aktif</span>
+                                    @elseif(($seller->b2b_status ?? 'not_registered') === 'rejected')
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-200">Ditolak</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">Belum Terdaftar</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1 leading-relaxed max-w-lg">
+                                    @if(($seller->b2b_status ?? 'not_registered') === 'pending')
+                                        Pengajuan Anda sedang ditinjau Admin DECOR (maks. 1x24 jam kerja).
+                                    @elseif($seller->b2b_status === 'approved' && $seller->b2b_enabled)
+                                        Toko Anda terdaftar sebagai Mitra Pabrik dan tampil di katalog vendor desainer interior.
+                                    @elseif(($seller->b2b_status ?? 'not_registered') === 'rejected')
+                                        Pengajuan ditolak: {{ $seller->b2b_rejection_reason ?: 'silakan lengkapi data workshop Anda.' }}
+                                    @else
+                                        Daftarkan workshop Anda untuk menerima tender pengadaan mebel kustom bervolume besar dari desainer interior DECOR.
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('seller.b2b.register') }}" class="inline-flex items-center justify-center px-4 py-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition-all shrink-0">
+                            <i class="fa-solid fa-arrow-right mr-2"></i>
+                            {{ ($seller->b2b_status ?? 'not_registered') === 'pending' ? 'Lihat Status' : 'Kelola Layanan B2B' }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
                     <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center">General Information <span class="ml-4 h-[1px] flex-1 bg-gray-100"></span></h3>
                     <div class="bg-white p-8 rounded-3xl border border-gray-100 space-y-6 shadow-sm">
                         <div class="space-y-2">

@@ -214,20 +214,45 @@ $admin_role = "ADMIN";
                     <i data-feather="layers" class="w-4 h-4 text-primary"></i>
                     <h3 class="text-sm font-bold text-gray-900">Modul B2B & Kapasitas Pabrik</h3>
                 </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest {{ $seller->b2b_enabled ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-100 text-gray-500 border border-gray-200' }}">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $seller->b2b_enabled ? 'bg-green-500' : 'bg-gray-400' }}"></span>
-                    {{ $seller->b2b_enabled ? 'B2B Aktif' : 'B2B Nonaktif' }}
-                </span>
+                @if(($seller->b2b_status ?? 'not_registered') === 'pending')
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Menunggu Persetujuan
+                    </span>
+                @elseif($seller->b2b_enabled)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-600 border border-green-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                        B2B Aktif
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        B2B Nonaktif
+                    </span>
+                @endif
             </div>
             <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
                 <div class="space-y-4">
-                    <div class="p-3.5 rounded-xl border {{ $seller->b2b_enabled ? 'bg-orange-50/50 border-orange-100 text-gray-700' : 'bg-gray-50 border-gray-100 text-gray-500' }} text-xs leading-relaxed">
-                        @if($seller->b2b_enabled)
+                    <div class="p-3.5 rounded-xl border {{ ($seller->b2b_status ?? 'not_registered') === 'pending' ? 'bg-amber-50 border-amber-200 text-amber-900' : ($seller->b2b_enabled ? 'bg-orange-50/50 border-orange-100 text-gray-700' : 'bg-gray-50 border-gray-100 text-gray-500') }} text-xs leading-relaxed">
+                        @if(($seller->b2b_status ?? 'not_registered') === 'pending')
+                            <strong>Pengajuan Baru!</strong> Toko ini mengajukan pendaftaran Layanan Pesanan Proyek pada
+                            <strong>{{ $seller->b2b_terms_agreed_at?->format('d M Y, H:i') ?? 'baru saja' }}</strong>
+                            dan telah menyetujui S&K Kemitraan Proyek.
+                        @elseif($seller->b2b_enabled)
                             Toko ini terdaftar sebagai <strong>Mitra Pabrik B2B</strong>, dapat menerima tender RFQ pengadaan mebel kustom, dan tampil di katalog vendor desainer interior.
+                        @elseif(($seller->b2b_status ?? 'not_registered') === 'rejected')
+                            Pengajuan Layanan Pesanan Proyek toko ini <strong>ditolak</strong>. Seller dapat mengajukan ulang setelah memperbaiki data workshop.
                         @else
                             Toko ini saat ini hanya melayani penjualan ritel reguler. Aktifkan modul B2B agar toko dapat menerima tender RFQ dari desainer interior.
                         @endif
                     </div>
+
+                    @if(($seller->b2b_status ?? 'not_registered') === 'rejected' && $seller->b2b_rejection_reason)
+                        <div class="p-3.5 rounded-xl border bg-red-50 border-red-200 text-red-800 text-xs leading-relaxed">
+                            <span class="block font-black uppercase tracking-widest text-[9px] mb-1 text-red-500">Alasan Penolakan</span>
+                            {{ $seller->b2b_rejection_reason }}
+                        </div>
+                    @endif
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
@@ -256,15 +281,74 @@ $admin_role = "ADMIN";
                             @endforelse
                         </div>
                     </div>
+
+                    @if($seller->portfolio_url)
+                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5">
+                            <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-2">Foto Workshop / Bukti Portofolio</span>
+                            <a href="{{ asset('storage/' . $seller->portfolio_url) }}" target="_blank" class="flex items-center gap-3 group">
+                                <img src="{{ asset('storage/' . $seller->portfolio_url) }}" alt="Bukti Workshop" class="w-20 h-14 object-cover rounded-lg border border-gray-200 bg-white shrink-0 group-hover:opacity-90 transition-opacity">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-primary group-hover:underline">
+                                        <i data-feather="external-link" class="w-3.5 h-3.5"></i> Lihat Foto Ukuran Penuh
+                                    </span>
+                                    <p class="text-[11px] text-gray-400 mt-0.5">Klik thumbnail untuk membuka foto di tab baru.</p>
+                                </div>
+                            </a>
+                        </div>
+                    @endif
+
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                        <div>
+                            <span class="block font-black text-gray-400 uppercase tracking-widest text-[9px] mb-1">Persetujuan S&K</span>
+                            <span class="text-xs font-bold {{ $seller->b2b_terms_agreed_at ? 'text-emerald-600' : 'text-gray-500' }}">
+                                {{ $seller->b2b_terms_agreed_at ? $seller->b2b_terms_agreed_at->format('d M Y, H:i') : 'Belum disetujui' }}
+                            </span>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-md bg-white border border-gray-200 text-gray-600">
+                            {{ ($seller->b2b_status ?? 'not_registered') === 'approved' ? 'Disetujui' : (($seller->b2b_status ?? '') === 'pending' ? 'Menunggu' : (($seller->b2b_status ?? '') === 'rejected' ? 'Ditolak' : 'Belum ada')) }}
+                        </span>
+                    </div>
                 </div>
 
-                <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST" class="pt-2 border-t border-gray-100">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm {{ $seller->b2b_enabled ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100' : 'bg-primary text-white hover:bg-[#8C4E1E]' }}">
-                        <i data-feather="{{ $seller->b2b_enabled ? 'x-circle' : 'check-circle' }}" class="w-4 h-4"></i>
-                        {{ $seller->b2b_enabled ? 'Nonaktifkan Modul B2B' : 'Aktifkan Modul B2B untuk Toko Ini' }}
-                    </button>
-                </form>
+                <div class="pt-2 border-t border-gray-100 space-y-3">
+                    @if(($seller->b2b_status ?? 'not_registered') === 'pending')
+                        <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm bg-primary text-white hover:bg-[#8C4E1E]">
+                                <i data-feather="check-circle" class="w-4 h-4"></i>
+                                Setujui & Aktifkan Layanan Proyek
+                            </button>
+                        </form>
+                        <button type="button" onclick="document.getElementById('b2bRejectBox').classList.toggle('hidden')" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors">
+                            <i data-feather="x-circle" class="w-4 h-4"></i>
+                            Tolak Pengajuan
+                        </button>
+                        <div id="b2bRejectBox" class="hidden pt-1">
+                            <form action="{{ route('admin.seller-b2b.reject', $seller->id) }}" method="POST" class="space-y-2">
+                                @csrf
+                                <textarea name="b2b_rejection_reason" rows="3" required maxlength="500" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs font-medium text-gray-700 focus:outline-none focus:border-primary focus:bg-white" placeholder="Tuliskan alasan penolakan agar seller dapat memperbaiki pengajuannya..."></textarea>
+                                <button type="submit" class="w-full px-4 py-2.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">
+                                    Kirim Penolakan
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        <form action="{{ route('admin.seller-b2b.toggle', $seller->id) }}" method="POST">
+                            @csrf
+                            @if($seller->b2b_enabled)
+                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm bg-red-50 text-red-600 border border-red-200 hover:bg-red-100">
+                                    <i data-feather="x-circle" class="w-4 h-4"></i>
+                                    Nonaktifkan Modul B2B
+                                </button>
+                            @else
+                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm bg-primary text-white hover:bg-[#8C4E1E]">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                    Aktifkan Modul B2B untuk Toko Ini
+                                </button>
+                            @endif
+                        </form>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

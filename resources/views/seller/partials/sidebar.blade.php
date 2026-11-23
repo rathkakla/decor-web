@@ -39,8 +39,17 @@
             @endif
         </a>
         @if($sidebarSeller && $sidebarSeller->b2b_enabled)
-            <a href="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <a href="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.*') && !Request::routeIs('seller.b2b.register') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
                 <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Kustom B2B
+            </a>
+        @elseif($sidebarSeller)
+            <a href="{{ b2b_route('seller.b2b.register') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.register') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+                <span class="flex items-center">
+                    <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Layanan Pesanan Proyek
+                </span>
+                @if(($sidebarSeller->b2b_status ?? 'not_registered') === 'pending')
+                    <span class="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full" title="Menunggu verifikasi admin">!</span>
+                @endif
             </a>
         @endif
 

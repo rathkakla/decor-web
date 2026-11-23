@@ -203,6 +203,8 @@ class AdminController extends Controller
                 'last_active' => $lastTransactionDate ? $lastTransactionDate->diffForHumans() : 'No transactions',
                 'joined' => $seller->created_at->format('M Y'),
                 'admin_fee' => $totalSales * 0.05,
+                'b2b_enabled' => (bool) $seller->b2b_enabled,
+                'b2b_status' => $seller->b2b_status ?? 'not_registered',
             ];
         });
 
@@ -335,13 +337,43 @@ class AdminController extends Controller
     public function toggleB2b($id)
     {
         $seller = Seller::findOrFail($id);
-        $seller->update(['b2b_enabled' => ! $seller->b2b_enabled]);
+        $newEnabled = ! $seller->b2b_enabled;
+
+        $seller->update([
+            'b2b_enabled' => $newEnabled,
+            'b2b_status' => $newEnabled ? 'approved' : 'not_registered',
+            'b2b_rejection_reason' => $newEnabled ? null : $seller->b2b_rejection_reason,
+        ]);
 
         return redirect()
             ->route('admin.seller-detail', $seller->id)
-            ->with('success', $seller->b2b_enabled
+            ->with('success', $newEnabled
                 ? "Modul B2B diaktifkan untuk {$seller->store_name}. Toko kini tampil di katalog vendor designer."
                 : "Modul B2B dinonaktifkan untuk {$seller->store_name}.");
+    }
+
+    /**
+     * Tolak pengajuan mandiri Layanan Pesanan Proyek (B2B) dari seller.
+     */
+    public function rejectB2b(Request $request, $id)
+    {
+        $seller = Seller::findOrFail($id);
+
+        $validated = $request->validate([
+            'b2b_rejection_reason' => ['required', 'string', 'max:500'],
+        ], [
+            'b2b_rejection_reason.required' => 'Alasan penolakan wajib diisi agar seller dapat memperbaiki pengajuannya.',
+        ]);
+
+        $seller->update([
+            'b2b_enabled' => false,
+            'b2b_status' => 'rejected',
+            'b2b_rejection_reason' => $validated['b2b_rejection_reason'],
+        ]);
+
+        return redirect()
+            ->route('admin.seller-detail', $seller->id)
+            ->with('success', "Pengajuan Layanan Pesanan Proyek {$seller->store_name} ditolak. Seller dapat mengajukan ulang setelah memperbaiki data.");
     }
 
     public function designerDetail($id)

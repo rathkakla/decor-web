@@ -158,6 +158,16 @@ $menu_items = [
                 <div class="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5"><i data-feather="user" class="w-3 h-3"></i>{{ $s->owner }}</div>
                 <div class="font-mono text-[9px] text-gray-400 mt-2">{{ $s->id }}</div>
 
+                @if(($s->b2b_status ?? 'not_registered') === 'pending')
+                    <span class="inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">
+                        <i data-feather="clock" class="w-3 h-3"></i> Menunggu Persetujuan B2B
+                    </span>
+                @elseif(!empty($s->b2b_enabled))
+                    <span class="inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <i data-feather="check" class="w-3 h-3"></i> Mitra B2B
+                    </span>
+                @endif
+
                 <!-- Metrics: 3 kolom menyamping, nilai di atas label -->
                 <div class="bg-gray-50 border border-gray-100 rounded-xl my-5 grid grid-cols-3 overflow-hidden">
                     <div class="px-1.5 py-3 text-center min-w-0">

@@ -10,6 +10,7 @@ use App\Http\Controllers\B2b\Seller\DeliveryController;
 use App\Http\Controllers\B2b\Seller\NegotiationController as SellerNegotiationController;
 use App\Http\Controllers\B2b\Seller\ProductionController;
 use App\Http\Controllers\B2b\Seller\QuotationController as SellerQuotationController;
+use App\Http\Controllers\B2b\Seller\RegistrationController as SellerRegistrationController;
 use App\Http\Controllers\B2b\Seller\RfqController as SellerRfqController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'role:seller'])
     ->prefix('seller/b2b')
     ->name('seller.b2b.')
     ->group(function () {
+
+    // Pendaftaran & Status Layanan Pesanan Proyek (Custom Bulk)
+    Route::get('/layanan', [SellerRegistrationController::class, 'show'])->name('register');
+    Route::post('/layanan', [SellerRegistrationController::class, 'submit'])->name('register.submit');
 
     // Inbox RFQ
     Route::get('/inbox', [SellerRfqController::class, 'index'])->name('inbox');

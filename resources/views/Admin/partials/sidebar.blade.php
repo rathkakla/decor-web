@@ -13,6 +13,14 @@
         $sellerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'seller'))->where('status', 'pending')->count();
         $designerSupportCount = \App\Models\Support::whereHas('user', fn($q) => $q->where('role', 'designer'))->where('status', 'pending')->count();
         $b2bPayoutCount = \App\Models\B2bOrder::where('payout_status', \App\Models\B2bOrder::PAYOUT_REQUESTED)->count();
+        $pendingB2bSellers = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('sellers', 'b2b_status')) {
+                $pendingB2bSellers = \App\Models\Seller::where('b2b_status', 'pending')->count();
+            }
+        } catch (\Throwable $e) {
+            $pendingB2bSellers = 0;
+        }
 
         $isPendingSellerDetail = Request::routeIs('admin.seller-detail') && isset($seller) && $seller->status !== 'approved';
         $isApprovedSellerDetail = Request::routeIs('admin.seller-detail') && isset($seller) && $seller->status === 'approved';
@@ -31,8 +39,13 @@
         <a href="{{ route('admin.account.validation') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.account.validation') || $isPendingSellerDetail || $isPendingDesignerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-user-shield mr-3 w-5 text-center"></i> Account Validation
         </a>
-        <a href="{{ route('admin.seller-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.seller-monitor') || $isApprovedSellerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-            <i class="fa-solid fa-store mr-3 w-5 text-center"></i> Seller Monitor
+        <a href="{{ route('admin.seller-monitor') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.seller-monitor') || $isApprovedSellerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+            <span class="flex items-center">
+                <i class="fa-solid fa-store mr-3 w-5 text-center"></i> Seller Monitor
+            </span>
+            @if($pendingB2bSellers > 0)
+                <span class="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold" title="Pengajuan Layanan Pesanan Proyek">{{ $pendingB2bSellers }}</span>
+            @endif
         </a>
         <a href="{{ route('admin.designer-monitor') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('admin.designer-monitor') || $isApprovedDesignerDetail ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-palette mr-3 w-5 text-center"></i> Designer Monitor

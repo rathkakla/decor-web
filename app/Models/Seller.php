@@ -29,6 +29,10 @@ class Seller extends Model
         'svlk_verified',
         'b2b_enabled',
         'portfolio_url',
+        // Status pengajuan mandiri Layanan Pesanan Proyek (B2B)
+        'b2b_status',
+        'b2b_rejection_reason',
+        'b2b_terms_agreed_at',
     ];
 
     protected $casts = [
@@ -36,6 +40,7 @@ class Seller extends Model
         'monthly_capacity' => 'integer',
         'svlk_verified' => 'boolean',
         'b2b_enabled' => 'boolean',
+        'b2b_terms_agreed_at' => 'datetime',
         'rating' => 'decimal:1',
     ];
 
