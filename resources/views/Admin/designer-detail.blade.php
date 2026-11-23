@@ -448,7 +448,9 @@ $admin_role = "ADMIN";
 
             <div class="mt-4 bg-gray-50 border border-gray-100 rounded-xl p-4">
                 <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Deskripsi Karya</div>
-                <p class="text-xs text-gray-600 leading-relaxed" id="pfDesc"></p>
+                <div class="max-h-48 overflow-y-auto pr-1">
+                    <p class="text-xs text-gray-600 leading-relaxed" id="pfDesc"></p>
+                </div>
             </div>
 
             <div class="mt-3 text-[10px] font-semibold text-gray-400" id="pfCreated"></div>
