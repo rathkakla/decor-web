@@ -115,7 +115,7 @@ $menu_items = [
     </div>
 
     <!-- Cards -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6" id="sellerGrid">
+    <div class="grid grid-cols-1 lg:grid-cols-2 min-[1360px]:grid-cols-3 gap-6" id="sellerGrid">
         @foreach ($sellers as $s)
         @php
             $sl        = strtolower($s->status);
@@ -161,16 +161,16 @@ $menu_items = [
                 <!-- Metrics: 3 kolom menyamping, nilai di atas label -->
                 <div class="bg-gray-50 border border-gray-100 rounded-xl my-5 grid grid-cols-3 overflow-hidden">
                     <div class="px-1.5 py-3 text-center min-w-0">
-                        <div class="text-[10px] xl:text-[13px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">{{ number_format((int) $s->transactions, 0, ',', '.') }}</div>
-                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Orders</div>
+                        <div class="text-[10px] min-[1360px]:text-[10px] xl:text-[12px] 2xl:text-[12px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">{{ number_format((int) $s->transactions, 0, ',', '.') }}</div>
+                        <div class="text-[8px] 2xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Orders</div>
                     </div>
                     <div class="px-1.5 py-3 text-center min-w-0 border-x border-gray-100">
-                        <div class="text-[10px] xl:text-[13px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
-                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Revenue</div>
+                        <div class="text-[10px] min-[1360px]:text-[10px] xl:text-[12px] 2xl:text-[12px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
+                        <div class="text-[8px] 2xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Revenue</div>
                     </div>
                     <div class="px-1.5 py-3 text-center min-w-0">
-                        <div class="text-[10px] xl:text-[13px] font-extrabold text-primary tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
-                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Admin Fee</div>
+                        <div class="text-[10px] min-[1360px]:text-[10px] xl:text-[12px] 2xl:text-[12px] font-extrabold text-primary tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
+                        <div class="text-[8px] 2xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Admin Fee</div>
                     </div>
                 </div>
 
