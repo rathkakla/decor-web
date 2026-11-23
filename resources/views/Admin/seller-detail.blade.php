@@ -40,7 +40,25 @@ $admin_role = "ADMIN";
         </div>
     @endif
 
-    <!-- Breadcrumb -->
+    @if(session('error'))
+        <div class="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-xs font-bold flex items-center">
+            <i data-feather="alert-circle" class="w-4 h-4 mr-3"></i>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-xs font-bold flex items-start">
+            <i data-feather="alert-circle" class="w-4 h-4 mr-3 mt-0.5"></i>
+            <div>
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    <!-- Breadcrumb (SELLER) -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-2 text-xs font-bold text-gray-500">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-1 hover:text-primary transition-colors"><i data-feather="home" class="w-3.5 h-3.5"></i> Dashboard</a>
@@ -281,6 +299,7 @@ $admin_role = "ADMIN";
                             <th class="py-3.5 px-6">Harga</th>
                             <th class="py-3.5 px-6">Stok</th>
                             <th class="py-3.5 px-6">Status Kurasi</th>
+                            <th class="py-3.5 px-6 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-xs" id="sellerProdBody">
@@ -297,13 +316,33 @@ $admin_role = "ADMIN";
                                     'rejected' => 'bg-red-50 text-red-600 border-red-200',
                                     default => 'bg-gray-50 text-gray-600 border-gray-200'
                                 };
+                                $detailPayload = [
+                                    'id' => $product->id,
+                                    'name' => $product->name,
+                                    'price' => $product->price,
+                                    'stock' => $product->stock,
+                                    'style' => $product->style ?: '-',
+                                    'material' => $product->material ?: '-',
+                                    'description' => $product->description ?: '-',
+                                    'status' => strtoupper($product->status ?? 'approved'),
+                                    'image' => $imgUrl,
+                                    'category' => $product->category->name ?? 'Uncategorized',
+                                    'created' => optional($product->created_at)->format('d M Y H:i') ?? '-',
+                                    'images' => $product->images->map(function ($im) {
+                                        $u = $im->img_url;
+                                        if (!\Illuminate\Support\Str::startsWith($u, ['/storage', 'storage', 'http'])) {
+                                            $u = asset('storage/' . $u);
+                                        }
+                                        return $u;
+                                    })->values(),
+                                ];
                             @endphp
                             <tr class="hover:bg-gray-50/60 transition-colors seller-prod-row" data-search="{{ strtolower($product->name . ' ' . $product->style . ' ' . $product->material) }}">
                                 <td class="py-3.5 px-6">
                                     <div class="flex items-center gap-3.5">
-                                        <img src="{{ $imgUrl }}" class="w-12 h-12 rounded-xl object-cover border border-gray-100 shrink-0">
+                                        <img src="{{ $imgUrl }}" class="w-12 h-12 rounded-xl object-cover border border-gray-100 shrink-0 cursor-pointer hover:opacity-80 transition-opacity js-product-detail" data-detail="{{ json_encode($detailPayload) }}">
                                         <div class="max-w-xs">
-                                            <div class="font-bold text-gray-900 truncate">{{ $product->name }}</div>
+                                            <div class="font-bold text-gray-900 truncate cursor-pointer hover:text-primary transition-colors js-product-detail" data-detail="{{ json_encode($detailPayload) }}">{{ $product->name }}</div>
                                             <div class="text-[10px] text-gray-500 line-clamp-1 mt-0.5">{{ $product->description }}</div>
                                         </div>
                                     </div>
@@ -322,6 +361,20 @@ $admin_role = "ADMIN";
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border {{ $pBadge }}">
                                         {{ strtoupper($product->status ?? 'APPROVED') }}
                                     </span>
+                                </td>
+                                <td class="py-3.5 px-6">
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-primary hover:bg-orange-100 transition-colors js-product-detail" data-detail="{{ json_encode($detailPayload) }}" title="Lihat detail produk">
+                                            <i data-feather="eye" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                        <form action="{{ route('admin.product.delete', $product->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus produk &quot;{{ addslashes($product->name) }}&quot; dari katalog seller? Tindakan ini permanen.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Hapus produk">
+                                                <i data-feather="trash-2" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -414,6 +467,101 @@ $admin_role = "ADMIN";
         </form>
     </div>
 </div>
+
+<!-- ══════════ DETAIL PRODUK MODAL ══════════ -->
+<div id="productDetailModal" class="modal">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] scale-95 transition-transform duration-300" id="productDetailContent">
+        <div class="w-full md:w-1/2 bg-gray-100 relative min-h-[240px]">
+            <img id="pdImage" src="" alt="" class="w-full h-full object-cover">
+            <div class="absolute top-4 left-4">
+                <span id="pdStatus" class="inline-flex px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest bg-white/90 text-gray-700 shadow-sm"></span>
+            </div>
+        </div>
+        <div class="w-full md:w-1/2 p-6 overflow-y-auto relative">
+            <button type="button" onclick="closeProductDetail()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+            <div class="text-[10px] font-mono font-bold text-primary mb-1" id="pdId"></div>
+            <h3 class="text-lg font-bold text-gray-900 pr-8 leading-snug" id="pdName"></h3>
+            <div class="text-xl font-black text-primary mt-1.5" id="pdPrice"></div>
+
+            <div class="grid grid-cols-2 gap-3 mt-5">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Style</div>
+                    <div class="text-xs font-bold text-gray-900" id="pdStyle"></div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Material</div>
+                    <div class="text-xs font-bold text-gray-900" id="pdMaterial"></div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Stok</div>
+                    <div class="text-xs font-bold text-gray-900" id="pdStock"></div>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Kategori</div>
+                    <div class="text-xs font-bold text-gray-900" id="pdCategory"></div>
+                </div>
+            </div>
+
+            <div class="mt-4 bg-gray-50 border border-gray-100 rounded-xl p-4">
+                <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Deskripsi</div>
+                <p class="text-xs text-gray-600 leading-relaxed" id="pdDesc"></p>
+            </div>
+
+            <div class="mt-3 text-[10px] font-semibold text-gray-400" id="pdCreated"></div>
+
+            <form id="pdDeleteForm" method="POST" class="mt-5" onsubmit="return confirm('Hapus produk ini dari katalog seller? Tindakan ini permanen.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition-colors">
+                    <i data-feather="trash-2" class="w-3.5 h-3.5"></i> Hapus Produk Ini
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    feather.replace({ 'stroke-width': 2 });
+
+    function openProductDetail(data) {
+        document.getElementById('pdId').textContent = 'PRD-' + String(data.id).padStart(3, '0');
+        document.getElementById('pdName').textContent = data.name || '-';
+        document.getElementById('pdPrice').textContent = 'Rp ' + Number(data.price || 0).toLocaleString('id-ID');
+        document.getElementById('pdStyle').textContent = data.style || '-';
+        document.getElementById('pdMaterial').textContent = data.material || '-';
+        document.getElementById('pdStock').textContent = (data.stock ?? 0) + ' unit';
+        document.getElementById('pdCategory').textContent = data.category || '-';
+        document.getElementById('pdDesc').textContent = data.description || '-';
+        document.getElementById('pdCreated').textContent = 'Ditambahkan: ' + (data.created || '-');
+        document.getElementById('pdStatus').textContent = data.status || '-';
+        document.getElementById('pdImage').src = data.image || '';
+        document.getElementById('pdDeleteForm').action = '{{ url('/admin/product') }}/' + data.id;
+
+        const modal = document.getElementById('productDetailModal');
+        const content = document.getElementById('productDetailContent');
+        modal.classList.add('show');
+        setTimeout(() => content.classList.remove('scale-95'), 10);
+    }
+
+    function closeProductDetail() {
+        const modal = document.getElementById('productDetailModal');
+        const content = document.getElementById('productDetailContent');
+        content.classList.add('scale-95');
+        setTimeout(() => modal.classList.remove('show'), 200);
+    }
+
+    document.querySelectorAll('.js-product-detail').forEach(function (el) {
+        el.addEventListener('click', function () {
+            try {
+                openProductDetail(JSON.parse(el.dataset.detail));
+            } catch (e) {
+                console.error('detail payload tidak valid', e);
+            }
+        });
+    });
+</script>
 
 <script>
     feather.replace({ 'stroke-width': 2 });

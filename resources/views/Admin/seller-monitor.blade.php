@@ -158,19 +158,19 @@ $menu_items = [
                 <div class="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5"><i data-feather="user" class="w-3 h-3"></i>{{ $s->owner }}</div>
                 <div class="font-mono text-[9px] text-gray-400 mt-2">{{ $s->id }}</div>
 
-                <!-- Metrics -->
-                <div class="grid grid-cols-3 gap-[1px] bg-gray-100 border border-gray-100 rounded-xl my-5 overflow-hidden">
-                    <div class="bg-gray-50 py-4 text-center overflow-hidden">
-                        <div class="text-[13px] font-bold text-gray-900 leading-none">{{ $s->transactions }}</div>
-                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Orders</div>
+                <!-- Metrics: label kiri, nilai kanan — selalu sejajar di lebar apa pun -->
+                <div class="bg-gray-50 border border-gray-100 rounded-xl my-5 divide-y divide-gray-100 overflow-hidden">
+                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Orders</span>
+                        <span class="text-[12px] font-bold text-gray-900 tabular-nums leading-none">{{ number_format((int) $s->transactions, 0, ',', '.') }}</span>
                     </div>
-                    <div class="bg-gray-50 py-4 text-center overflow-hidden">
-                        <div class="text-[13px] font-bold text-gray-900 leading-none">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
-                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Revenue</div>
+                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue</span>
+                        <span class="text-[12px] font-bold text-gray-900 tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</span>
                     </div>
-                    <div class="bg-gray-50 py-4 text-center overflow-hidden">
-                        <div class="text-[13px] font-bold text-gray-900 leading-none">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
-                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1">Admin Fee</div>
+                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Admin Fee</span>
+                        <span class="text-[12px] font-bold text-primary tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
@@ -187,7 +187,6 @@ $menu_items = [
             <div class="border-t border-gray-100 p-4 bg-gray-50 flex items-center justify-between rounded-b-xl">
                 <div class="flex flex-col gap-1">
                     <div class="text-[10px] text-gray-500 font-semibold flex items-center gap-1.5"><i data-feather="calendar" class="w-3 h-3"></i> Joined {{ $s->joined }}</div>
-                    <div class="text-[11px] font-bold text-primary">Rp {{ number_format($s->admin_fee, 0, ',', '.') }} fee</div>
                 </div>
                 <div class="flex gap-2">
                     <a href="{{ route('admin.seller-detail', ['id' => $s->db_id]) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-bold bg-primary text-white hover:bg-[#8A5229] transition-colors">

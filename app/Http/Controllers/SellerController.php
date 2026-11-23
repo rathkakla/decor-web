@@ -394,18 +394,28 @@ class SellerController extends Controller
         $seller = Seller::where('user_id', Auth::id())->first();
 
         $request->validate([
+            'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0|max:1000000000',
+            'stock' => 'nullable|integer|min:0',
         ], [
             'price.max' => 'Harga produk tidak valid (terlalu mahal). Maksimal Rp 1.000.000.000',
             'price.min' => 'Harga produk tidak boleh kurang dari 0',
         ]);
 
-        // Jika seller sudah punya minimal 1 produk yang disetujui (approved),
-        // maka produk-produk berikutnya otomatis approved tanpa harus menunggu kurasi lagi.
-        $hasApprovedProduct = Product::where('seller_id', $seller->id)
-            ->where('status', 'approved')
-            ->exists();
-        $initialStatus = $hasApprovedProduct ? 'approved' : 'pending';
+        // Alur validasi:
+        // - Produk BARU (belum pernah diajukan seller ini) => status "pending", wajib kurasi admin.
+        // - Produk yang SAMA sudah pernah diajukan dan sudah lolos kurasi (approved)
+        //   => tidak divalidasi ulang, langsung mengikuti status approved.
+        //   Produk duplikat yang sebelumnya masih pending/ditolak tetap "pending".
+        $productName = trim((string) $request->name);
+        $existingProduct = Product::where('seller_id', $seller->id)
+            ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower($productName)])
+            ->orderByRaw("CASE status WHEN 'approved' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END")
+            ->first();
+
+        $initialStatus = ($existingProduct && $existingProduct->status === 'approved')
+            ? 'approved'
+            : 'pending';
 
         // 1. Simpan data produk utama
         $product = Product::create([
@@ -434,7 +444,11 @@ class SellerController extends Controller
             }
         }
 
-        return redirect()->route('seller.products.index')->with('success', 'Produk ' . $product->name . ' berhasil ditambahkan!');
+        $message = ($existingProduct && $existingProduct->status === 'approved')
+            ? 'Produk ' . $product->name . ' sudah pernah lolos kurasi, sehingga langsung dipublikasikan tanpa validasi ulang.'
+            : 'Produk ' . $product->name . ' berhasil ditambahkan dan menunggu validasi admin.';
+
+        return redirect()->route('seller.products.index')->with('success', $message);
     }
 
     // EDIT: Form Ubah
@@ -480,6 +494,9 @@ class SellerController extends Controller
             'description' => $request->description,
             'price' => $request->price,
             'stock' => $request->stock,
+            // Produk yang pernah ditolak wajib ditinjau ulang setelah diperbaiki seller.
+            // Produk pending tetap pending, produk approved tidak perlu validasi ulang.
+            'status' => $product->status === 'rejected' ? 'pending' : $product->status,
         ]);
 
         // Hapus gambar yang dipilih untuk dihapus

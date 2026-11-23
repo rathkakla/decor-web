@@ -319,7 +319,7 @@ class AdminController extends Controller
 
     public function sellerDetail($id)
     {
-        $seller = Seller::with(['user', 'products.images'])->findOrFail($id);
+        $seller = Seller::with(['user', 'products.images', 'products.category'])->findOrFail($id);
 
         $orders = \App\Models\Order::whereHas('orderItems.product', function ($q) use ($seller) {
             $q->where('seller_id', $seller->id);
@@ -354,6 +354,68 @@ class AdminController extends Controller
         $isWarning = ($designer->status === 'approved' && $completedCount === 0) || in_array($designer->status, ['suspended', 'warning']);
 
         return view('Admin.designer-detail', compact('designer', 'isWarning'));
+    }
+
+    /**
+     * Hapus produk milik seller langsung dari panel admin.
+     * Produk yang sudah punya riwayat pesanan tidak boleh dihapus agar
+     * data transaksi lama tidak ikut terhapus (FK order_items onDelete cascade).
+     */
+    public function deleteProduct($id)
+    {
+        $product = \App\Models\Product::with('images')->findOrFail($id);
+
+        if (\App\Models\OrderItem::where('product_id', $product->id)->exists()) {
+            return back()->with('error', 'Produk "' . $product->name . '" sudah memiliki riwayat pesanan sehingga tidak dapat dihapus. Gunakan status kurasi untuk menyembunyikannya.');
+        }
+
+        foreach ($product->images as $img) {
+            $relative = $this->storageRelativePath($img->img_url);
+            if ($relative !== '') {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($relative);
+            }
+        }
+
+        $productName = $product->name;
+        $product->delete();
+
+        return back()->with('success', 'Produk "' . $productName . '" berhasil dihapus dari katalog seller.');
+    }
+
+    /**
+     * Hapus karya portofolio desainer dari panel admin.
+     */
+    public function deletePortfolio($id)
+    {
+        $portfolio = \App\Models\DesignerPortfolio::findOrFail($id);
+
+        $relative = $this->storageRelativePath($portfolio->image_url);
+        if ($relative !== '') {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($relative);
+        }
+
+        $title = $portfolio->title ?: ('#' . $portfolio->id);
+        $portfolio->delete();
+
+        return back()->with('success', 'Karya "' . $title . '" berhasil dihapus dari portofolio desainer.');
+    }
+
+    /**
+     * Ubah URL gambar (absolut/relatif) menjadi path relatif pada disk "public".
+     */
+    private function storageRelativePath(?string $url): string
+    {
+        if (! $url) {
+            return '';
+        }
+
+        $path = preg_match('#^https?://#i', $url)
+            ? (parse_url($url, PHP_URL_PATH) ?: '')
+            : $url;
+
+        $path = ltrim($path, '/');
+
+        return preg_replace('#^storage/#', '', $path) ?? '';
     }
 
     /**

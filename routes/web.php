@@ -322,6 +322,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/product-validation', [App\Http\Controllers\AdminController::class, 'productValidation'])->name('admin.product.validation');
     Route::post('/product-validation/{id}/approve', [App\Http\Controllers\AdminController::class, 'approveProduct'])->name('admin.product.approve');
     Route::post('/product-validation/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectProduct'])->name('admin.product.reject');
+    Route::delete('/product/{id}', [App\Http\Controllers\AdminController::class, 'deleteProduct'])->name('admin.product.delete');
     
     // Account Validation
     Route::get('/account-validation', [App\Http\Controllers\AdminController::class, 'accountValidation'])->name('admin.account.validation');
@@ -355,6 +356,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/portofolio-validation', [App\Http\Controllers\AdminController::class, 'portfolioValidation'])->name('admin.portfolio-validation');
     Route::post('/portofolio-validation/{id}/approve', [App\Http\Controllers\AdminController::class, 'approvePortfolio'])->name('admin.portfolio.approve');
     Route::post('/portofolio-validation/{id}/reject', [App\Http\Controllers\AdminController::class, 'rejectPortfolio'])->name('admin.portfolio.reject');
+    Route::delete('/portfolio/{id}', [App\Http\Controllers\AdminController::class, 'deletePortfolio'])->name('admin.portfolio.delete');
 
     Route::get('/settings', function () {
         return view('Admin.settings');
