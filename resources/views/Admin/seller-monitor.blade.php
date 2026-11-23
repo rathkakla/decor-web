@@ -115,7 +115,7 @@ $menu_items = [
     </div>
 
     <!-- Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="sellerGrid">
+    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6" id="sellerGrid">
         @foreach ($sellers as $s)
         @php
             $sl        = strtolower($s->status);
@@ -158,19 +158,19 @@ $menu_items = [
                 <div class="text-[11px] text-gray-500 font-semibold flex items-center gap-1.5"><i data-feather="user" class="w-3 h-3"></i>{{ $s->owner }}</div>
                 <div class="font-mono text-[9px] text-gray-400 mt-2">{{ $s->id }}</div>
 
-                <!-- Metrics: label kiri, nilai kanan — selalu sejajar di lebar apa pun -->
-                <div class="bg-gray-50 border border-gray-100 rounded-xl my-5 divide-y divide-gray-100 overflow-hidden">
-                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Orders</span>
-                        <span class="text-[12px] font-bold text-gray-900 tabular-nums leading-none">{{ number_format((int) $s->transactions, 0, ',', '.') }}</span>
+                <!-- Metrics: 3 kolom menyamping, nilai di atas label -->
+                <div class="bg-gray-50 border border-gray-100 rounded-xl my-5 grid grid-cols-3 overflow-hidden">
+                    <div class="px-1.5 py-3 text-center min-w-0">
+                        <div class="text-[10px] xl:text-[13px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">{{ number_format((int) $s->transactions, 0, ',', '.') }}</div>
+                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Orders</div>
                     </div>
-                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Revenue</span>
-                        <span class="text-[12px] font-bold text-gray-900 tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</span>
+                    <div class="px-1.5 py-3 text-center min-w-0 border-x border-gray-100">
+                        <div class="text-[10px] xl:text-[13px] font-extrabold text-gray-900 tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->total_sales, 0, ',', '.') }}</div>
+                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Revenue</div>
                     </div>
-                    <div class="flex items-center justify-between gap-3 px-4 py-2.5">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Admin Fee</span>
-                        <span class="text-[12px] font-bold text-primary tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</span>
+                    <div class="px-1.5 py-3 text-center min-w-0">
+                        <div class="text-[10px] xl:text-[13px] font-extrabold text-primary tabular-nums leading-none whitespace-nowrap">Rp {{ number_format($s->admin_fee, 0, ',', '.') }}</div>
+                        <div class="text-[8px] xl:text-[9px] font-black text-gray-500 uppercase tracking-[0.08em] mt-1.5">Admin Fee</div>
                     </div>
                 </div>
 
