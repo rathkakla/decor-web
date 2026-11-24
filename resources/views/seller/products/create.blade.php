@@ -215,9 +215,10 @@
             });
         }
 
-        // Perkecil foto besar di browser supaya tidak ditolak limit upload server.
+        // Perkecil foto besar di browser supaya tidak ditolak limit upload server (2 MB per file).
         async function compressImage(file) {
-            const needsCompression = file.size > 1500000 || /image\/png/i.test(file.type);
+            const targetSize = 700 * 1024;
+            const needsCompression = file.size > targetSize || /image\/png/i.test(file.type);
 
             if (!needsCompression) {
                 return file;
@@ -225,21 +226,36 @@
 
             try {
                 const image = await loadImageElement(file);
-                const maxDimension = 1600;
-                const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
-                const width = Math.max(1, Math.round(image.width * scale));
-                const height = Math.max(1, Math.round(image.height * scale));
+                let maxDimension = 1600;
+                let quality = 0.82;
+                let blob = null;
 
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
+                for (let attempt = 0; attempt < 4; attempt++) {
+                    const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+                    const width = Math.max(1, Math.round(image.width * scale));
+                    const height = Math.max(1, Math.round(image.height * scale));
 
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, width, height);
-                ctx.drawImage(image, 0, 0, width, height);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
 
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(image, 0, 0, width, height);
+
+                    blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+
+                    if (blob && blob.size <= targetSize) {
+                        break;
+                    }
+
+                    quality = Math.max(0.55, quality - 0.1);
+
+                    if (attempt >= 2) {
+                        maxDimension = 1200;
+                    }
+                }
 
                 if (!blob || blob.size >= file.size) {
                     return file;
