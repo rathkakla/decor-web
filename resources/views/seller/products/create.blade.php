@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor Seller - Tambah Produk Baru</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -159,7 +160,7 @@
             <div class="h-32"></div>
 
             <div id="fixed-bottom-bar" class="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-100 px-8 py-4 flex justify-between items-center z-50 sidebar-transition">
-                <div class="flex items-center space-x-2 text-[10px] font-bold text-orange-500 uppercase tracking-widest italic">
+                <div class="bar-hint flex items-center space-x-2 text-[10px] font-bold text-orange-500 uppercase tracking-widest italic">
                     <i class="fa-solid fa-circle-exclamation"></i>
                     <span>Produk akan tayang setelah disubmit.</span>
                 </div>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor Seller - Pengaturan Toko</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -208,7 +209,7 @@
                 </div>
             </div>
 
-            @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
+            @include('partials.footer')
 
             <div id="fixed-action-bar" class="fixed bottom-0 left-64 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 px-10 py-5 flex items-center justify-between z-50 sidebar-transition">
                 <div class="flex items-center space-x-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor Seller - Daftar Pesanan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -24,7 +25,7 @@
   <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
     @include('seller.partials.header', ['title' => 'Order Management'])
 
-    <div class="p-8 space-y-8 flex-1">
+    <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
         <!-- ALERT PESAN SUKSES -->
         @if(session('success'))
             <div class="bg-green-50 text-green-600 p-4 rounded-xl text-sm font-bold border border-green-100 flex items-center">
@@ -32,17 +33,18 @@
             </div>
         @endif
 
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-                <h2 class="text-3xl font-bold tracking-tight text-gray-800">Daftar Pesanan</h2>
-                <p class="text-xs text-gray-400 mt-1 font-medium italic">Manage and track your customer orders with precision.</p>
+                <div class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Order Management</div>
+                <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Daftar Pesanan</h2>
+                <p class="text-xs text-gray-500 mt-1">Kelola dan pantau pesanan customer dengan rapi.</p>
             </div>
-            <form action="{{ route('seller.orders') }}" method="GET" class="relative w-1/3">
+            <form action="{{ route('seller.orders') }}" method="GET" class="relative w-full sm:w-64 lg:w-72">
                 @if($currentStatus !== 'all')
                     <input type="hidden" name="status" value="{{ $currentStatus }}">
                 @endif
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search orders..." class="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-xs focus:border-primary outline-none transition-all">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari pesanan..." class="w-full h-10 bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-xs font-medium text-gray-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
                 @if(request('search'))
                     <a href="{{ route('seller.orders', ['status' => $currentStatus]) }}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500">
                         <i class="fa-solid fa-xmark text-xs"></i>
@@ -52,7 +54,7 @@
         </div>
 
         <!-- NAVIGASI FILTER -->
-        <div class="flex space-x-8 border-b border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-8 overflow-x-auto whitespace-nowrap hide-scrollbar">
+        <div class="flex space-x-8 border-b border-gray-200 text-[10px] font-bold uppercase tracking-widest text-gray-400 overflow-x-auto whitespace-nowrap hide-scrollbar">
             <a href="{{ route('seller.orders', ['status' => 'all']) }}" class="pb-4 transition-colors {{ $currentStatus == 'all' ? 'border-b-2 border-primary text-primary' : 'hover:text-gray-800' }}">Semua</a>
             <a href="{{ route('seller.orders', ['status' => 'pending']) }}" class="pb-4 transition-colors {{ $currentStatus == 'pending' ? 'border-b-2 border-primary text-primary' : 'hover:text-gray-800' }}">Pending</a>
             <a href="{{ route('seller.orders', ['status' => 'waiting_verification']) }}" class="pb-4 transition-colors {{ $currentStatus == 'waiting_verification' ? 'border-b-2 border-primary text-primary' : 'hover:text-gray-800' }}">Menunggu Verifikasi</a>
@@ -74,81 +76,113 @@
                     'cancelled' => 'bg-red-100 text-red-600',
                     default => 'bg-gray-100 text-gray-600',
                 };
+                $statusLabel = match($order->status) {
+                    'pending' => 'Pending',
+                    'waiting_verification' => 'Menunggu Verifikasi',
+                    'paid' => 'Dibayar',
+                    'shipped' => 'Dikirim',
+                    'completed' => 'Selesai',
+                    'cancelled' => 'Dibatalkan',
+                    default => ucfirst(str_replace('_', ' ', $order->status)),
+                };
+                $statusAccent = match($order->status) {
+                    'pending' => 'border-l-yellow-400',
+                    'waiting_verification' => 'border-l-orange-400',
+                    'paid' => 'border-l-blue-400',
+                    'shipped' => 'border-l-indigo-400',
+                    'completed' => 'border-l-green-500',
+                    'cancelled' => 'border-l-red-400',
+                    default => 'border-l-gray-300',
+                };
+                $orderNumber = $order->return_code
+                    ? '#DEC-' . str_replace('RET-', '', $order->return_code) . '-RET'
+                    : '#ORD-' . $order->id;
+                $neutralIconBtn = 'w-9 h-9 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800 inline-flex items-center justify-center transition-all';
+                $primaryIconBtn = 'w-9 h-9 rounded-lg border border-primary/20 bg-primary/10 text-primary hover:bg-primary hover:text-white inline-flex items-center justify-center transition-all';
+                $orangeIconBtn = 'w-9 h-9 rounded-lg border border-orange-200 bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white inline-flex items-center justify-center transition-all';
+                $tooltipClass = 'pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover/action:opacity-100 group-focus-within/action:opacity-100 z-20 shadow-sm';
             @endphp
 
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow group">
-                <div class="flex items-center space-x-6">
-                    <div class="relative">
-                        <img src="{{ $order->orderItems->first()->product->images->first()->img_url ?? 'https://via.placeholder.com/150' }}" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all border border-gray-100">
+            <div class="bg-white p-5 sm:p-6 rounded-xl border border-gray-100 border-l-4 {{ $statusAccent }} shadow-sm hover:shadow-md transition-shadow flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 group">
+                <div class="flex items-start gap-4 sm:gap-6 min-w-0">
+                    <div class="relative shrink-0">
+                        <img src="{{ $order->orderItems->first()->product->images->first()->img_url ?? 'https://via.placeholder.com/150' }}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all border border-gray-100">
                         @if($order->status == 'completed')
                         <div class="absolute -bottom-2 -right-2 bg-white p-1 rounded-lg shadow-sm">
                             <i class="fa-solid fa-circle-check text-[10px] text-green-500"></i>
                         </div>
                         @endif
                     </div>
-                    
-                    <div class="space-y-1">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-sm font-bold text-gray-700">
-                                @if($order->return_code)
-                                    #DEC-{{ str_replace('RET-', '', $order->return_code) }}-RET
-                                @else
-                                    #ORD-{{ $order->id }}
-                                @endif
-                            </span>
-                            <span class="{{ $badgeClass }} text-[8px] font-black px-2 py-0.5 rounded tracking-widest uppercase">{{ $order->status }}</span>
+
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <span class="text-sm font-bold text-gray-700">{{ $orderNumber }}</span>
+                            <span class="{{ $badgeClass }} text-[8px] font-bold px-2 py-0.5 rounded tracking-widest uppercase whitespace-nowrap">{{ $statusLabel }}</span>
                         </div>
-                        <h3 class="text-lg font-black text-gray-800">{{ $order->customer->user->full_name ?? 'Customer' }}</h3>
-                        <div class="flex items-center space-x-4 text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                        <h3 class="text-base sm:text-lg font-bold text-gray-800 truncate">{{ $order->customer->user->full_name ?? 'Customer' }}</h3>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-gray-400 font-bold uppercase tracking-tight">
                             <span><i class="fa-regular fa-calendar mr-1"></i> {{ $order->created_at->format('d M Y') }}</span>
                             <span><i class="fa-solid fa-box mr-1"></i> {{ $order->orderItems->sum('quantity') }} Items</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-right space-y-4">
-                    <div>
-                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest text-right">Total Amount</p>
-                        <p class="text-xl font-black leading-none mt-1 text-gray-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
+                <div class="flex flex-col sm:flex-row sm:items-center lg:flex-col lg:items-end justify-between gap-4 lg:gap-3">
+                    <div class="sm:text-right">
+                        <p class="text-[8px] text-gray-400 font-bold uppercase tracking-widest sm:text-right">Total Amount</p>
+                        <p class="text-xl font-bold leading-none mt-1 text-gray-800">Rp {{ number_format($order->total_price, 0, ',', '.') }}</p>
                     </div>
-                    <div class="flex space-x-3 justify-end">
+                    <div class="flex flex-wrap items-center gap-2 lg:justify-end">
                         @if($order->status == 'waiting_verification')
-                            <a href="{{ route('seller.orders.show', $order->id) }}" 
-                                class="px-5 py-2.5 bg-orange-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:opacity-90 transition-all">
-                                <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Validasi Pembayaran
-                            </a>
+                            <div class="relative group/action">
+                                <a href="{{ route('seller.orders.show', $order->id) }}" class="{{ $orangeIconBtn }}" aria-label="Validasi Pembayaran" title="Validasi Pembayaran">
+                                    <i class="fa-solid fa-file-invoice-dollar text-xs"></i>
+                                </a>
+                                <span class="{{ $tooltipClass }}">Validasi Pembayaran</span>
+                            </div>
                         @elseif($order->status == 'paid')
-                            <!-- FIX: Gunakan route name dan kirim URL penuh ke fungsi JS -->
-                            <button onclick="openStatusModal('{{ route('seller.orders.update-status', $order->id) }}')" 
-                                class="px-5 py-2.5 bg-[#B5733A] text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
-                                Proses & Kirim
-                            </button>
+                            <div class="relative group/action">
+                                <button type="button" onclick="openStatusModal('{{ route('seller.orders.update-status', $order->id) }}')" class="{{ $primaryIconBtn }}" aria-label="Proses & Kirim" title="Proses & Kirim">
+                                    <i class="fa-solid fa-truck-fast text-xs"></i>
+                                </button>
+                                <span class="{{ $tooltipClass }}">Proses & Kirim</span>
+                            </div>
                         @elseif($order->status == 'shipped')
-                            <!-- FIX: Gunakan route name yang sama -->
-                            <button onclick="openStatusModal('{{ route('seller.orders.update-status', $order->id) }}')" 
-                                class="px-5 py-2.5 bg-indigo-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20">
-                                Update Status
-                            </button>
+                            <div class="relative group/action">
+                                <button type="button" onclick="openStatusModal('{{ route('seller.orders.update-status', $order->id) }}')" class="{{ $primaryIconBtn }}" aria-label="Update Status" title="Update Status">
+                                    <i class="fa-solid fa-rotate text-xs"></i>
+                                </button>
+                                <span class="{{ $tooltipClass }}">Update Status</span>
+                            </div>
                         @endif
-                        <a href="{{ route('invoice.download', $order->id) }}" target="_blank" class="px-5 py-2.5 border border-[#B5733A] text-[#B5733A] bg-amber-50/30 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all flex items-center">
-                            <i class="fa-solid fa-file-invoice mr-2"></i> Invoice
-                        </a>
-                        <a href="{{ route('seller.orders.show', $order->id) }}" class="px-5 py-2.5 border border-gray-200 text-gray-800 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-all">Detail</a>
+                        <div class="relative group/action">
+                            <a href="{{ route('invoice.download', $order->id) }}" target="_blank" class="{{ $neutralIconBtn }}" aria-label="Invoice" title="Invoice">
+                                <i class="fa-solid fa-file-invoice text-xs"></i>
+                            </a>
+                            <span class="{{ $tooltipClass }}">Invoice</span>
+                        </div>
+                        <div class="relative group/action">
+                            <a href="{{ route('seller.orders.show', $order->id) }}" class="{{ $neutralIconBtn }}" aria-label="Detail" title="Detail">
+                                <i class="fa-solid fa-eye text-xs"></i>
+                            </a>
+                            <span class="{{ $tooltipClass }}">Detail</span>
+                        </div>
                     </div>
                 </div>
             </div>
             @empty
-                <div class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
-                    <p class="text-gray-400 font-bold italic">Belum ada pesanan masuk.</p>
+                <div class="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-100">
+                    <p class="text-gray-400 font-bold">Belum ada pesanan masuk.</p>
                 </div>
             @endforelse
+            @include('partials.pagination', ['paginator' => $orders, 'label' => 'pesanan', 'standalone' => true])
         </div>
     </div>
 </main>
 
     <!-- MODAL UPDATE STATUS -->
     <div id="statusModal" class="fixed inset-0 bg-black/50 z-[60] hidden items-center justify-center backdrop-blur-sm">
-        <div class="bg-white w-96 rounded-[32px] p-8 space-y-6 shadow-2xl">
+        <div class="bg-white w-96 rounded-xl p-8 space-y-6 shadow-2xl">
             <div class="text-center">
                 <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                     <i class="fa-solid fa-truck-fast"></i>

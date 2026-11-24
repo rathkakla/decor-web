@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor Seller - Detail Pesanan @if($order->return_code) #DEC-{{ str_replace('RET-', '', $order->return_code) }}-RET @else #DEC-{{ $order->id }} @endif</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -188,7 +189,7 @@
             </div>
         </div>
 
-        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
+        @include('partials.footer')
     </main>
 
     <script>

@@ -111,6 +111,45 @@ class SellerController extends Controller
         ));
     }
 
+    private function buildReportQuery(Request $request, Seller $seller, string $startDate, string $endDate)
+    {
+        $query = OrderItem::whereHas('product', function ($q) use ($seller) {
+            $q->where('seller_id', $seller->id);
+        })->whereHas('order', function ($q) use ($startDate, $endDate) {
+            $q->where('status', 'completed')
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        })->with(['order.customer.user', 'product.category']);
+
+        if ($request->filled('category_id')) {
+            $categoryId = (int) $request->input('category_id');
+            $query->whereHas('product', function ($q) use ($categoryId) {
+                $q->where('category_id', $categoryId);
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            $cleanId = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $cleanId) {
+                $q->whereHas('product', function ($qProd) use ($search) {
+                    $qProd->where('name', 'like', "%{$search}%");
+                })->orWhereHas('order', function ($qOrder) use ($search, $cleanId) {
+                    $qOrder->where('return_code', 'like', "%{$search}%")
+                        ->orWhereHas('customer.user', function ($qUser) use ($search) {
+                            $qUser->where('full_name', 'like', "%{$search}%");
+                        });
+
+                    if ($cleanId !== '') {
+                        $qOrder->orWhere('id', (int) $cleanId);
+                    }
+                });
+            });
+        }
+
+        return $query;
+    }
+
     public function reportIndex(Request $request)
     {
         if ($request->has('start_date') && $request->has('end_date')) {
@@ -126,21 +165,34 @@ class SellerController extends Controller
 
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', now()->endOfMonth()->toDateString());
+        $search = $request->get('search', '');
+        $categoryId = $request->get('category_id', '');
 
-        $transactions = OrderItem::whereHas('product', function ($q) use ($seller) {
-            $q->where('seller_id', $seller->id);
-        })->whereHas('order', function ($q) use ($startDate, $endDate) {
-            $q->where('status', 'completed')
-                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-        })->with(['order', 'product.category'])
-            ->latest()
-            ->get();
+        if ($startDate > $endDate) {
+            return redirect()->route('seller.reports', array_filter([
+                'start_date' => $endDate,
+                'end_date' => $endDate,
+                'search' => $search,
+                'category_id' => $categoryId,
+            ]))->with('warning', 'Periode tidak valid: Dari Tanggal tidak boleh melebihi Sampai Tanggal. Tanggal telah disesuaikan.');
+        }
 
-        $totalRevenue = $transactions->sum(fn($item) => $item->price * $item->quantity);
+        $categoryIds = \App\Models\Product::where('seller_id', $seller->id)
+            ->whereNotNull('category_id')
+            ->distinct()
+            ->pluck('category_id');
+        $categories = \App\Models\Category::whereIn('id', $categoryIds)->orderBy('name')->get();
+
+        $baseQuery = $this->buildReportQuery($request, $seller, $startDate, $endDate);
+
+        $allTransactions = (clone $baseQuery)->latest()->get();
+        $transactions = (clone $baseQuery)->latest()->paginate(5)->withQueryString();
+
+        $totalRevenue = $allTransactions->sum(fn($item) => $item->price * $item->quantity);
 
         $newOrdersCount = 0; // Transactions are now filtered to completed only
 
-        $orderCount = $transactions->groupBy('order_id')->count();
+        $orderCount = $allTransactions->groupBy('order_id')->count();
         $averageOrder = $orderCount > 0 ? $totalRevenue / $orderCount : 0;
 
         return view('seller.reports', compact(
@@ -148,33 +200,30 @@ class SellerController extends Controller
             'totalRevenue',
             'newOrdersCount',
             'averageOrder',
+            'orderCount',
             'startDate',
-            'endDate'
+            'endDate',
+            'categories',
+            'search',
+            'categoryId'
         ));
     }
 
     public function downloadReport(Request $request)
     {
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $request->validate([
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
-            ], [
-                'end_date.after_or_equal' => 'Periode tidak valid: Sampai Tanggal tidak boleh mendahului Dari Tanggal.',
-            ]);
-        }
-
         $seller = Seller::where('user_id', Auth::id())->first();
 
         $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', now()->endOfMonth()->toDateString());
+        if ($startDate > $endDate) {
+            [$startDate, $endDate] = [$endDate, $startDate];
+        }
+        $search = trim((string) $request->get('search', ''));
+        $selectedCategoryName = $request->filled('category_id')
+            ? \App\Models\Category::where('id', (int) $request->input('category_id'))->value('name')
+            : null;
 
-        $transactions = OrderItem::whereHas('product', function ($q) use ($seller) {
-            $q->where('seller_id', $seller->id);
-        })->whereHas('order', function ($q) use ($startDate, $endDate) {
-            $q->where('status', 'completed')
-                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-        })->with(['order', 'product.category'])
+        $transactions = $this->buildReportQuery($request, $seller, $startDate, $endDate)
             ->latest()
             ->get();
 
@@ -185,7 +234,9 @@ class SellerController extends Controller
             'totalRevenue',
             'startDate',
             'endDate',
-            'seller'
+            'seller',
+            'search',
+            'selectedCategoryName'
         ));
 
         return $pdf->download('Sales_Report_' . $startDate . '_to_' . $endDate . '.pdf');
@@ -376,7 +427,7 @@ class SellerController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $products = $query->latest()->get();
+        $products = $query->latest()->paginate(5)->withQueryString();
         return view('seller.products.index', compact('products'));
     }
 
@@ -697,7 +748,7 @@ class SellerController extends Controller
             });
         }
 
-        $orders = $query->get();
+        $orders = $query->paginate(5)->withQueryString();
         $currentStatus = $request->query('status', 'all');
 
         return view('seller.orders.index', compact('orders', 'currentStatus'));
@@ -741,7 +792,7 @@ class SellerController extends Controller
     public function printInvoice($id)
     {
         $order = Order::with(['customer.user', 'orderItems.product'])->findOrFail($id);
-        return view('pdf.invoice', compact('order'));
+        return view('seller.orders.invoice', compact('order'));
     }
 
     public function downloadPdfInvoice($id)
@@ -766,20 +817,37 @@ class SellerController extends Controller
     {
         $seller = Seller::where('user_id', Auth::id())->first();
 
-        $allReturns = \App\Models\ProductReturn::with(['order.customer.user', 'order.orderItems.product'])
+        $baseQuery = \App\Models\ProductReturn::with(['order.customer.user', 'order.orderItems.product'])
             ->whereHas('order.orderItems.product', function ($query) use ($seller) {
                 $query->where('seller_id', $seller->id);
-            })
-            ->latest()
-            ->get();
+            });
+
+        $allReturns = (clone $baseQuery)->latest()->get();
 
         $statusFilter = $request->query('status');
-        $returns = $allReturns;
+        $returnsQuery = (clone $baseQuery)->latest();
+
         if ($statusFilter == 'pending') {
-            $returns = $allReturns->where('status', 'pending');
+            $returnsQuery->where('status', 'pending');
         } elseif ($statusFilter == 'resolved') {
-            $returns = $allReturns->whereIn('status', ['approved', 'rejected']);
+            $returnsQuery->whereIn('status', ['approved', 'rejected']);
         }
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            $cleanId = preg_replace('/[^0-9]/', '', $search);
+            $returnsQuery->where(function ($q) use ($search, $cleanId) {
+                $q->where('reason', 'like', "%{$search}%")
+                    ->orWhereHas('order.customer.user', function ($qUser) use ($search) {
+                        $qUser->where('full_name', 'like', "%{$search}%");
+                    });
+                if ($cleanId !== '') {
+                    $q->orWhere('order_id', (int) $cleanId);
+                }
+            });
+        }
+
+        $returns = $returnsQuery->paginate(5)->withQueryString();
 
         $counts = [
             'all' => $allReturns->count(),
@@ -858,29 +926,44 @@ class SellerController extends Controller
         return redirect()->route('seller.complaint.index')->with('success', 'Return request has been rejected.');
     }
 
-    public function reviewIndex()
+    public function reviewIndex(Request $request)
     {
         $seller = Seller::where('user_id', Auth::id())->first();
 
         // Ambil semua review dari produk milik seller ini
-        $reviews = \App\Models\Review::with(['product.images', 'customer.user'])
+        $baseQuery = \App\Models\Review::with(['product.images', 'customer.user'])
             ->whereHas('product', function ($q) use ($seller) {
                 $q->where('seller_id', $seller->id);
-            })
-            ->latest()
-            ->get();
+            });
 
-        // Hitung Rating Rata-rata Seller
-        $averageRating = $reviews->avg('rating') ?: 0;
-        $totalReviews = $reviews->count();
+        $allReviews = (clone $baseQuery)->latest()->get();
+
+        $filteredQuery = (clone $baseQuery);
+        if ($request->filled('rating')) {
+            $filteredQuery->where('rating', (int) $request->input('rating'));
+        }
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            $filteredQuery->where(function ($q) use ($search) {
+                $q->where('comment', 'like', "%{$search}%")
+                    ->orWhereHas('product', fn($qp) => $qp->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('customer.user', fn($qc) => $qc->where('full_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $reviews = $filteredQuery->latest()->paginate(5)->withQueryString();
+
+        // Hitung Rating Rata-rata Seller dari seluruh review
+        $averageRating = $allReviews->avg('rating') ?: 0;
+        $totalReviews = $allReviews->count();
 
         // Data untuk Bar Rating (5 star, 4 star, dll)
         $ratingCounts = [
-            5 => $reviews->where('rating', 5)->count(),
-            4 => $reviews->where('rating', 4)->count(),
-            3 => $reviews->where('rating', 3)->count(),
-            2 => $reviews->where('rating', 2)->count(),
-            1 => $reviews->where('rating', 1)->count(),
+            5 => $allReviews->where('rating', 5)->count(),
+            4 => $allReviews->where('rating', 4)->count(),
+            3 => $allReviews->where('rating', 3)->count(),
+            2 => $allReviews->where('rating', 2)->count(),
+            1 => $allReviews->where('rating', 1)->count(),
         ];
 
         // Sentiment Score Logic
@@ -897,7 +980,7 @@ class SellerController extends Controller
             $sentimentScore = 'Poor';
 
         // Response Rate Logic
-        $repliedReviews = $reviews->whereNotNull('reply')->count();
+        $repliedReviews = $allReviews->whereNotNull('reply')->count();
         $responseRate = $totalReviews > 0 ? ($repliedReviews / $totalReviews) * 100 : 0;
 
         return view('seller.reviews', compact('reviews', 'averageRating', 'totalReviews', 'ratingCounts', 'sentimentScore', 'responseRate'));
@@ -984,10 +1067,37 @@ class SellerController extends Controller
     // 5. KELOLA VOUCHER
     // ==========================================
 
-    public function voucherIndex()
+    public function voucherIndex(Request $request)
     {
         $seller = Seller::where('user_id', Auth::id())->first();
-        $vouchers = Voucher::where('seller_id', $seller->id)->latest()->get();
+        $query = Voucher::where('seller_id', $seller->id);
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $today = now()->toDateString();
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->whereDate('start_date', '<=', $today)
+                    ->whereDate('end_date', '>=', $today)
+                    ->where('quota', '>', 0);
+            } elseif ($status === 'scheduled') {
+                $query->whereDate('start_date', '>', $today);
+            } elseif ($status === 'ended') {
+                $query->where(function ($q) use ($today) {
+                    $q->whereDate('end_date', '<', $today)
+                        ->orWhere('quota', '<=', 0);
+                });
+            }
+        }
+
+        $vouchers = $query->latest()->paginate(5)->withQueryString();
         return view('seller.vouchers.index', compact('vouchers'));
     }
 

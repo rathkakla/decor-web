@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor Seller Portal - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -24,8 +25,12 @@
     <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
     @include('seller.partials.header', ['title' => 'Overview'])
 
-        <div class="p-8 space-y-8 flex-1">
-            <h2 class="text-2xl font-bold">Welcome back, <span class="text-primary">{{ Auth::user()->full_name }}!</span></h2>
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
+            <div>
+                <div class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Seller Overview</div>
+                <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Welcome back, <span class="text-primary">{{ Auth::user()->full_name }}!</span></h2>
+                <p class="text-xs text-gray-500 mt-1">Ringkasan performa toko dan pesanan terbaru Anda.</p>
+            </div>
 
             @if($seller->status === 'pending')
             <div class="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-xl shadow-sm mb-6">
@@ -53,48 +58,54 @@
             </div>
             @endif
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-wallet"></i></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div class="bg-white p-5 sm:p-6 rounded-xl border border-gray-100 shadow-sm min-w-0 relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-green-600"></div>
+                    <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center mb-4"><i class="fa-solid fa-wallet"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimated Revenue</p>
-                    <h3 class="text-2xl font-bold mt-1">Rp {{ number_format($estimatedRevenue, 0, ',', '.') }}</h3>
+                    <h3 class="text-xl sm:text-2xl font-bold mt-1 break-words">Rp {{ number_format($estimatedRevenue, 0, ',', '.') }}</h3>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div class="bg-white p-5 sm:p-6 rounded-xl border border-gray-100 shadow-sm min-w-0 relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-amber-600"></div>
+                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mb-4"><i class="fa-solid fa-cart-shopping"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pending Orders</p>
-                    <h3 class="text-2xl font-bold mt-1">{{ $newOrdersCount }}</h3>
+                    <h3 class="text-xl sm:text-2xl font-bold mt-1">{{ $newOrdersCount }}</h3>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-box-archive"></i></div>
+                <div class="bg-white p-5 sm:p-6 rounded-xl border border-gray-100 shadow-sm min-w-0 relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-blue-600"></div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-4"><i class="fa-solid fa-box-archive"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active Products</p>
-                    <h3 class="text-2xl font-bold mt-1">{{ $totalProducts }}</h3>
+                    <h3 class="text-xl sm:text-2xl font-bold mt-1">{{ $totalProducts }}</h3>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="p-2 bg-amber-50 rounded-lg text-primary text-sm w-fit mb-4"><i class="fa-solid fa-star"></i></div>
+                <div class="bg-white p-5 sm:p-6 rounded-xl border border-gray-100 shadow-sm min-w-0 relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-primary"></div>
+                    <div class="w-10 h-10 rounded-lg bg-orange-50 text-primary flex items-center justify-center mb-4"><i class="fa-solid fa-star"></i></div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Store Rating</p>
-                    <h3 class="text-2xl font-bold mt-1">{{ number_format($averageRating, 1) }}</h3>
+                    <h3 class="text-xl sm:text-2xl font-bold mt-1">{{ number_format($averageRating, 1) }}</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div class="lg:col-span-2 bg-white p-5 sm:p-8 rounded-xl shadow-sm border border-gray-100 min-w-0">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-10">
                         <div>
                             <h3 class="text-lg font-bold">Annual Revenue Overview</h3>
                             <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Performance in {{ $selectedYear }}</p>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <form action="{{ route('seller.dashboard') }}" method="GET" id="yearFilterForm">
-                                <select name="year" onchange="document.getElementById('yearFilterForm').submit()" class="bg-gray-50 border-none text-[10px] font-black uppercase tracking-widest text-primary px-4 py-2 rounded-lg focus:ring-2 focus:ring-primary/20 cursor-pointer">
+                        <div class="flex items-center space-x-3 sm:space-x-4 flex-wrap gap-y-2">
+                            <form action="{{ route('seller.dashboard') }}" method="GET" id="yearFilterForm" class="relative">
+                                <i class="fa-solid fa-filter absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                                <select name="year" onchange="document.getElementById('yearFilterForm').submit()" aria-label="Filter Tahun" class="h-9 appearance-none bg-white border border-gray-200 text-xs font-medium text-gray-600 pl-9 pr-9 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 cursor-pointer">
                                     @foreach($availableYears as $year)
-                                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>Year {{ $year }}</option>
+                                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
                                     @endforeach
                                 </select>
+                                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
                             </form>
-                            <span class="text-[10px] font-black text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
+                            <span class="text-[10px] font-bold text-primary bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest">Live Data</span>
                         </div>
                     </div>
                     <div class="h-64">
@@ -201,7 +212,7 @@
             </div>
         </div>
 
-        @include('customer.partials.footer', ['footerClass' => 'mt-auto'])
+        @include('partials.footer')
     </main>
 
     <script>
