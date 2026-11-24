@@ -90,8 +90,16 @@ Route::prefix('customer')->name('customer.')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Default Dashboard (Redirector)
+    // Dipakai juga sebagai tujuan "intended" setelah verifikasi email / konfirmasi password,
+    // jadi arahkan ke dashboard sesuai role agar tidak 500 karena view tidak ada.
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return match (auth()->user()?->role) {
+            'seller' => redirect()->route('seller.dashboard'),
+            'designer' => redirect()->route('designer.dashboard'),
+            'customer' => redirect()->route('customer.homepage'),
+            'admin' => redirect()->route('admin.dashboard'),
+            default => redirect()->route('homepage'),
+        };
     })->name('dashboard');
 
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications');
