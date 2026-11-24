@@ -126,26 +126,32 @@
                     </div>
 
                     <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                        <div class="flex items-center space-x-3 border-b border-gray-50 pb-4">
-                            <i class="fa-solid fa-image text-primary"></i>
-                            <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Media</h3>
+                        <div class="flex items-center justify-between border-b border-gray-50 pb-4">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-image text-primary"></i>
+                                <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wide">Media</h3>
+                            </div>
+                            <span id="photo-counter" class="text-[10px] font-black uppercase tracking-widest text-gray-400">0 / 8 foto</span>
                         </div>
-                        
-                        <input type="file" name="images[]" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg" multiple onchange="previewImages(event)">
 
-                        <div onclick="document.getElementById('file-upload').click()" class="border-2 border-dashed border-secondary rounded-2xl p-12 text-center space-y-4 hover:border-primary transition-colors cursor-pointer group">
+                        <input type="file" name="images[]" id="file-upload" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" multiple>
+
+                        <div id="dropzone" class="border-2 border-dashed border-secondary rounded-2xl p-10 text-center space-y-3 hover:border-primary transition-colors cursor-pointer group">
                             <div class="bg-secondary/30 w-12 h-12 rounded-lg flex items-center justify-center mx-auto text-primary group-hover:bg-primary/20 transition-all">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold">Click to Upload Product Images</h4>
-                                <p class="text-[10px] text-gray-400 font-medium">Upload high-resolution editorial photography. PNG or JPG. Multiple images allowed.</p>
+                                <h4 class="text-sm font-bold">Klik atau seret foto ke sini</h4>
+                                <p class="text-[10px] text-gray-400 font-medium">Pilih beberapa foto sekaligus (maks. 8). JPG, PNG, atau WEBP — otomatis dikompres agar upload tetap cepat.</p>
                             </div>
                         </div>
 
-                        <div class="flex space-x-4 pt-4 hidden overflow-x-auto pb-2" id="preview-container">
+                        <p id="image-error" class="hidden text-xs font-semibold text-red-500"></p>
+
+                        <div class="flex gap-3 pt-2 overflow-x-auto pb-2 hidden" id="preview-container">
                             <!-- Previews go here -->
                         </div>
+                        <p class="text-[10px] text-gray-400 font-medium">Foto pertama ditandai MAIN dan menjadi cover produk. Gunakan panah untuk mengubah urutan, ikon silang untuk menghapus.</p>
                     </div>
                 </div>
             </div>
@@ -170,41 +176,228 @@
     </main>
 
     <script>
-        // FUNGSI PREVIEW GAMBAR
-        function previewImages(event) {
-            const input = event.target;
-            const container = document.getElementById('preview-container');
-            container.innerHTML = '';
-            
-            if (input.files && input.files.length > 0) {
-                container.classList.remove('hidden');
-                Array.from(input.files).forEach((file, index) => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const div = document.createElement('div');
-                        // Add border-primary for the first image (main image)
-                        div.className = `w-24 h-24 rounded-xl border-2 ${index === 0 ? 'border-primary' : 'border-gray-200'} p-1 relative shrink-0`;
-                        
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'w-full h-full object-cover rounded-lg';
-                        
-                        div.appendChild(img);
-                        
-                        if(index === 0) {
-                            const badge = document.createElement('div');
-                            badge.className = 'absolute top-1.5 right-1.5 bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-sm';
-                            badge.innerText = 'MAIN';
-                            div.appendChild(badge);
-                        }
-                        
-                        container.appendChild(div);
-                    }
-                    reader.readAsDataURL(file);
-                });
-            } else {
-                container.classList.add('hidden');
+        // ====== MEDIA UPLOADER ======
+        const MAX_PHOTOS = 8;
+        const fileInput = document.getElementById('file-upload');
+        const dropzone = document.getElementById('dropzone');
+        const previewContainer = document.getElementById('preview-container');
+        const photoCounter = document.getElementById('photo-counter');
+        const imageError = document.getElementById('image-error');
+        const productForm = document.querySelector('form[enctype="multipart/form-data"]');
+
+        let selectedFiles = [];
+        let previewUrls = [];
+
+        function showImageError(message) {
+            if (!imageError) return;
+            if (!message) {
+                imageError.textContent = '';
+                imageError.classList.add('hidden');
+                return;
             }
+            imageError.textContent = message;
+            imageError.classList.remove('hidden');
+        }
+
+        function syncFileInput() {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        function loadImageElement(file) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('image-load-failed')); };
+                img.src = url;
+            });
+        }
+
+        // Perkecil foto besar di browser supaya tidak ditolak limit upload server.
+        async function compressImage(file) {
+            const needsCompression = file.size > 1500000 || /image\/png/i.test(file.type);
+
+            if (!needsCompression) {
+                return file;
+            }
+
+            try {
+                const image = await loadImageElement(file);
+                const maxDimension = 1600;
+                const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+                const width = Math.max(1, Math.round(image.width * scale));
+                const height = Math.max(1, Math.round(image.height * scale));
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(image, 0, 0, width, height);
+
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+
+                if (!blob || blob.size >= file.size) {
+                    return file;
+                }
+
+                const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+
+                return new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() });
+            } catch (error) {
+                return file;
+            }
+        }
+
+        async function addFiles(fileList) {
+            const incoming = Array.from(fileList || []);
+
+            if (!incoming.length) {
+                return;
+            }
+
+            showImageError('');
+
+            for (const file of incoming) {
+                if (selectedFiles.length >= MAX_PHOTOS) {
+                    showImageError('Maksimal ' + MAX_PHOTOS + ' foto untuk setiap produk.');
+                    break;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    showImageError('Hanya file gambar (JPG, PNG, WEBP) yang diperbolehkan.');
+                    continue;
+                }
+
+                const optimized = await compressImage(file);
+                selectedFiles.push(optimized);
+            }
+
+            syncFileInput();
+            renderPreviews();
+        }
+
+        function renderPreviews() {
+            previewUrls.forEach(url => URL.revokeObjectURL(url));
+            previewUrls = [];
+            previewContainer.innerHTML = '';
+
+            photoCounter.textContent = selectedFiles.length + ' / ' + MAX_PHOTOS + ' foto';
+
+            if (!selectedFiles.length) {
+                previewContainer.classList.add('hidden');
+                return;
+            }
+
+            previewContainer.classList.remove('hidden');
+
+            selectedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                previewUrls.push(url);
+
+                const card = document.createElement('div');
+                card.className = 'w-24 h-24 rounded-xl border-2 ' + (index === 0 ? 'border-primary' : 'border-gray-200') + ' p-1 relative shrink-0 bg-white';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'w-full h-full object-cover rounded-lg';
+                card.appendChild(img);
+
+                if (index === 0) {
+                    const badge = document.createElement('div');
+                    badge.className = 'absolute top-1.5 right-1.5 bg-primary text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-sm';
+                    badge.innerText = 'MAIN';
+                    card.appendChild(badge);
+                }
+
+                const controls = document.createElement('div');
+                controls.className = 'absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1';
+
+                const left = document.createElement('button');
+                left.type = 'button';
+                left.className = 'w-5 h-5 rounded-md bg-white/90 text-gray-600 text-[9px] flex items-center justify-center shadow-sm hover:bg-primary hover:text-white disabled:opacity-30';
+                left.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+                left.disabled = index === 0;
+                left.addEventListener('click', () => moveFile(index, -1));
+
+                const right = document.createElement('button');
+                right.type = 'button';
+                right.className = 'w-5 h-5 rounded-md bg-white/90 text-gray-600 text-[9px] flex items-center justify-center shadow-sm hover:bg-primary hover:text-white disabled:opacity-30';
+                right.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+                right.disabled = index === selectedFiles.length - 1;
+                right.addEventListener('click', () => moveFile(index, 1));
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'w-5 h-5 rounded-md bg-red-500 text-white text-[9px] flex items-center justify-center shadow-sm hover:bg-red-600';
+                remove.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                remove.addEventListener('click', () => removeFile(index));
+
+                controls.appendChild(left);
+                controls.appendChild(right);
+                controls.appendChild(remove);
+                card.appendChild(controls);
+
+                previewContainer.appendChild(card);
+            });
+        }
+
+        function moveFile(index, direction) {
+            const target = index + direction;
+
+            if (target < 0 || target >= selectedFiles.length) {
+                return;
+            }
+
+            const [moved] = selectedFiles.splice(index, 1);
+            selectedFiles.splice(target, 0, moved);
+            syncFileInput();
+            renderPreviews();
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            syncFileInput();
+            renderPreviews();
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropzone.classList.add('border-primary', 'bg-orange-50/40');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropzone.classList.remove('border-primary', 'bg-orange-50/40');
+            });
+        });
+
+        dropzone.addEventListener('drop', event => {
+            addFiles(event.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', event => {
+            addFiles(event.target.files);
+        });
+
+        if (productForm) {
+            productForm.addEventListener('submit', event => {
+                if (!selectedFiles.length) {
+                    event.preventDefault();
+                    showImageError('Minimal satu foto produk wajib diunggah.');
+                    dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    dropzone.classList.add('border-red-400');
+                }
+            });
         }
 
         // SIDEBAR TOGGLE

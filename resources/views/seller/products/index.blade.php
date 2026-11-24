@@ -74,7 +74,10 @@
             <img src="{{ $p->images->first()->img_url ?? 'https://via.placeholder.com/100' }}" class="w-12 h-12 rounded-lg object-cover">
             <div>
                 <h4 class="text-sm font-bold">{{ $p->name }}</h4>
-                <p class="text-[10px] text-gray-400 font-medium">{{ $p->category->name ?? 'Uncategorized' }}</p>
+                <p class="text-[10px] text-gray-400 font-medium flex items-center gap-2">
+                    {{ $p->category->name ?? 'Uncategorized' }}
+                    <span class="text-[9px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md">{{ $p->images_count ?? $p->images->count() }} foto</span>
+                </p>
             </div>
         </td>
         

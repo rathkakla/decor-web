@@ -36,6 +36,21 @@
             border-color: #B5733A;
         }
 
+        .no-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #E3DCD6 transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar-thumb {
+            background: #E3DCD6;
+            border-radius: 99px;
+        }
+
         .thumb img {
             transition: transform 0.4s ease;
         }
@@ -133,27 +148,72 @@
     <main>
         <div class="content-container px-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-14 pb-20 fade-up">
 
+            @php
+                $galleryImages = $product->images->map(fn ($img) => $img->img_url)->values();
+                $galleryCount = $galleryImages->count();
+            @endphp
+
             <div class="flex flex-col gap-10">
-                <div class="flex gap-3 max-h-[480px]">
-                    <div class="hidden md:flex flex-col gap-2 w-14 shrink-0">
-                        @forelse ($product->images as $img)
-                            <div class="thumb aspect-square rounded-md overflow-hidden border-2 cursor-pointer transition-all {{ $loop->first ? 'active border-primary' : 'border-transparent' }}"
-                                onclick="switchImg('{{ asset($img->img_url) }}', this)">
-                                <img src="{{ asset($img->img_url) }}" alt="Thumb" class="w-full h-full object-cover">
-                            </div>
-                        @empty
-                            <div
-                                class="thumb aspect-square rounded-md overflow-hidden border-2 cursor-pointer active border-primary">
-                                <img src="https://via.placeholder.com/100" class="w-full h-full object-cover">
-                            </div>
-                        @endforelse
+                <div class="flex flex-col gap-3">
+                    <div class="flex gap-3 md:max-h-[480px]">
+                        <div class="hidden md:flex flex-col gap-2 w-14 shrink-0 overflow-y-auto no-scrollbar" id="desktop-thumbs">
+                            @forelse ($galleryImages as $index => $imageUrl)
+                                <button type="button"
+                                    class="thumb aspect-square rounded-md overflow-hidden border-2 cursor-pointer transition-all {{ $index === 0 ? 'active border-primary' : 'border-transparent' }}"
+                                    data-index="{{ $index }}" onclick="goToImage({{ $index }})"
+                                    aria-label="Lihat foto {{ $index + 1 }}">
+                                    <img src="{{ $imageUrl }}" alt="{{ $product->name }} foto {{ $index + 1 }}"
+                                        class="w-full h-full object-cover" loading="lazy">
+                                </button>
+                            @empty
+                                <div class="thumb aspect-square rounded-md overflow-hidden border-2 active border-primary">
+                                    <img src="https://via.placeholder.com/100" class="w-full h-full object-cover">
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <div id="main-media"
+                            class="flex-1 aspect-[3/4] max-h-[480px] bg-gray-50 rounded-xl overflow-hidden relative select-none">
+                            <img id="main-img"
+                                src="{{ $galleryCount ? $galleryImages->first() : 'https://via.placeholder.com/800' }}"
+                                alt="{{ $product->name }}" class="w-full h-full object-cover" draggable="false">
+
+                            @if($galleryCount > 1)
+                                <button type="button" onclick="showPrevImage()" aria-label="Foto sebelumnya"
+                                    class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 text-gray-700 shadow-md flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                                </button>
+                                <button type="button" onclick="showNextImage()" aria-label="Foto berikutnya"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 text-gray-700 shadow-md flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                                </button>
+                                <span id="img-counter"
+                                    class="absolute bottom-3 left-3 bg-black/55 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-widest">1
+                                    / {{ $galleryCount }}</span>
+                            @endif
+
+                            @if($galleryCount)
+                                <button type="button" onclick="openLightbox()" aria-label="Perbesar foto"
+                                    class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/85 text-gray-700 shadow-md flex items-center justify-center hover:bg-white hover:text-primary transition-all">
+                                    <i class="fa-solid fa-expand text-sm"></i>
+                                </button>
+                            @endif
+                        </div>
                     </div>
 
-                    <div class="flex-1 aspect-[3/4] max-h-[480px] bg-gray-50 rounded-xl overflow-hidden relative group">
-                        <img id="main-img"
-                            src="{{ $product->images->isNotEmpty() ? asset($product->images->first()->img_url) : 'https://via.placeholder.com/800' }}"
-                            alt="{{ $product->name }}" class="w-full h-full object-cover">
-                    </div>
+                    @if($galleryCount > 1)
+                        <div class="flex md:hidden gap-2 overflow-x-auto pb-1" id="mobile-thumbs">
+                            @foreach($galleryImages as $index => $imageUrl)
+                                <button type="button"
+                                    class="thumb w-16 h-16 shrink-0 rounded-md overflow-hidden border-2 transition-all {{ $index === 0 ? 'active border-primary' : 'border-transparent' }}"
+                                    data-index="{{ $index }}" onclick="goToImage({{ $index }})"
+                                    aria-label="Lihat foto {{ $index + 1 }}">
+                                    <img src="{{ $imageUrl }}" alt="{{ $product->name }} foto {{ $index + 1 }}"
+                                        class="w-full h-full object-cover" loading="lazy">
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 <div id="reviews">
@@ -321,8 +381,9 @@
                     </a>
                 </div>
             </div>
+        </div>
 
-            <section class="bg-gray-50/60 py-16 border-t border-gray-100">
+        <section class="bg-gray-50/60 py-16 border-t border-gray-100">
                 <div class="content-container px-6">
                     <div class="flex items-end justify-between mb-10">
                         <div>
@@ -358,13 +419,189 @@
             </section>
     </main>
 
+    <div id="lightbox" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 p-4" role="dialog"
+        aria-modal="true" aria-label="Galeri foto produk" onclick="if (event.target === this) closeLightbox()">
+        <button type="button" onclick="closeLightbox()" aria-label="Tutup galeri"
+            class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 text-white hover:bg-white/25 transition-all flex items-center justify-center">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        @if($galleryCount > 1)
+            <button type="button" onclick="showPrevImage()" aria-label="Foto sebelumnya"
+                class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-white hover:bg-white/25 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-chevron-left text-lg"></i>
+            </button>
+            <button type="button" onclick="showNextImage()" aria-label="Foto berikutnya"
+                class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-white hover:bg-white/25 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-chevron-right text-lg"></i>
+            </button>
+        @endif
+
+        <img id="lb-img" src="{{ $galleryCount ? $galleryImages->first() : '' }}"
+            alt="{{ $product->name }}" class="max-h-[86vh] max-w-full object-contain rounded-lg shadow-2xl"
+            onclick="event.stopPropagation()">
+
+        @if($galleryCount > 1)
+            <span id="lb-counter"
+                class="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/80 text-[11px] font-bold tracking-[0.2em]">1 /
+                {{ $galleryCount }}</span>
+        @endif
+    </div>
+
     <script>
-        function switchImg(src, el) {
+        const galleryImages = @json($galleryCount ? $galleryImages : []);
+        let currentIndex = 0;
+
+        function updateGallery(index) {
+            if (!galleryImages.length) {
+                return;
+            }
+
+            currentIndex = (index + galleryImages.length) % galleryImages.length;
+
             const main = document.getElementById('main-img');
-            main.classList.add('fade');
-            setTimeout(() => { main.src = src; main.classList.remove('fade'); }, 220);
-            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active', 'border-primary'));
-            el.classList.add('active', 'border-primary');
+            if (main) {
+                main.classList.add('fade');
+                setTimeout(() => {
+                    main.src = galleryImages[currentIndex];
+                    main.classList.remove('fade');
+                }, 160);
+            }
+
+            document.querySelectorAll('.thumb[data-index]').forEach(thumb => {
+                const isActive = Number(thumb.dataset.index) === currentIndex;
+                thumb.classList.toggle('active', isActive);
+                thumb.classList.toggle('border-primary', isActive);
+                thumb.classList.toggle('border-transparent', !isActive);
+            });
+
+            const counter = document.getElementById('img-counter');
+            if (counter) {
+                counter.textContent = (currentIndex + 1) + ' / ' + galleryImages.length;
+            }
+
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox && !lightbox.classList.contains('hidden')) {
+                const lbImg = document.getElementById('lb-img');
+                const lbCounter = document.getElementById('lb-counter');
+                if (lbImg) lbImg.src = galleryImages[currentIndex];
+                if (lbCounter) lbCounter.textContent = (currentIndex + 1) + ' / ' + galleryImages.length;
+            }
+
+            preloadNeighbors();
+        }
+
+        function preloadNeighbors() {
+            if (galleryImages.length < 2) {
+                return;
+            }
+
+            [(currentIndex + 1) % galleryImages.length, (currentIndex - 1 + galleryImages.length) % galleryImages.length]
+                .forEach(idx => {
+                    const img = new Image();
+                    img.src = galleryImages[idx];
+                });
+        }
+
+        function scrollThumbIntoView(index) {
+            document.querySelectorAll('.thumb[data-index="' + index + '"]').forEach(thumb => {
+                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            });
+        }
+
+        function goToImage(index) {
+            updateGallery(index);
+            scrollThumbIntoView(index);
+        }
+
+        function showNextImage() {
+            updateGallery(currentIndex + 1);
+        }
+
+        function showPrevImage() {
+            updateGallery(currentIndex - 1);
+        }
+
+        function openLightbox() {
+            if (!galleryImages.length) {
+                return;
+            }
+
+            const lightbox = document.getElementById('lightbox');
+            const lbImg = document.getElementById('lb-img');
+            const lbCounter = document.getElementById('lb-counter');
+
+            if (lbImg) lbImg.src = galleryImages[currentIndex];
+            if (lbCounter) lbCounter.textContent = (currentIndex + 1) + ' / ' + galleryImages.length;
+
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function attachSwipe(element, onSwipeLeft, onSwipeRight) {
+            if (!element) {
+                return;
+            }
+
+            let startX = null;
+            let startY = null;
+
+            element.addEventListener('touchstart', event => {
+                const touch = event.changedTouches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+            }, { passive: true });
+
+            element.addEventListener('touchend', event => {
+                if (startX === null) {
+                    return;
+                }
+
+                const touch = event.changedTouches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                startX = null;
+
+                if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                    if (deltaX < 0) {
+                        onSwipeLeft();
+                    } else {
+                        onSwipeRight();
+                    }
+                }
+            }, { passive: true });
+        }
+
+        attachSwipe(document.getElementById('main-media'), showNextImage, showPrevImage);
+        attachSwipe(document.getElementById('lightbox'), showNextImage, showPrevImage);
+
+        document.addEventListener('keydown', event => {
+            const lightbox = document.getElementById('lightbox');
+            const isOpen = lightbox && !lightbox.classList.contains('hidden');
+
+            if (event.key === 'Escape' && isOpen) {
+                closeLightbox();
+            }
+
+            if (isOpen && event.key === 'ArrowRight') {
+                showNextImage();
+            }
+
+            if (isOpen && event.key === 'ArrowLeft') {
+                showPrevImage();
+            }
+        });
+
+        if (galleryImages.length > 1) {
+            preloadNeighbors();
         }
 
         function changeQty(delta, maxStock) {

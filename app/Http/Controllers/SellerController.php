@@ -369,6 +369,7 @@ class SellerController extends Controller
     {
         $seller = Seller::where('user_id', Auth::id())->first();
         $query = Product::with(['images', 'category'])
+            ->withCount('images')
             ->where('seller_id', $seller->id);
 
         if ($request->has('search') && $request->search != '') {
@@ -397,10 +398,12 @@ class SellerController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0|max:1000000000',
             'stock' => 'nullable|integer|min:0',
-        ], [
+            'images' => 'required|array|min:1|max:8',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
+        ], array_merge([
             'price.max' => 'Harga produk tidak valid (terlalu mahal). Maksimal Rp 1.000.000.000',
             'price.min' => 'Harga produk tidak boleh kurang dari 0',
-        ]);
+        ], $this->productImageMessages()));
 
         // Alur validasi:
         // - Produk BARU (belum pernah diajukan seller ini) => status "pending", wajib kurasi admin.
@@ -417,31 +420,50 @@ class SellerController extends Controller
             ? 'approved'
             : 'pending';
 
-        // 1. Simpan data produk utama
-        $product = Product::create([
-            'seller_id' => $seller->id,
-            'category_id' => $request->category_id,
-            'style' => $request->style,
-            'material' => $request->material,
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'status' => $initialStatus,
-        ]);
+        $storedPaths = [];
 
-        // 2. Simpan gambar ke database
-        if ($request->hasFile('images')) {
-            foreach($request->file('images') as $file) {
-                // Simpan file fisik
+        try {
+            DB::beginTransaction();
+
+            // 1. Simpan data produk utama
+            $product = Product::create([
+                'seller_id' => $seller->id,
+                'category_id' => $request->category_id,
+                'style' => $request->style,
+                'material' => $request->material,
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+                'stock' => $request->stock,
+                'status' => $initialStatus,
+            ]);
+
+            // 2. Simpan semua gambar (multi-foto) sesuai urutan upload.
+            //    Foto pertama menjadi foto utama (sort_order = 1).
+            $order = 1;
+
+            foreach ($request->file('images') as $file) {
                 $path = $file->store('products', 'public');
+                $storedPaths[] = $path;
 
-                // Simpan record ke tabel product_images
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'img_url' => '/storage/' . $path
+                    'img_url' => '/storage/' . $path,
+                    'sort_order' => $order++,
                 ]);
             }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            foreach ($storedPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            report($e);
+
+            return back()->withInput()->with('error', 'Produk gagal disimpan karena salah satu foto tidak dapat diproses. Perkecil ukuran foto lalu coba lagi.');
         }
 
         $message = ($existingProduct && $existingProduct->status === 'approved')
@@ -481,46 +503,144 @@ class SellerController extends Controller
 
         $request->validate([
             'price' => 'required|numeric|min:0|max:1000000000',
-        ], [
+            'images' => 'nullable|array|max:8',
+            'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:8192',
+            'image_order' => 'nullable|array',
+            'image_order.*' => 'integer',
+            'primary_target' => 'nullable|string|max:20',
+            'delete_images' => 'nullable|array',
+            'delete_images.*' => 'integer',
+        ], array_merge([
             'price.max' => 'Harga produk tidak valid (terlalu mahal). Maksimal Rp 1.000.000.000',
             'price.min' => 'Harga produk tidak boleh kurang dari 0',
-        ]);
+        ], $this->productImageMessages()));
 
-        $product->update([
-            'category_id' => $request->category_id,
-            'style' => $request->style,
-            'material' => $request->material,
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            // Produk yang pernah ditolak wajib ditinjau ulang setelah diperbaiki seller.
-            // Produk pending tetap pending, produk approved tidak perlu validasi ulang.
-            'status' => $product->status === 'rejected' ? 'pending' : $product->status,
-        ]);
+        $storedPaths = [];
+        $pathsToDelete = [];
 
-        // Hapus gambar yang dipilih untuk dihapus
-        if ($request->has('delete_images')) {
-            foreach ($request->delete_images as $imageId) {
-                $img = ProductImage::where('id', $imageId)->where('product_id', $product->id)->first();
-                if ($img) {
-                    $oldPath = $this->storageRelativePath($img->img_url);
-                    Storage::disk('public')->delete($oldPath);
-                    $img->delete();
+        try {
+            DB::beginTransaction();
+
+            $product->update([
+                'category_id' => $request->category_id,
+                'style' => $request->style,
+                'material' => $request->material,
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+                'stock' => $request->stock,
+                // Produk yang pernah ditolak wajib ditinjau ulang setelah diperbaiki seller.
+                // Produk pending tetap pending, produk approved tidak perlu validasi ulang.
+                'status' => $product->status === 'rejected' ? 'pending' : $product->status,
+            ]);
+
+            $deleteIds = collect($request->input('delete_images', []))
+                ->map(fn ($value) => (int) $value)
+                ->filter()
+                ->unique()
+                ->values();
+
+            // Pisahkan gambar yang dihapus dan yang tetap dipakai
+            $remaining = collect();
+            foreach ($product->images()->get() as $image) {
+                if ($deleteIds->contains($image->id)) {
+                    $pathsToDelete[] = $this->storageRelativePath($image->img_url);
+                    $image->delete();
+                } else {
+                    $remaining->push($image);
                 }
             }
+
+            // Tambah gambar baru (append)
+            $newImages = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('products', 'public');
+                    $storedPaths[] = $path;
+                    $newImages[] = ProductImage::create([
+                        'product_id' => $product->id,
+                        'img_url' => '/storage/' . $path,
+                        'sort_order' => 0,
+                    ]);
+                }
+            }
+
+            // Hormati urutan dari UI; id di luar produk ini diabaikan
+            $byId = $remaining->keyBy('id');
+            $ordered = [];
+            foreach ((array) $request->input('image_order', []) as $imageId) {
+                $imageId = (int) $imageId;
+                if ($byId->has($imageId)) {
+                    $ordered[] = $byId->get($imageId);
+                    $byId->forget($imageId);
+                }
+            }
+            foreach ($byId as $image) {
+                $ordered[] = $image;
+            }
+
+            $allImages = array_merge($ordered, $newImages);
+
+            if (count($allImages) === 0) {
+                DB::rollBack();
+
+                foreach ($storedPaths as $path) {
+                    Storage::disk('public')->delete($path);
+                }
+
+                return back()->withInput()->with('error', 'Produk harus memiliki minimal satu foto.');
+            }
+
+            // Foto utama pilihan seller (format: "img:12" atau "new:0")
+            $primary = null;
+            $target = (string) $request->input('primary_target', '');
+
+            if (preg_match('/^img:(\d+)$/', $target, $match)) {
+                foreach ($allImages as $image) {
+                    if ((int) $image->id === (int) $match[1]) {
+                        $primary = $image;
+                        break;
+                    }
+                }
+            } elseif (preg_match('/^new:(\d+)$/', $target, $match)) {
+                $primary = $newImages[(int) $match[1]] ?? null;
+            }
+
+            if ($primary) {
+                $allImages = array_merge(
+                    [$primary],
+                    array_values(array_filter(
+                        $allImages,
+                        fn ($image) => (int) $image->id !== (int) $primary->id
+                    ))
+                );
+            }
+
+            // Normalisasi sort_order: 1 = foto utama
+            $order = 1;
+            foreach ($allImages as $image) {
+                if ((int) $image->sort_order !== $order) {
+                    $image->update(['sort_order' => $order]);
+                }
+                $order++;
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            foreach ($storedPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            report($e);
+
+            return back()->withInput()->with('error', 'Perubahan produk gagal disimpan karena salah satu foto tidak dapat diproses. Perkecil ukuran foto lalu coba lagi.');
         }
 
-        // Proses jika Seller mengupload gambar baru saat edit (APPEND)
-        if ($request->hasFile('images')) {
-            // Simpan gambar baru
-            foreach($request->file('images') as $file) {
-                $path = $file->store('products', 'public');
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'img_url' => '/storage/' . $path
-                ]);
-            }
+        // Hapus file fisik setelah transaksi sukses
+        foreach ($pathsToDelete as $path) {
+            Storage::disk('public')->delete($path);
         }
 
         return redirect()->route('seller.products.index')->with('success', 'Detail produk berhasil diperbarui!');
@@ -987,6 +1107,23 @@ class SellerController extends Controller
 
         $voucher->delete();
         return redirect()->route('seller.vouchers.index')->with('success', 'Voucher berhasil dihapus.');
+    }
+
+    /**
+     * Pesan validasi foto produk (dipakai saat tambah & ubah produk).
+     */
+    private function productImageMessages(): array
+    {
+        return [
+            'images.required' => 'Minimal satu foto produk wajib diunggah.',
+            'images.array' => 'Foto produk tidak valid, silakan pilih ulang.',
+            'images.min' => 'Minimal satu foto produk wajib diunggah.',
+            'images.max' => 'Maksimal 8 foto untuk setiap produk.',
+            'images.*.image' => 'File yang diunggah harus berupa gambar.',
+            'images.*.mimes' => 'Format foto harus JPG, PNG, atau WEBP.',
+            'images.*.max' => 'Ukuran tiap foto maksimal 8 MB.',
+            'images.*.uploaded' => 'Foto gagal diunggah. Ukuran file melebihi batas server, coba kompres atau perkecil fotonya.',
+        ];
     }
 
     /**

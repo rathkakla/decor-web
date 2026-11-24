@@ -53,6 +53,21 @@
         .product-card:hover .card-img {
             transform: scale(1.04);
         }
+        .product-card .card-img-alt {
+            opacity: 0;
+            transition: opacity 0.45s ease, transform 0.6s ease;
+        }
+        .product-card:hover .card-img-alt {
+            opacity: 1;
+            transform: scale(1.04);
+        }
+        .product-card .photo-dots {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .product-card:hover .photo-dots {
+            opacity: 1;
+        }
 
         .filter-check {
             appearance: none;
@@ -202,7 +217,25 @@
                     <div class="relative aspect-[4/5] bg-gray-50 rounded-xl overflow-hidden mb-4">
                         <img src="{{ $p->images->first()->img_url ?? 'https://via.placeholder.com/600x800' }}" 
                              alt="{{ $p->name }}" class="card-img w-full h-full object-cover">
-                        
+
+                        @if($p->images->count() > 1)
+                            <img src="{{ $p->images[1]->img_url }}"
+                                 alt="{{ $p->name }} foto 2" loading="lazy"
+                                 class="card-img-alt absolute inset-0 w-full h-full object-cover">
+
+                            <div class="absolute top-3 right-3 bg-black/45 text-white text-[9px] font-bold px-2 py-1 rounded-full flex items-center gap-1.5">
+                                <i class="fa-regular fa-images text-[9px]"></i> {{ $p->images->count() }}
+                            </div>
+
+                            @if($p->images->count() > 2)
+                                <div class="photo-dots absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                                    @foreach($p->images->take(5) as $dotIndex => $dotImage)
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $dotIndex === 0 ? 'bg-white' : 'bg-white/50' }}"></span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endif
+
                         <div class="card-actions absolute inset-x-0 bottom-0 p-4 flex gap-2">
                             <a href="{{ route('customer.product-detail', $p->id) }}" class="flex-1">
                                 <button class="w-full bg-white text-gray-900 text-[10px] font-black uppercase tracking-widest py-3 rounded-lg hover:bg-primary hover:text-white transition-all duration-200">

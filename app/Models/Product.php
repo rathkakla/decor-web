@@ -16,8 +16,14 @@ class Product extends Model
     protected $fillable = ['seller_id', 'category_id', 'name', 'description', 'price', 'stock', 'style', 'material', 'status'];
 
     // Relasi ke Gambar (Penting untuk tampil di Catalog & Cart)
+    // Diurutkan berdasarkan sort_order agar foto utama (cover) selalu di depan.
     public function images() {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    // Foto utama (cover) produk
+    public function primaryImage() {
+        return $this->hasOne(ProductImage::class)->orderBy('sort_order')->orderBy('id');
     }
 
     // Relasi ke Kategori
