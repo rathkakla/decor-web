@@ -118,7 +118,7 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-sm font-bold text-gray-800">Terima Pesanan Kustom B2B</span>
+                                    <span class="text-sm font-bold text-gray-800">Terima Pesanan Proyek</span>
                                     @if(($seller->b2b_status ?? 'not_registered') === 'pending')
                                         <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200">Menunggu Verifikasi</span>
                                     @elseif($seller->b2b_status === 'approved' && $seller->b2b_enabled)

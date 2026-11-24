@@ -40,7 +40,7 @@
         </a>
         @if($sidebarSeller && $sidebarSeller->b2b_enabled)
             <a href="{{ b2b_route('seller.b2b.inbox') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.*') && !Request::routeIs('seller.b2b.register') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
-                <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Kustom B2B
+                <i class="fa-solid fa-industry mr-3 w-5 text-center"></i> Pesanan Proyek
             </a>
         @elseif($sidebarSeller)
             <a href="{{ b2b_route('seller.b2b.register') }}" class="flex items-center justify-between px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.b2b.register') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">

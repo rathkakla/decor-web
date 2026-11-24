@@ -38,7 +38,7 @@
                     <i class="fa-solid fa-bars-staggered text-xl"></i>
                 </button>
                 <div class="flex flex-col">
-                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pesanan Kustom B2B</h2>
+                    <h2 class="font-bold text-xs uppercase tracking-widest leading-none">Pesanan Proyek</h2>
                     <span class="text-[10px] text-white/80 mt-1">Review Spesifikasi & Dokumen Gambar Kerja</span>
                 </div>
             </div>

@@ -102,7 +102,7 @@
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
                 <div class="flex items-center space-x-2 text-xs">
-                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan B2B</a>
+                    <a href="{{ b2b_route('seller.b2b.inbox') }}" class="text-white/80 hover:text-white hidden sm:inline">Pesanan Proyek</a>
                     <span class="text-white/50 hidden sm:inline">/</span>
                     <a href="{{ b2b_route('seller.b2b.produksi', $order) }}" class="text-white/80 hover:text-white">{{ $rfq->rfq_number }}</a>
                     <span class="text-white/50">/</span>
