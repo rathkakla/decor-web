@@ -71,11 +71,20 @@
                         <i class="fa-solid fa-handshake"></i>
                     </div>
                 </div>
+                @php
+                    $paidRevenue = (float) ($stats['paid_revenue'] ?? 0);
+                    $paidProjects = (int) ($stats['paid_projects'] ?? 0);
+                    $completedProjects = (int) ($stats['completed_projects'] ?? 0);
+                    $paidLabel = 'Total Rp ' . number_format($paidRevenue, 0, ',', '.') . ' diterima';
+                    if ($paidProjects !== $completedProjects) {
+                        $paidLabel .= " \u{00B7} {$paidProjects} proyek lunas";
+                    }
+                @endphp
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Proyek Selesai</p>
-                        <h3 class="text-2xl font-bold mt-1 text-gray-900">{{ $stats['completed_projects'] ?? 0 }} Proyek</h3>
-                        <p class="text-xs text-emerald-600 font-medium mt-1">Total Rp {{ number_format($stats['paid_revenue'] ?? 0, 0, ',', '.') }} diterima</p>
+                        <h3 class="text-2xl font-bold mt-1 text-gray-900">{{ $completedProjects }} Proyek</h3>
+                        <p class="text-xs text-emerald-600 font-medium mt-1">{{ $paidLabel }}</p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
                         <i class="fa-solid fa-circle-check"></i>

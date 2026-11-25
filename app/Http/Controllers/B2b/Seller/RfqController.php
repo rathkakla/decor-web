@@ -65,7 +65,10 @@ class RfqController extends Controller
                 ->sum('budget_ceiling'),
             'capacity_available' => $seller->monthly_capacity ?? 0,
             'completed_projects' => (clone $completedOrders)->count(),
-            'paid_revenue' => (clone $completedOrders)
+            'paid_projects' => B2bOrder::whereHas('rfq', fn ($q) => $q->where('seller_id', $seller->id))
+                ->where('payout_status', B2bOrder::PAYOUT_PAID)
+                ->count(),
+            'paid_revenue' => B2bOrder::whereHas('rfq', fn ($q) => $q->where('seller_id', $seller->id))
                 ->where('payout_status', B2bOrder::PAYOUT_PAID)
                 ->sum('total_amount'),
         ];
