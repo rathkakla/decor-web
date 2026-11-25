@@ -316,14 +316,164 @@
 
                         @if($order->payment_status === 'DP_HELD')
                             @if($allMilestonesDone)
-                                <form method="POST" action="{{ b2b_route('designer.b2b.milestone.pay_final', $order) }}" enctype="multipart/form-data" class="space-y-2">
+                                @php
+                                    $vaSuffix = str_pad((string) ($order->id * 73 + 41), 6, '0', STR_PAD_LEFT);
+                                    $vaBanks = [
+                                        'bca' => [
+                                            'name' => 'BCA Virtual Account',
+                                            'number' => '8820 1' . substr($vaSuffix, 0, 3) . ' ' . substr($vaSuffix, 3, 3) . '9',
+                                            'steps' => [
+                                                'Buka aplikasi <b>m-BCA</b> (BCA mobile) lalu pilih menu <b>m-Transfer</b>.',
+                                                'Pilih <b>BCA Virtual Account</b>, lalu masukkan Nomor VA di atas.',
+                                                'Periksa kembali rincian tagihan pelunasan & nama <b>PT Decor Interior Indonesia</b>, lalu klik <b>OK</b>.',
+                                                'Masukkan PIN m-BCA Anda untuk menyelesaikan pembayaran.',
+                                            ],
+                                        ],
+                                        'mandiri' => [
+                                            'name' => 'Mandiri Virtual Account',
+                                            'number' => '8900 8' . substr($vaSuffix, 0, 3) . ' ' . substr($vaSuffix, 3, 3) . '2',
+                                            'steps' => [
+                                                'Buka aplikasi <b>Livin\' by Mandiri</b> lalu pilih menu <b>Bayar</b>.',
+                                                'Cari penyedia jasa <b>DECOR</b> atau masukkan Nomor VA di atas.',
+                                                'Periksa kembali rincian tagihan pelunasan dan klik <b>Lanjut Bayar</b>.',
+                                                'Masukkan PIN Livin\' Anda untuk menyelesaikan transaksi.',
+                                            ],
+                                        ],
+                                        'bni' => [
+                                            'name' => 'BNI Virtual Account',
+                                            'number' => '8277 0' . substr($vaSuffix, 0, 3) . ' ' . substr($vaSuffix, 3, 3) . '5',
+                                            'steps' => [
+                                                'Buka aplikasi <b>wondr by BNI</b> / BNI Mobile Banking, lalu pilih menu <b>Transfer</b>.',
+                                                'Pilih <b>Virtual Account Billing</b> dan masukkan Nomor VA di atas.',
+                                                'Pastikan nominal tagihan pelunasan sudah sesuai lalu lanjutkan.',
+                                                'Masukkan PIN transaksi Anda untuk menyelesaikan pembayaran.',
+                                            ],
+                                        ],
+                                    ];
+                                @endphp
+                                <form method="POST" action="{{ b2b_route('designer.b2b.milestone.pay_final', $order) }}" enctype="multipart/form-data" class="space-y-3.5">
                                     @csrf
-                                    <label class="block text-[10px] font-bold text-gray-600">Bukti Transfer Pelunasan (opsional)</label>
-                                    <input type="file" name="payment_proof" accept=".jpg,.jpeg,.png,.pdf" class="w-full text-[10px] border border-gray-200 rounded-lg p-2">
-                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md">
-                                        Lunasi Sisa Pembayaran ke Escrow <i class="fa-solid fa-arrow-right ml-2"></i>
+                                    <div class="space-y-2.5">
+                                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Pilih Virtual Account</p>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button type="button" data-va-bank="bca" class="va-bank-btn h-11 rounded-xl border-2 border-primary bg-primary/5 flex items-center justify-center px-2 transition-all cursor-pointer" title="BCA Virtual Account">
+                                                <svg viewBox="0 0 80 24" class="h-4 w-auto" aria-label="BCA">
+                                                    <text x="40" y="18" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="800" font-size="18" fill="#0060AF" letter-spacing="1">BCA</text>
+                                                </svg>
+                                            </button>
+                                            <button type="button" data-va-bank="mandiri" class="va-bank-btn h-11 rounded-xl border border-gray-200 bg-white hover:border-primary/50 flex items-center justify-center px-2 transition-all cursor-pointer" title="Mandiri Virtual Account">
+                                                <svg viewBox="0 0 110 26" class="h-4 w-auto" aria-label="Mandiri">
+                                                    <path d="M56 5 Q78 0 98 6 Q79 4 56 8 Z" fill="#FDB813"/>
+                                                    <text x="55" y="21" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="14" fill="#003D79" letter-spacing="-0.3">mandiri</text>
+                                                </svg>
+                                            </button>
+                                            <button type="button" data-va-bank="bni" class="va-bank-btn h-11 rounded-xl border border-gray-200 bg-white hover:border-primary/50 flex items-center justify-center px-2 transition-all cursor-pointer" title="BNI Virtual Account">
+                                                <svg viewBox="0 0 80 24" class="h-4 w-auto" aria-label="BNI">
+                                                    <text x="32" y="18" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="800" font-size="17" fill="#005E6A" letter-spacing="0.5">BNI</text>
+                                                    <rect x="57" y="5" width="7" height="14" rx="1.5" fill="#F15A23"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="p-3.5 bg-[#F8F6F4] rounded-xl border border-gray-200/80 space-y-2.5">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span id="va-bank-label" class="text-[10px] font-bold uppercase tracking-wider text-gray-500">BCA Virtual Account</span>
+                                                <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Otomatis</span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-2">
+                                                <div>
+                                                    <p id="va-number-display" class="text-sm font-bold text-gray-900 tracking-wider font-mono">{{ $vaBanks['bca']['number'] }}</p>
+                                                    <p class="text-[11px] text-gray-500 mt-0.5">a.n. PT Decor Interior Indonesia</p>
+                                                </div>
+                                                <button type="button" id="copy-va-btn" class="h-8 px-2.5 rounded-lg bg-white border border-gray-200 hover:border-primary text-[11px] font-semibold text-gray-700 hover:text-primary inline-flex items-center gap-1 transition-colors shrink-0 cursor-pointer">
+                                                    <i class="fa-regular fa-copy"></i><span>Salin</span>
+                                                </button>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-gray-200/70">
+                                                <button type="button" id="toggle-va-tips" class="w-full flex items-center justify-between text-[11px] font-semibold text-primary hover:text-[#8C4E1E] transition-colors cursor-pointer">
+                                                    <span class="inline-flex items-center gap-1.5"><i class="fa-regular fa-circle-question"></i> Cara Pembayaran Virtual Account</span>
+                                                    <i id="va-tips-chevron" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+                                                </button>
+                                                <ol id="va-tips-list" class="hidden mt-2.5 space-y-1.5 text-[11px] text-gray-600 list-decimal list-inside leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
+                                                    @foreach($vaBanks['bca']['steps'] as $stepText)
+                                                        <li>{!! $stepText !!}</li>
+                                                    @endforeach
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Bukti Transfer Pelunasan (Opsional)</label>
+                                        <label for="final-proof-input" class="flex flex-col items-center justify-center gap-1 p-3.5 rounded-xl border border-dashed border-primary/40 bg-[#F8F6F4] hover:bg-primary/5 cursor-pointer transition-colors text-center">
+                                            <i class="fa-solid fa-cloud-arrow-up text-primary text-base"></i>
+                                            <span id="final-proof-label" class="text-xs font-semibold text-gray-700">Unggah bukti transfer</span>
+                                            <span class="text-[10px] text-gray-400">JPG, PNG, atau PDF (maks. 5MB)</span>
+                                            <input id="final-proof-input" type="file" name="payment_proof" accept=".jpg,.jpeg,.png,.pdf" class="hidden">
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-sm cursor-pointer">
+                                        Bayar Pelunasan via Decor <i class="fa-solid fa-lock ml-2"></i>
                                     </button>
                                 </form>
+
+                                <script>
+                                    (function() {
+                                        const vaData = @json($vaBanks);
+                                        const btns = document.querySelectorAll('.va-bank-btn');
+                                        const labelEl = document.getElementById('va-bank-label');
+                                        const numEl = document.getElementById('va-number-display');
+                                        const tipsList = document.getElementById('va-tips-list');
+                                        const copyBtn = document.getElementById('copy-va-btn');
+                                        const toggleTipsBtn = document.getElementById('toggle-va-tips');
+                                        const chevron = document.getElementById('va-tips-chevron');
+                                        const fileInput = document.getElementById('final-proof-input');
+                                        const fileLabel = document.getElementById('final-proof-label');
+
+                                        btns.forEach(btn => {
+                                            btn.addEventListener('click', () => {
+                                                const key = btn.dataset.vaBank;
+                                                const info = vaData[key];
+                                                if (!info) return;
+                                                btns.forEach(b => {
+                                                    b.classList.remove('border-2', 'border-primary', 'bg-primary/5');
+                                                    b.classList.add('border', 'border-gray-200', 'bg-white');
+                                                });
+                                                btn.classList.remove('border', 'border-gray-200', 'bg-white');
+                                                btn.classList.add('border-2', 'border-primary', 'bg-primary/5');
+                                                if (labelEl) labelEl.textContent = info.name;
+                                                if (numEl) numEl.textContent = info.number;
+                                                if (tipsList) tipsList.innerHTML = info.steps.map(s => '<li>' + s + '</li>').join('');
+                                            });
+                                        });
+
+                                        if (toggleTipsBtn && tipsList) {
+                                            toggleTipsBtn.addEventListener('click', () => {
+                                                tipsList.classList.toggle('hidden');
+                                                chevron?.classList.toggle('rotate-180');
+                                            });
+                                        }
+
+                                        if (copyBtn && numEl) {
+                                            copyBtn.addEventListener('click', () => {
+                                                const raw = numEl.textContent.replace(/\s+/g, '');
+                                                navigator.clipboard?.writeText(raw);
+                                                copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i><span>Tersalin</span>';
+                                                setTimeout(() => {
+                                                    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i><span>Salin</span>';
+                                                }, 1800);
+                                            });
+                                        }
+
+                                        if (fileInput && fileLabel) {
+                                            fileInput.addEventListener('change', () => {
+                                                fileLabel.textContent = fileInput.files?.[0]?.name || 'Unggah bukti transfer';
+                                            });
+                                        }
+                                    })();
+                                </script>
                             @else
                                 <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
                                     Pelunasan dapat dilakukan setelah seluruh 5 pos produksi mencapai 100% dan lulus QC.

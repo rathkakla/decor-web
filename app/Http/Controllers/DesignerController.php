@@ -47,14 +47,26 @@ class DesignerController extends Controller
         $avgRating = \App\Models\ConsultationReview::where('designer_id', $designer->id)->avg('rating') ?: 4.9;
 
         // 2. Transaksi Terbaru
-        $recentTransactions = \App\Models\ConsultationQuote::with(['consultation.customer.user'])
+        $txQuery = \App\Models\ConsultationQuote::with(['consultation.customer.user'])
             ->whereHas('consultation', function($q) use ($designer) {
                 $q->where('designer_id', $designer->id);
             })
-            ->where('status', 'accepted')
-            ->latest()
-            ->take(5)
-            ->get();
+            ->where('status', 'accepted');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $numericId = preg_replace('/^#?\s*(qt)?[\s-]*/i', '', $search);
+            $txQuery->where(function ($q) use ($search, $numericId) {
+                if ($numericId !== '' && is_numeric($numericId)) {
+                    $q->where('id', (int) $numericId);
+                }
+                $q->orWhereHas('consultation.customer.user', function ($uq) use ($search) {
+                    $uq->where('full_name', 'like', '%' . $search . '%');
+                });
+            });
+        }
+
+        $recentTransactions = $txQuery->latest()->paginate(5)->withQueryString();
 
         // 3. Data Grafik Berdasarkan Tahun
         $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];

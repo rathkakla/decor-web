@@ -213,7 +213,7 @@
                         <span id="demoFillStatus" class="text-[10px] text-gray-400 transition-colors">Click to autofill</span>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="fillDemo('admin@decor.com', 'admin123', this)"
+                        <button type="button" onclick="fillDemo('admin@decor.com', 'password', this)"
                             class="demo-card text-left p-2.5 rounded-xl bg-gray-50 hover:bg-amber-50/70 border border-gray-100 hover:border-primary/30 transition-all group cursor-pointer">
                             <span class="block text-[10px] font-bold text-primary">Administrator</span>
                             <span class="block text-[11px] font-mono text-gray-600 truncate mt-0.5">admin@decor.com</span>

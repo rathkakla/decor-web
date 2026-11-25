@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
             [
                 'username'  => 'admin',
                 'full_name' => 'System Administrator',
-                'password'  => \Illuminate\Support\Facades\Hash::make('admin123'),
+                'password'  => \Illuminate\Support\Facades\Hash::make('password'),
                 'role'      => 'admin',
             ]
         );

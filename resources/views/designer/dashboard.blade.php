@@ -24,7 +24,7 @@
 
     @include('designer.partials.sidebar')
 
-    <main id="main-content" class="ml-64 flex flex-col min-h-screen sidebar-transition">
+    <main id="main-content" class="ml-0 md:ml-64 flex flex-col min-h-screen sidebar-transition">
         <header class="h-16 bg-primary flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm text-white">
             <div class="flex items-center">
                 <i onclick="toggleSidebar()" class="fa-solid fa-bars-staggered text-xl mr-4 cursor-pointer hover:scale-110 transition-transform"></i>
@@ -41,7 +41,7 @@
             </div>
         </header>
 
-        <div class="p-10 space-y-10 flex-1">
+        <div class="p-4 sm:p-6 lg:p-10 space-y-6 sm:space-y-10 flex-1">
             <div>
                 <h2 class="text-3xl font-extrabold tracking-tight text-gray-800">Welcome back, {{ explode(' ', Auth::user()->full_name)[0] }}</h2>
                 <p class="text-xs text-gray-400 mt-1 font-medium italic">Curating excellence for your amazing projects.</p>
@@ -97,7 +97,7 @@
             </div>
 
             <div class="bg-white p-10 rounded-[48px] border border-gray-100 shadow-sm">
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
                     <div>
                         <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight italic">Annual Revenue Overview</h3>
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">Performance in {{ $selectedYear }}</p>
@@ -119,13 +119,17 @@
             </div>
 
             <!-- DETAILED TRANSACTION LOG -->
-            <div class="bg-white p-10 rounded-[48px] border border-gray-100 shadow-sm">
-                <div class="flex justify-between items-center mb-8">
+            <div class="bg-white p-5 sm:p-8 lg:p-10 rounded-3xl border border-gray-100 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
                     <h3 class="text-[10px] font-black text-gray-800 uppercase tracking-widest">Recent Consultation Quotes</h3>
-                    <div class="relative group">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors text-xs"></i>
-                        <input type="text" id="logSearch" placeholder="Search client..." class="bg-gray-50 border-none rounded-2xl py-2.5 pl-10 pr-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none w-64 transition-all" onkeyup="filterTransactions()">
-                    </div>
+                    <form method="GET" action="{{ route('designer.dashboard') }}" class="flex items-center gap-2">
+                        <input type="hidden" name="year" value="{{ $selectedYear }}">
+                        <div class="relative group">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-primary transition-colors text-xs"></i>
+                            <input type="text" name="search" id="logSearch" value="{{ request('search') }}" placeholder="Cari nama klien / #QT..." class="bg-gray-50 border-none rounded-2xl py-2.5 pl-10 pr-6 text-[10px] font-bold text-gray-900 focus:ring-2 focus:ring-primary/20 outline-none w-56 sm:w-64 transition-all">
+                        </div>
+                        <button type="submit" class="bg-primary hover:bg-primary-dark text-white rounded-2xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all shrink-0">Cari</button>
+                    </form>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="transactionTable">
@@ -153,6 +157,7 @@
                         </tbody>
                     </table>
                 </div>
+                @include('partials.pagination', ['paginator' => $recentTransactions, 'label' => 'transaksi'])
             </div>
         </div>
 
@@ -166,23 +171,6 @@
             const mainContent = document.getElementById('main-content');
             sidebar.classList.toggle('sidebar-closed');
             mainContent.classList.toggle('main-full');
-        }
-
-        // SEARCH FILTER LOGIC
-        function filterTransactions() {
-            const input = document.getElementById("logSearch");
-            const filter = input.value.toUpperCase();
-            const table = document.getElementById("transactionTable");
-            const tr = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < tr.length; i++) {
-                let textContent = tr[i].textContent || tr[i].innerText;
-                if (textContent.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
         }
 
         // CHART LOGIC

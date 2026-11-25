@@ -302,29 +302,142 @@
                             </div>
                         @else
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                <div class="space-y-1">
-                                    <label class="font-bold text-gray-700">Upload Tanda Tangan Digital (PNG/JPG) *</label>
-                                    <input type="file" name="signature" accept=".png,.jpg,.jpeg" required class="w-full border border-gray-200 rounded-xl p-2.5">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <label class="font-bold text-gray-700">Tanda Tangan Digital *</label>
+                                        <button type="button" id="bast-sig-clear" class="text-[11px] font-semibold text-gray-400 hover:text-primary transition-colors cursor-pointer">
+                                            <i class="fa-solid fa-eraser mr-1"></i> Hapus
+                                        </button>
+                                    </div>
+                                    <div class="rounded-xl border border-dashed border-primary/40 bg-[#F8F6F4] p-1.5">
+                                        <canvas id="bast-signature-canvas" class="w-full bg-white rounded-lg touch-none cursor-crosshair" style="height: 120px;"></canvas>
+                                    </div>
+                                    <p id="bast-sig-hint" class="text-[10px] text-gray-400">Gambar tanda tangan langsung dengan mouse atau trackpad.</p>
+                                    <p id="bast-sig-error" class="hidden text-[11px] text-red-600 font-semibold">Silakan gambar tanda tangan Anda terlebih dahulu.</p>
+                                    <input id="bast-signature-input" type="file" name="signature" accept=".png,.jpg,.jpeg" class="sr-only">
                                 </div>
-                                <div class="space-y-1">
-                                    <label class="font-bold text-gray-700">Upload Foto Furnitur Terpasang *</label>
-                                    <input type="file" name="photo_installed" accept=".jpg,.jpeg,.png" required class="w-full border border-gray-200 rounded-xl p-2.5">
+                                <div class="space-y-1.5 flex flex-col">
+                                    <label class="font-bold text-gray-700">Unggah Foto Furnitur Terpasang *</label>
+                                    <label for="bast-photo-input" class="flex-1 min-h-[132px] flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl border border-dashed border-primary/40 bg-[#F8F6F4] hover:bg-primary/5 cursor-pointer transition-colors text-center">
+                                        <i class="fa-solid fa-camera text-primary text-lg"></i>
+                                        <span id="bast-photo-label" class="text-xs font-semibold text-gray-700 truncate max-w-full">Pilih foto furnitur terpasang</span>
+                                        <span class="text-[10px] text-gray-400">JPG atau PNG (maks. 5MB)</span>
+                                        <input id="bast-photo-input" type="file" name="photo_installed" accept=".jpg,.jpeg,.png" required class="sr-only">
+                                    </label>
                                 </div>
                                 <div class="space-y-1 sm:col-span-2">
                                     <label class="font-bold text-gray-700">Keputusan Inspeksi *</label>
-                                    <select name="is_accepted" class="w-full border border-gray-200 rounded-xl px-4 py-2.5" required>
-                                        <option value="1">Diterima — semua item sesuai & lolos inspeksi</option>
+                                    <select name="is_accepted" class="w-full h-10 border border-gray-200 rounded-xl px-3.5 bg-white focus:outline-none focus:border-primary" required>
+                                        <option value="1">Diterima — semua item sesuai &amp; lolos inspeksi</option>
                                         <option value="0">Ditolak — perlu perbaikan oleh pabrik</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="pt-2">
-                                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-extrabold text-xs flex items-center justify-center transition-all shadow-lg space-x-2">
-                                    <i class="fa-solid fa-signature text-base"></i>
-                                    <span>Tandatangani BAST Digital & Rilis Dana Pelunasan Escrow (Rp {{ number_format($remainingAmount, 0, ',', '.') }})</span>
+                                <button type="submit" class="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md space-x-2 cursor-pointer">
+                                    <i class="fa-solid fa-check-circle text-base"></i>
+                                    <span>Tandatangani BAST &amp; Rilis Dana Pelunasan Escrow (Rp {{ number_format($remainingAmount, 0, ',', '.') }})</span>
                                 </button>
                             </div>
+
+                            <script>
+                                (function() {
+                                    const form = document.getElementById('bast-document');
+                                    const canvas = document.getElementById('bast-signature-canvas');
+                                    const clearBtn = document.getElementById('bast-sig-clear');
+                                    const sigInput = document.getElementById('bast-signature-input');
+                                    const sigError = document.getElementById('bast-sig-error');
+                                    const photoInput = document.getElementById('bast-photo-input');
+                                    const photoLabel = document.getElementById('bast-photo-label');
+
+                                    if (photoInput && photoLabel) {
+                                        photoInput.addEventListener('change', () => {
+                                            photoLabel.textContent = photoInput.files?.[0]?.name || 'Pilih foto furnitur terpasang';
+                                        });
+                                    }
+
+                                    if (!canvas || !form || !sigInput) return;
+
+                                    const ctx = canvas.getContext('2d');
+                                    let drawing = false;
+                                    let hasInk = false;
+                                    let lastPoint = null;
+
+                                    function initCanvas() {
+                                        const dpr = window.devicePixelRatio || 1;
+                                        const rect = canvas.getBoundingClientRect();
+                                        if (!rect.width) return;
+                                        canvas.width = Math.max(1, Math.round(rect.width * dpr));
+                                        canvas.height = Math.max(1, Math.round(rect.height * dpr));
+                                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                                        ctx.lineWidth = 2.2;
+                                        ctx.lineCap = 'round';
+                                        ctx.lineJoin = 'round';
+                                        ctx.strokeStyle = '#111827';
+                                    }
+
+                                    function pointFrom(e) {
+                                        const rect = canvas.getBoundingClientRect();
+                                        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                                    }
+
+                                    requestAnimationFrame(initCanvas);
+
+                                    canvas.addEventListener('pointerdown', (e) => {
+                                        e.preventDefault();
+                                        drawing = true;
+                                        hasInk = true;
+                                        sigError?.classList.add('hidden');
+                                        lastPoint = pointFrom(e);
+                                        ctx.beginPath();
+                                        ctx.moveTo(lastPoint.x, lastPoint.y);
+                                        ctx.lineTo(lastPoint.x + 0.1, lastPoint.y + 0.1);
+                                        ctx.stroke();
+                                        canvas.setPointerCapture?.(e.pointerId);
+                                    });
+
+                                    canvas.addEventListener('pointermove', (e) => {
+                                        if (!drawing || !lastPoint) return;
+                                        e.preventDefault();
+                                        const p = pointFrom(e);
+                                        ctx.beginPath();
+                                        ctx.moveTo(lastPoint.x, lastPoint.y);
+                                        ctx.lineTo(p.x, p.y);
+                                        ctx.stroke();
+                                        lastPoint = p;
+                                    });
+
+                                    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => {
+                                        canvas.addEventListener(ev, () => { drawing = false; });
+                                    });
+
+                                    clearBtn?.addEventListener('click', () => {
+                                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                        hasInk = false;
+                                        sigInput.value = '';
+                                    });
+
+                                    form.addEventListener('submit', (e) => {
+                                        if (!hasInk) {
+                                            e.preventDefault();
+                                            sigError?.classList.remove('hidden');
+                                            canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            return;
+                                        }
+                                        if (sigInput.files && sigInput.files.length > 0) return;
+
+                                        e.preventDefault();
+                                        canvas.toBlob((blob) => {
+                                            if (!blob) return;
+                                            const dt = new DataTransfer();
+                                            dt.items.add(new File([blob], 'tanda-tangan-desainer.png', { type: 'image/png' }));
+                                            sigInput.files = dt.files;
+                                            form.submit();
+                                        }, 'image/png');
+                                    });
+                                })();
+                            </script>
                         @endif
                     </div>
                 </form>

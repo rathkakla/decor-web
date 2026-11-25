@@ -67,7 +67,7 @@
             <i class="fa-solid fa-circle-exclamation mr-3 w-5 text-center"></i> Komplain
         </a>
          <!-- Review & Rating -->
-        <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::is('*review*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
+        <a href="{{ route('seller.reviews') }}" class="flex items-center px-4 py-3 text-xs font-bold transition-all rounded-lg {{ Request::routeIs('seller.reviews*') ? 'active-link' : 'text-gray-400 hover:text-primary hover:bg-gray-50' }}">
             <i class="fa-solid fa-star mr-3 w-5 text-center"></i> Review & Rating
         </a>
 
