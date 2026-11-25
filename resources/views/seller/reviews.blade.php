@@ -8,14 +8,14 @@
     @include('seller.partials.head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="text-gray-800">
+<body class="text-gray-800 bg-[#F8F6F4]">
 
     @include('seller.partials.sidebar')
 
     <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen relative">
         @include('seller.partials.header', ['title' => 'Reviews Management'])
 
-        <div class="p-4 sm:p-6 lg:p-8 space-y-8 flex-1">
+        <div class="p-6 sm:p-8 space-y-8 flex-1">
             @if(session('success'))
             <div class="bg-green-50 text-green-600 p-4 rounded-xl text-sm font-bold border border-green-100 flex items-center shadow-sm">
                 <i class="fa-solid fa-circle-check mr-3 text-lg"></i> {{ session('success') }}
