@@ -238,7 +238,7 @@ Route::middleware(['auth'])->prefix('seller')->name('seller.')->group(function (
     Route::post('/chats/send', [SellerController::class, 'sendChatMessage'])->name('chats.send');
     Route::get('/settings', [SellerController::class, 'settings'])->name('settings');
     Route::post('/settings/update', [SellerController::class, 'updateSettings'])->name('settings.update');
-    Route::get('/settings/bank', fn() => view('seller.Settings.bank'))->name('settings.bank');
+    Route::get('/settings/bank', [SellerController::class, 'bankSettings'])->name('settings.bank');
 
     // 4. Voucher Management
     Route::get('/vouchers', [SellerController::class, 'voucherIndex'])->name('vouchers.index');

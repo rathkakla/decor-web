@@ -33,7 +33,7 @@ class RfqController extends Controller
             });
         }
 
-        $rfqs = $query->paginate(15)->withQueryString();
+        $rfqs = $query->paginate(5)->withQueryString();
 
         // Stats for header cards
         $stats = [

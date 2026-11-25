@@ -1006,6 +1006,12 @@ class SellerController extends Controller
         return view('seller.Settings.index', compact('seller'));
     }
 
+    public function bankSettings()
+    {
+        $seller = Seller::where('user_id', Auth::id())->firstOrFail();
+        return view('seller.Settings.bank', compact('seller'));
+    }
+
     public function updateSettings(Request $request)
     {
         $user = Auth::user();

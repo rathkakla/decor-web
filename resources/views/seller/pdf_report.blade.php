@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <title>Laporan Penjualan - {{ $seller->store_name }}</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; color: #333; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; color: #1F2937; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; letter-spacing: -0.02em; }
+        table, td, th { font-family: 'Plus Jakarta Sans', sans-serif; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #B5733A; padding-bottom: 20px; }
         .header h1 { color: #B5733A; margin: 0; font-size: 24px; text-transform: uppercase; }
         .header p { margin: 5px 0; color: #666; }
@@ -27,6 +29,14 @@
         <h1>Laporan Penjualan</h1>
         <p>{{ $seller->store_name }}</p>
         <p>Periode: {{ date('d F Y', strtotime($startDate)) }} - {{ date('d F Y', strtotime($endDate)) }}</p>
+        @if(!empty($selectedCategoryName) || !empty($search))
+            <p style="font-size: 11px; color: #B5733A; font-weight: bold;">
+                Filter Aktif:
+                @if(!empty($selectedCategoryName)) Kategori: {{ $selectedCategoryName }} @endif
+                @if(!empty($selectedCategoryName) && !empty($search)) | @endif
+                @if(!empty($search)) Pencarian: "{{ $search }}" @endif
+            </p>
+        @endif
     </div>
 
     <table class="summary">

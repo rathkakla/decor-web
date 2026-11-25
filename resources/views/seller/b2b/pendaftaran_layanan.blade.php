@@ -5,47 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Layanan Pesanan Proyek — DECOR Seller</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#B5733A',
-                        'primary-dark': '#8A5229',
-                        secondary: '#E3DCD6',
-                    },
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        heading: ['"Poppins"', 'sans-serif'],
-                    },
-                    letterSpacing: {
-                        tight: '-0.02em',
-                    }
-                }
-            }
-        }
-    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
-        body { background-color: #F8F6F4; font-family: 'Plus Jakarta Sans', sans-serif; color: #1F2937; }
-        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Poppins', sans-serif; letter-spacing: -0.02em; }
-        p, label, input, select, textarea { font-family: 'Plus Jakarta Sans', sans-serif; }
-        p { line-height: 1.6; }
-        .bg-primary { background-color: #B5733A; }
-        .text-primary { color: #B5733A; }
-        .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
-        .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        @media (max-width: 767px) {
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.sidebar-open { transform: translateX(0); }
-            #main-content { margin-left: 0 !important; }
-        }
-        @media (min-width: 768px) {
-            #sidebar.sidebar-hidden { transform: translateX(-100%); }
-            #main-content.main-expanded { margin-left: 0 !important; }
-        }
-    </style>
+    @include('seller.partials.head')
 </head>
 <body class="text-gray-800 bg-[#F8F6F4]">
 

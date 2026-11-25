@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Decor - Join the Curator Community</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('seller.partials.print-head')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&family=Playfair+Display:italic,wght@700&display=swap');
@@ -74,8 +75,8 @@
                 </div>
 
                 <div class="mb-8">
-                    <h2 class="text-3xl lg:text-4xl font-light text-gray-800 leading-tight">Join the</h2>
-                    <h2 class="text-3xl lg:text-4xl font-black text-gray-800 italic font-playfair">Curator Community</h2>
+                    <h2 class="text-4xl lg:text-5xl font-light text-gray-800 leading-tight">Join the</h2>
+                    <h2 class="text-4xl lg:text-5xl font-black text-gray-800 italic font-playfair">Curator Community</h2>
                 </div>
 
                 @if ($errors->any())
@@ -126,7 +127,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" onclick="nextStep(2)" class="w-full bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
+                        <button type="button" onclick="nextStep(2)" class="w-full bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
                             Continue Professional Info <i class="fa-solid fa-arrow-right ml-4 group-hover:translate-x-2 transition-transform"></i>
                         </button>
                     </div>
@@ -143,7 +144,7 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <button type="button" onclick="nextStep(1)" class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
-                            <button type="button" onclick="nextStep(3)" class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
+                            <button type="button" onclick="nextStep(3)" class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center group">
                                 Continue Logistics <i class="fa-solid fa-arrow-right ml-4 group-hover:translate-x-2 transition-transform"></i>
                             </button>
                         </div>
@@ -169,7 +170,7 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <button type="button" onclick="nextStep(2)" class="w-1/3 py-4 text-[9px] font-black uppercase text-gray-400 tracking-widest">Back</button>
-                            <button type="submit" id="submit-reg" disabled class="w-2/3 bg-primary text-white py-4 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed">
+                            <button type="submit" id="submit-reg" disabled class="w-2/3 bg-primary text-white py-5 rounded-sm text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl shadow-primary/30 flex items-center justify-center opacity-50 cursor-not-allowed">
                                 Complete Registration
                             </button>
                         </div>

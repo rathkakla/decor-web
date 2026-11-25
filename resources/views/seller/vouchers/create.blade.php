@@ -18,10 +18,10 @@
 
     @include('seller.partials.sidebar')
 
-    <main id="main-content" class="flex-1 flex flex-col ml-64 sidebar-transition min-h-screen">
+    <main id="main-content" class="flex-1 flex flex-col ml-0 md:ml-64 sidebar-transition min-h-screen">
         @include('seller.partials.header', ['title' => 'Create New Voucher'])
 
-        <div class="p-8 space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 flex-1">
             @if ($errors->any())
                 <div class="max-w-4xl mx-auto bg-red-50 text-red-500 p-4 rounded-xl text-sm font-bold border border-red-200 mb-6">
                     <ul>
@@ -32,68 +32,68 @@
                 </div>
             @endif
 
-            <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-8 border-b border-gray-50">
+            <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-5 sm:p-6 lg:p-8 border-b border-gray-50">
                     <h3 class="font-bold text-gray-900 uppercase tracking-widest text-sm">Voucher Details</h3>
                 </div>
                 
-                <form action="{{ route('seller.vouchers.store') }}" method="POST" class="p-8 space-y-6">
+                <form action="{{ route('seller.vouchers.store') }}" method="POST" class="p-5 sm:p-6 lg:p-8 space-y-6">
                     @csrf
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Voucher Name</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Voucher Name</label>
                             <input type="text" name="name" required placeholder="Contoh: Diskon Grand Opening" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Voucher Code</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Voucher Code</label>
                             <input type="text" name="code" required placeholder="DECOR25OFF" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 uppercase">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Discount Type</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Discount Type</label>
                             <select name="discount_type" required class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                                 <option value="fixed">Fixed Amount (Potongan Rupiah)</option>
                                 <option value="percentage">Percentage (Potongan %)</option>
                             </select>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Discount Value</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Discount Value</label>
                             <input type="number" name="discount_value" required placeholder="Contoh: 50000 atau 10" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Max Discount (Opsional)</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Max Discount (Opsional)</label>
                             <input type="number" name="max_discount" placeholder="Maksimal potongan" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Min. Purchase</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Min. Purchase</label>
                             <input type="number" name="min_purchase" value="0" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quota</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Quota</label>
                             <input type="number" name="quota" required placeholder="Jumlah voucher" class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Start Date</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Start Date</label>
                             <input type="datetime-local" name="start_date" required class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">End Date</label>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">End Date</label>
                             <input type="datetime-local" name="end_date" required class="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20">
                         </div>
                     </div>
 
                     <div class="flex justify-end space-x-4 pt-6">
-                        <a href="{{ route('seller.vouchers.index') }}" class="px-8 py-3 bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-100 transition-all">Cancel</a>
-                        <button type="submit" class="px-8 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-opacity-90 shadow-lg shadow-primary/20 transition-all">Create Voucher</button>
+                        <a href="{{ route('seller.vouchers.index') }}" class="px-8 py-3 bg-gray-50 text-gray-400 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-gray-100 transition-all">Cancel</a>
+                        <button type="submit" class="px-8 py-3 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-opacity-90 shadow-lg shadow-primary/20 transition-all">Create Voucher</button>
                     </div>
                 </form>
             </div>

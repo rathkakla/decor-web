@@ -6,23 +6,8 @@
     <title>Decor Seller - Manajemen Produksi & QC B2B</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    @include('seller.partials.head')
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { background-color: #F8F6F4; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
-        .bg-primary { background-color: #B5733A; }
-        .text-primary { color: #B5733A; }
-        .border-primary { border-color: #B5733A; }
-        .active-link { background-color: rgba(181, 115, 58, 0.1); color: #B5733A; border-right: 4px solid #B5733A; }
-        .sidebar-transition { transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out; }
-        @media (max-width: 767px) {
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.sidebar-open { transform: translateX(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
-            #main-content { margin-left: 0 !important; }
-        }
-        @media (min-width: 768px) {
-            #sidebar.sidebar-hidden { transform: translateX(-100%); }
-            #main-content.main-expanded { margin-left: 0 !important; }
-        }
         /* Sembunyikan spinner up-down bawaan browser pada input angka progres */
         input[type="number"].progress-input::-webkit-outer-spin-button,
         input[type="number"].progress-input::-webkit-inner-spin-button {
@@ -327,75 +312,6 @@
     </main>
 
     
-    <script>
-    // Sidebar drawer: satu implementasi untuk desktop & mobile.
-    (function () {
-        const sidebar = document.getElementById('sidebar');
-        const main = document.getElementById('main-content');
-        const toggleBtn = document.getElementById('toggle-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (!sidebar || !toggleBtn) return;
-
-        const isMobile = () => window.innerWidth < 768;
-
-        const closeMobile = () => {
-            sidebar.classList.remove('sidebar-open');
-            if (backdrop) backdrop.classList.add('hidden');
-        };
-
-        const toggleSidebar = () => {
-            if (isMobile()) {
-                if (sidebar.classList.contains('sidebar-open')) {
-                    closeMobile();
-                } else {
-                    sidebar.classList.add('sidebar-open');
-                    if (backdrop) backdrop.classList.remove('hidden');
-                }
-            } else {
-                sidebar.classList.toggle('sidebar-hidden');
-                if (main) main.classList.toggle('main-expanded');
-            }
-        };
-
-        toggleBtn.addEventListener('click', toggleSidebar);
-        if (backdrop) backdrop.addEventListener('click', closeMobile);
-        document.querySelectorAll('.close-sidebar-btn').forEach((btn) => btn.addEventListener('click', closeMobile));
-        window.addEventListener('resize', () => { if (!isMobile()) closeMobile(); });
-
-        window.toggleSidebar = toggleSidebar;
-    })();
-
-    // Progres %: placeholder bersih, clamp 0-100, fallback ke nilai lama saat kosong.
-    (function () {
-        document.querySelectorAll('form[data-milestone-form]').forEach(function (form) {
-            var input = form.querySelector('input[name="progress_percent"]');
-            if (!input) return;
-
-            input.addEventListener('input', function () {
-                var digits = input.value.replace(/[^0-9]/g, '');
-                if (digits === '') { input.value = ''; return; }
-                var n = parseInt(digits, 10);
-                if (isNaN(n)) return;
-                if (n > 100) n = 100;
-                input.value = String(n);
-            });
-
-            input.addEventListener('blur', function () {
-                if (input.value === '') return;
-                var n = parseInt(input.value, 10);
-                if (isNaN(n) || n < 0) input.value = '0';
-                else if (n > 100) input.value = '100';
-            });
-
-            form.addEventListener('submit', function () {
-                if (input.value === '') {
-                    input.value = input.dataset.current || '0';
-                }
-                if (parseInt(input.value, 10) > 100) input.value = '100';
-            });
-        });
-    })();
-    </script>
 <script async defer data-website-id="cd56ccb0-617d-4bec-8e77-0ba7ea566e9a" data-host-url="/umami-analytics" src="/umami-analytics/script.js"></script>
 </body>
 </html>
