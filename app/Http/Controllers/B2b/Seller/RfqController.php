@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\B2b\Seller;
 
 use App\Http\Controllers\Controller;
+use App\Models\B2bOrder;
 use App\Models\B2bRfq;
 use App\Models\Seller;
 use Illuminate\Http\Request;
@@ -18,9 +19,25 @@ class RfqController extends Controller
             ->where('seller_id', $seller->id)
             ->latest();
 
-        // Filter by status
+        // Filter by status (mendukung status RFQ dan status pesanan lanjutan)
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = $request->status;
+            if ($status === 'COMPLETED') {
+                $query->whereHas('order', fn ($q) => $q->where('status', B2bOrder::STATUS_COMPLETED));
+            } elseif ($status === 'SHIPPING') {
+                $query->whereHas('order', fn ($q) => $q->whereIn('status', [
+                    B2bOrder::STATUS_READY_FOR_DELIVERY,
+                    B2bOrder::STATUS_DELIVERED,
+                ]));
+            } elseif ($status === 'IN_PRODUCTION') {
+                $query->where('status', B2bRfq::STATUS_IN_ORDER)
+                    ->whereHas('order', fn ($q) => $q->whereIn('status', [
+                        B2bOrder::STATUS_DP_PENDING,
+                        B2bOrder::STATUS_IN_PRODUCTION,
+                    ]));
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         // Search
@@ -36,6 +53,9 @@ class RfqController extends Controller
         $rfqs = $query->paginate(5)->withQueryString();
 
         // Stats for header cards
+        $completedOrders = B2bOrder::whereHas('rfq', fn ($q) => $q->where('seller_id', $seller->id))
+            ->where('status', B2bOrder::STATUS_COMPLETED);
+
         $stats = [
             'pending_quotation' => B2bRfq::where('seller_id', $seller->id)
                 ->where('status', B2bRfq::STATUS_PENDING)
@@ -44,6 +64,10 @@ class RfqController extends Controller
                 ->where('status', B2bRfq::STATUS_PENDING)
                 ->sum('budget_ceiling'),
             'capacity_available' => $seller->monthly_capacity ?? 0,
+            'completed_projects' => (clone $completedOrders)->count(),
+            'paid_revenue' => (clone $completedOrders)
+                ->where('payout_status', B2bOrder::PAYOUT_PAID)
+                ->sum('total_amount'),
         ];
 
         return view('seller.b2b.inbox', compact('rfqs', 'stats'));

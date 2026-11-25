@@ -160,7 +160,15 @@
                     @php
                         $rawMaterial = isset($quotation->material_cost) && (float) $quotation->material_cost > 0 ? (int) round((float) $quotation->material_cost) : '';
                         $rawLabor = isset($quotation->labor_cost) && (float) $quotation->labor_cost > 0 ? (int) round((float) $quotation->labor_cost) : '';
-                        $rawShipping = isset($quotation->shipping_cost) && (float) $quotation->shipping_cost > 0 ? (int) round((float) $quotation->shipping_cost) : '';
+
+                        // Estimasi ongkir otomatis: bandingkan kota seller dengan alamat pengiriman.
+                        $sellerCity = strtolower(trim((string) ($rfq->seller->city ?? '')));
+                        $sellerCityFirst = $sellerCity !== '' ? explode(' ', $sellerCity)[0] : '';
+                        $deliveryAddr = strtolower(trim((string) ($rfq->delivery_address ?? '')));
+                        $isSameCity = $sellerCityFirst !== '' && $deliveryAddr !== '' && str_contains($deliveryAddr, $sellerCityFirst);
+                        $initialUnits = max(1, (int) collect($items)->sum('qty'));
+                        $autoShipping = $isSameCity ? (150000 + ($initialUnits * 25000)) : (350000 + ($initialUnits * 50000));
+                        $rawShipping = ($isEdit && isset($quotation->shipping_cost)) ? (int) round((float) $quotation->shipping_cost) : $autoShipping;
                     @endphp
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
                         <div class="space-y-1">
@@ -168,7 +176,7 @@
                             <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:border-primary transition-colors">
                                 <span class="text-xs font-bold text-gray-400 mr-2 select-none">Rp</span>
                                 <input type="text" inputmode="numeric" id="material_cost_display" value="{{ $rawMaterial !== '' ? number_format($rawMaterial, 0, ',', '.') : '' }}" class="rupiah-display w-full text-sm font-semibold text-gray-800 border-0 focus:outline-none bg-transparent p-0" placeholder="0" required>
-                                <input type="hidden" name="material_cost" id="material_cost" value="{{ $rawMaterial }}" class="rupiah-raw">
+                                <input type="hidden" name="material_cost" id="material_cost" value="{{ $rawMaterial }}" class="rupiah-raw" data-manual="{{ $isEdit ? '1' : '0' }}">
                             </div>
                         </div>
                         <div class="space-y-1">
@@ -180,12 +188,16 @@
                             </div>
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Biaya Ongkir (Rp)</label>
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Biaya Ongkir (Rp)</label>
+                                <span class="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded whitespace-nowrap">{{ $isSameCity ? 'Auto • Dalam Kota' : 'Auto • Antar Kota' }}</span>
+                            </div>
                             <div class="flex items-center border border-gray-200 rounded-lg px-3 py-2 bg-white focus-within:border-primary transition-colors">
                                 <span class="text-xs font-bold text-gray-400 mr-2 select-none">Rp</span>
                                 <input type="text" inputmode="numeric" id="shipping_cost_display" value="{{ $rawShipping !== '' ? number_format($rawShipping, 0, ',', '.') : '' }}" class="rupiah-display w-full text-sm font-semibold text-gray-800 border-0 focus:outline-none bg-transparent p-0" placeholder="0">
-                                <input type="hidden" name="shipping_cost" id="shipping_cost" value="{{ $rawShipping !== '' ? $rawShipping : 0 }}" class="rupiah-raw" data-default-zero="1">
+                                <input type="hidden" name="shipping_cost" id="shipping_cost" value="{{ $rawShipping !== '' ? $rawShipping : 0 }}" class="rupiah-raw" data-default-zero="1" data-manual="{{ $isEdit ? '1' : '0' }}" data-same-city="{{ $isSameCity ? '1' : '0' }}">
                             </div>
+                            <p class="text-[10px] text-gray-400" id="shipping-hint">Estimasi otomatis ({{ $initialUnits }} unit), dapat disesuaikan.</p>
                         </div>
                     </div>
 
@@ -294,13 +306,38 @@
         // Quotation calculation logic
         function recalc() {
             let subtotal = 0;
+            let totalUnits = 0;
             document.querySelectorAll('.quotation-item-row').forEach(row => {
                 const qty = parseFloat(row.querySelector('input[name*="[qty]"]')?.value) || 0;
                 const price = parseFloat(row.querySelector('input[name*="[unit_price]"]')?.value) || 0;
                 const itemSubtotal = qty * price;
                 row.querySelector('.item-subtotal').textContent = 'Rp ' + itemSubtotal.toLocaleString('id-ID');
                 subtotal += itemSubtotal;
+                totalUnits += qty;
             });
+
+            // Auto-sync Biaya Material dari subtotal item (kecuali diedit manual)
+            const materialRaw = document.getElementById('material_cost');
+            const materialDisplay = document.getElementById('material_cost_display');
+            if (materialRaw && materialDisplay && materialRaw.dataset.manual !== '1') {
+                materialRaw.value = subtotal > 0 ? String(Math.round(subtotal)) : '';
+                materialDisplay.value = subtotal > 0 ? Math.round(subtotal).toLocaleString('id-ID') : '';
+            }
+
+            // Auto-estimasi ongkir berdasarkan jumlah unit (kecuali diedit manual)
+            const shippingRaw = document.getElementById('shipping_cost');
+            const shippingDisplay = document.getElementById('shipping_cost_display');
+            const shippingHint = document.getElementById('shipping-hint');
+            if (shippingRaw && shippingDisplay && shippingRaw.dataset.manual !== '1') {
+                const units = Math.max(1, Math.round(totalUnits));
+                const sameCity = shippingRaw.dataset.sameCity === '1';
+                const autoShip = sameCity ? (150000 + units * 25000) : (350000 + units * 50000);
+                shippingRaw.value = String(autoShip);
+                shippingDisplay.value = autoShip.toLocaleString('id-ID');
+                if (shippingHint) {
+                    shippingHint.textContent = `Estimasi otomatis (${units} unit), dapat disesuaikan.`;
+                }
+            }
 
             const material = parseFloat(document.getElementById('material_cost').value) || 0;
             const labor = parseFloat(document.getElementById('labor_cost').value) || 0;
@@ -324,6 +361,12 @@
         // Delegated input listener for all rupiah-display & qty inputs
         document.addEventListener('input', (event) => {
             if (event.target.classList.contains('rupiah-display')) {
+                if (event.target.id === 'material_cost_display') {
+                    document.getElementById('material_cost').dataset.manual = '1';
+                }
+                if (event.target.id === 'shipping_cost_display') {
+                    document.getElementById('shipping_cost').dataset.manual = '1';
+                }
                 syncRupiahInput(event.target);
                 recalc();
             } else if (event.target.classList.contains('qty-input')) {

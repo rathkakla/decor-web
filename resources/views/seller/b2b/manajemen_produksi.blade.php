@@ -38,6 +38,8 @@
             $doneStages = $order->milestones->where('progress_percent', '>=', 100)->count();
             $totalStages = $order->milestones->count();
             $daysLeft = $rfq->deadline ? now()->startOfDay()->diffInDays($rfq->deadline, false) : null;
+            // Produksi terkunci bila barang sudah dikirim (surat jalan terbit) atau pesanan selesai.
+            $isProductionLocked = $order->delivery !== null || in_array($order->status, [\App\Models\B2bOrder::STATUS_DELIVERED, \App\Models\B2bOrder::STATUS_COMPLETED], true);
         @endphp
 
         <!-- Topbar Header -->
@@ -139,9 +141,23 @@
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <!-- Kolom Kiri: Timeline Milestone Produksi -->
                 <div class="xl:col-span-7 space-y-4">
-                    <h3 class="text-sm font-bold text-gray-900 flex items-center">
-                        <i class="fa-solid fa-list-check text-primary mr-2"></i> Timeline & Milestone Pekerjaan
-                    </h3>
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-sm font-bold text-gray-900 flex items-center">
+                            <i class="fa-solid fa-list-check text-primary mr-2"></i> Timeline & Milestone Pekerjaan
+                        </h3>
+                        @if($isProductionLocked)
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[9px]"></i> Produksi Terkunci
+                            </span>
+                        @endif
+                    </div>
+
+                    @if($isProductionLocked)
+                        <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-circle-check text-emerald-600 shrink-0"></i>
+                            <span>Tahapan produksi sudah terkunci karena barang telah dikirim atau pesanan selesai.</span>
+                        </div>
+                    @endif
 
                     @forelse($order->milestones as $milestone)
                         @php
@@ -183,7 +199,8 @@
                                 <p class="text-xs text-gray-600 pl-0 sm:pl-10">{{ $milestone->qc_notes }}</p>
                             @endif
 
-                            <!-- Form Gabungan: Update Progres + Upload Bukti QC -->
+                            <!-- Form Gabungan: Update Progres + Upload Bukti QC (disembunyikan saat produksi terkunci) -->
+                            @if(! $isProductionLocked)
                             <form method="POST" action="{{ b2b_route('seller.b2b.produksi.milestone.update', [$order, $milestone]) }}" enctype="multipart/form-data" data-milestone-form class="pl-0 sm:pl-10 pt-1 space-y-2">
                                 @csrf
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
@@ -231,6 +248,13 @@
                                     </button>
                                 </div>
                             </form>
+                            @else
+                                <div class="pl-0 sm:pl-10">
+                                    <span class="inline-flex items-center gap-2 text-[10px] font-bold text-gray-400 bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg">
+                                        <i class="fa-solid fa-lock"></i> Progres dikunci — barang sudah dikirim / pesanan selesai
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                     @empty
                         <div class="bg-white p-8 rounded-2xl border border-gray-100 text-center text-xs text-gray-500">
@@ -294,16 +318,20 @@
                                 <i class="fa-solid fa-truck-ramp-box"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-sm">Produksi Siap Dikirim?</h4>
+                                <h4 class="font-bold text-sm">{{ $isProductionLocked ? 'Pengiriman & Pencairan Dana' : 'Produksi Siap Dikirim?' }}</h4>
                                 <p class="text-[11px] text-white/80">Cetak Surat Jalan & Ajukan Payout</p>
                             </div>
                         </div>
                         <p class="text-xs text-white/90 leading-relaxed">
-                            Begitu barang dimuat ke truk kargo menuju {{ $rfq->delivery_address ? \Illuminate\Support\Str::limit($rfq->delivery_address, 60) : 'lokasi proyek' }},
-                            Anda dapat menerbitkan Surat Jalan resmi dan mengajukan pencairan dana escrow.
+                            @if($isProductionLocked)
+                                Lihat dokumen Surat Jalan, status pengiriman, dan status pencairan dana untuk proyek ini.
+                            @else
+                                Begitu barang dimuat ke truk kargo menuju {{ $rfq->delivery_address ? \Illuminate\Support\Str::limit($rfq->delivery_address, 60) : 'lokasi proyek' }},
+                                Anda dapat menerbitkan Surat Jalan resmi dan mengajukan pencairan dana escrow.
+                            @endif
                         </p>
                         <a href="{{ b2b_route('seller.b2b.surat_jalan', $order) }}" class="w-full bg-white hover:bg-gray-100 text-primary py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center transition-all shadow-md">
-                            Lanjut ke Pengiriman & Surat Jalan <i class="fa-solid fa-arrow-right ml-2"></i>
+                            {{ $isProductionLocked ? 'Lihat Surat Jalan & Pencairan' : 'Lanjut ke Pengiriman & Surat Jalan' }} <i class="fa-solid fa-arrow-right ml-2"></i>
                         </a>
                     </div>
                 </div>

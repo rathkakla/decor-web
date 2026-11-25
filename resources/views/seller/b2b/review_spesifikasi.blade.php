@@ -69,70 +69,91 @@
                 <div class="xl:col-span-7 space-y-6">
                     <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
                         <h3 class="font-bold text-sm text-gray-900 uppercase tracking-wider flex items-center">
-                            <i class="fa-solid fa-draw-polygon text-primary mr-2"></i> Gambar Kerja & Visualisasi 3D
+                            <i class="fa-solid fa-folder-open text-primary mr-2"></i> Dokumen &amp; Referensi Desain
                         </h3>
 
-                        <!-- Preview Render / Blueprint -->
-                        <div class="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-900 aspect-video group">
-                            @if($rfq->cad_url)
-                                <a href="{{ asset('storage/' . $rfq->cad_url) }}" target="_blank">
-                                    <img src="{{ asset('storage/' . $rfq->cad_url) }}" class="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-500">
-                                </a>
-                            @else
-                                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80" class="w-full h-full object-cover opacity-85 group-hover:scale-105 transition-transform duration-500">
-                            @endif
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6 text-white">
-                                <span class="bg-primary/90 text-white text-[10px] font-bold px-2 py-0.5 rounded w-fit mb-1">Gambar Kerja / CAD</span>
-                                <h4 class="font-bold text-base">{{ $rfq->project_name }}</h4>
-                                <p class="text-xs text-gray-300">Klik untuk memperbesar / unduh</p>
-                            </div>
-                        </div>
+                        @php
+                            $isImageFile = fn ($path) => $path && in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp', 'gif'], true);
+                        @endphp
 
-                        <!-- Dokumen Lampiran Teknis -->
-                        <div class="space-y-3">
-                            <p class="text-xs font-bold text-gray-700">Dokumen Lampiran dari Desainer:</p>
-                            
+                        {{-- Preview hanya untuk berkas yang memang berupa gambar --}}
+                        @if($isImageFile($rfq->cad_url) || $isImageFile($rfq->moodboard_url))
+                            @php $previewPath = $isImageFile($rfq->moodboard_url) ? $rfq->moodboard_url : $rfq->cad_url; @endphp
+                            <a href="{{ asset('storage/' . $previewPath) }}" target="_blank" class="block relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 max-h-72 group">
+                                <img src="{{ asset('storage/' . $previewPath) }}" alt="Preview Referensi Desain" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] font-semibold px-3 py-1 rounded-lg backdrop-blur-sm">
+                                    <i class="fa-solid fa-up-right-from-square mr-1"></i> Perbesar Gambar
+                                </span>
+                            </a>
+                        @endif
+
+                        <div class="space-y-2.5">
                             @if($rfq->cad_url)
-                            <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fa-solid fa-file-lines text-blue-600 text-xl"></i>
-                                    <div>
-                                        <p class="text-xs font-bold text-gray-900">{{ basename($rfq->cad_url) }}</p>
-                                        <p class="text-[10px] text-gray-500">Gambar kerja teknis (CAD/DWG/PDF)</p>
+                            @php $cadExt = strtoupper(pathinfo($rfq->cad_url, PATHINFO_EXTENSION) ?: 'FILE'); @endphp
+                            <div class="flex items-center justify-between gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 hover:border-primary/40 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid {{ $cadExt === 'PDF' ? 'fa-file-pdf' : 'fa-compass-drafting' }} text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-gray-900">Dokumen Gambar Kerja ({{ $cadExt }})</p>
+                                        <p class="text-[11px] text-gray-400 truncate">{{ basename($rfq->cad_url) }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ asset('storage/' . $rfq->cad_url) }}" target="_blank" class="text-xs font-bold text-primary hover:underline cursor-pointer"><i class="fa-solid fa-download mr-1"></i> Unduh</a>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <a href="{{ asset('storage/' . $rfq->cad_url) }}" target="_blank" class="h-8 px-3 rounded-lg bg-white border border-gray-200 hover:border-primary text-xs font-semibold text-gray-700 hover:text-primary inline-flex items-center gap-1.5 transition-colors">
+                                        <i class="fa-solid fa-eye text-[10px]"></i><span>Lihat</span>
+                                    </a>
+                                    <a href="{{ asset('storage/' . $rfq->cad_url) }}" download class="h-8 px-3 rounded-lg bg-primary/10 hover:bg-primary text-xs font-semibold text-primary hover:text-white inline-flex items-center gap-1.5 transition-colors">
+                                        <i class="fa-solid fa-download text-[10px]"></i><span>Unduh</span>
+                                    </a>
+                                </div>
                             </div>
                             @endif
 
                             @if($rfq->boq_url)
-                            <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fa-solid fa-file-excel text-emerald-600 text-xl"></i>
-                                    <div>
-                                        <p class="text-xs font-bold text-gray-900">{{ basename($rfq->boq_url) }}</p>
-                                        <p class="text-[10px] text-gray-500">Bill of Quantities (Spreadsheet)</p>
+                            @php $boqExt = strtoupper(pathinfo($rfq->boq_url, PATHINFO_EXTENSION) ?: 'FILE'); @endphp
+                            <div class="flex items-center justify-between gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 hover:border-primary/40 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-file-excel text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-gray-900">Daftar Rincian Item ({{ $boqExt }})</p>
+                                        <p class="text-[11px] text-gray-400 truncate">{{ basename($rfq->boq_url) }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ asset('storage/' . $rfq->boq_url) }}" target="_blank" class="text-xs font-bold text-primary hover:underline cursor-pointer"><i class="fa-solid fa-download mr-1"></i> Unduh</a>
+                                <a href="{{ asset('storage/' . $rfq->boq_url) }}" download class="h-8 px-3 rounded-lg bg-primary/10 hover:bg-primary text-xs font-semibold text-primary hover:text-white inline-flex items-center gap-1.5 transition-colors shrink-0">
+                                    <i class="fa-solid fa-download text-[10px]"></i><span>Unduh</span>
+                                </a>
                             </div>
                             @endif
 
                             @if($rfq->moodboard_url)
-                            <div class="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl border border-gray-200">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fa-solid fa-file-image text-amber-500 text-xl"></i>
-                                    <div>
-                                        <p class="text-xs font-bold text-gray-900">{{ basename($rfq->moodboard_url) }}</p>
-                                        <p class="text-[10px] text-gray-500">Moodboard & Skema Finishing</p>
+                            @php $mbExt = strtoupper(pathinfo($rfq->moodboard_url, PATHINFO_EXTENSION) ?: 'FILE'); @endphp
+                            <div class="flex items-center justify-between gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200/80 hover:border-primary/40 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-images text-lg"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-gray-900">Moodboard &amp; Referensi Finishing ({{ $mbExt }})</p>
+                                        <p class="text-[11px] text-gray-400 truncate">{{ basename($rfq->moodboard_url) }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ asset('storage/' . $rfq->moodboard_url) }}" target="_blank" class="text-xs font-bold text-primary hover:underline cursor-pointer"><i class="fa-solid fa-download mr-1"></i> Unduh</a>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <a href="{{ asset('storage/' . $rfq->moodboard_url) }}" target="_blank" class="h-8 px-3 rounded-lg bg-white border border-gray-200 hover:border-primary text-xs font-semibold text-gray-700 hover:text-primary inline-flex items-center gap-1.5 transition-colors">
+                                        <i class="fa-solid fa-eye text-[10px]"></i><span>Lihat</span>
+                                    </a>
+                                    <a href="{{ asset('storage/' . $rfq->moodboard_url) }}" download class="h-8 px-3 rounded-lg bg-primary/10 hover:bg-primary text-xs font-semibold text-primary hover:text-white inline-flex items-center gap-1.5 transition-colors">
+                                        <i class="fa-solid fa-download text-[10px]"></i><span>Unduh</span>
+                                    </a>
+                                </div>
                             </div>
                             @endif
 
                             @if(!$rfq->cad_url && !$rfq->boq_url && !$rfq->moodboard_url)
-                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 text-center text-xs text-gray-500">
+                            <div class="p-5 bg-gray-50 rounded-xl border border-gray-100 text-center text-xs text-gray-400">
                                 Belum ada dokumen lampiran dari desainer.
                             </div>
                             @endif

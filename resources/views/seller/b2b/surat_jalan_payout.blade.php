@@ -391,6 +391,20 @@
                         </div>
 
                         @if($order->status === 'READY_FOR_DELIVERY')
+                            @php
+                                $courierPresets = [
+                                    ['name' => 'Armada Internal Workshop', 'driver' => 'Budi Santoso', 'plate' => 'D 8421 KQ'],
+                                    ['name' => 'JNE Trucking (JTR)', 'driver' => 'Hendra Wijaya', 'plate' => 'B 9104 TUX'],
+                                    ['name' => 'SiCepat Gokil (Kargo)', 'driver' => 'Agus Pratama', 'plate' => 'B 9582 UCD'],
+                                    ['name' => 'Lalamove Engkel / Box', 'driver' => 'Dedi Kurniawan', 'plate' => 'D 8735 FA'],
+                                    ['name' => 'Deliveree Truk Box', 'driver' => 'Slamet Riyadi', 'plate' => 'B 9247 KXA'],
+                                ];
+                                $defaultRecipientPhone = $designerUser->phone
+                                    ?? $designerUser->phone_number
+                                    ?? $rfq->designer->phone_number
+                                    ?? $rfq->designer->phone
+                                    ?? '0812-8840-2190';
+                            @endphp
                             <form method="POST" action="{{ b2b_route('seller.b2b.surat_jalan.store') }}" class="space-y-4 text-xs">
                                 @csrf
                                 <input type="hidden" name="order_id" value="{{ $order->id }}">
@@ -398,7 +412,17 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="space-y-1">
                                         <label class="font-bold text-gray-700">Ekspedisi / Kargo *</label>
-                                        <input type="text" name="courier_service" value="{{ old('courier_service') }}" placeholder="cth: Kargo Kayu Nusantara" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
+                                        <select id="courier-service-select" name="courier_service" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-white focus:outline-none focus:border-primary">
+                                            <option value="">-- Pilih Ekspedisi / Armada Kargo --</option>
+                                            @foreach($courierPresets as $preset)
+                                                <option value="{{ $preset['name'] }}"
+                                                        data-driver="{{ $preset['driver'] }}"
+                                                        data-plate="{{ $preset['plate'] }}"
+                                                        @selected(old('courier_service') === $preset['name'])>
+                                                    {{ $preset['name'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="space-y-1">
                                         <label class="font-bold text-gray-700">Tanggal Kirim *</label>
@@ -406,11 +430,11 @@
                                     </div>
                                     <div class="space-y-1">
                                         <label class="font-bold text-gray-700">Nama Driver</label>
-                                        <input type="text" name="driver_name" value="{{ old('driver_name') }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
+                                        <input id="driver-name-input" type="text" name="driver_name" value="{{ old('driver_name') }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
                                     </div>
                                     <div class="space-y-1">
                                         <label class="font-bold text-gray-700">Nomor Polisi</label>
-                                        <input type="text" name="vehicle_plate" value="{{ old('vehicle_plate') }}" placeholder="cth: K-8921-FA" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
+                                        <input id="vehicle-plate-input" type="text" name="vehicle_plate" value="{{ old('vehicle_plate') }}" placeholder="cth: K-8921-FA" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
                                     </div>
                                     <div class="space-y-1 sm:col-span-2">
                                         <label class="font-bold text-gray-700">Alamat Tujuan *</label>
@@ -422,7 +446,7 @@
                                     </div>
                                     <div class="space-y-1">
                                         <label class="font-bold text-gray-700">Telepon Penerima</label>
-                                        <input type="text" name="recipient_phone" value="{{ old('recipient_phone') }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
+                                        <input type="text" name="recipient_phone" value="{{ old('recipient_phone', $defaultRecipientPhone) }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary">
                                     </div>
                                 </div>
 
@@ -430,6 +454,22 @@
                                     <i class="fa-solid fa-file-circle-plus mr-2"></i> Terbitkan Surat Jalan & Tandai Dikirim
                                 </button>
                             </form>
+
+                            <script>
+                                (function () {
+                                    const courierSelect = document.getElementById('courier-service-select');
+                                    const driverInput = document.getElementById('driver-name-input');
+                                    const plateInput = document.getElementById('vehicle-plate-input');
+                                    if (!courierSelect || !driverInput || !plateInput) return;
+
+                                    courierSelect.addEventListener('change', function () {
+                                        const opt = this.options[this.selectedIndex];
+                                        if (!opt || !opt.value) return;
+                                        driverInput.value = opt.dataset.driver || '';
+                                        plateInput.value = opt.dataset.plate || '';
+                                    });
+                                })();
+                            </script>
                         @else
                             <div class="p-5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                                 <p class="font-bold mb-1"><i class="fa-solid fa-hourglass-half mr-1"></i> Belum siap dikirim</p>
@@ -447,9 +487,21 @@
                     @if($delivery)
                         <!-- Update Status Pengiriman -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                            <h4 class="text-xs font-bold text-gray-900 flex items-center">
-                                <i class="fa-solid fa-location-dot text-primary mr-2"></i> Perbarui Status Pengiriman
-                            </h4>
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="text-xs font-bold text-gray-900 flex items-center">
+                                    <i class="fa-solid fa-location-dot text-primary mr-2"></i> Perbarui Status Pengiriman
+                                </h4>
+                                @if($order->status === \App\Models\B2bOrder::STATUS_COMPLETED)
+                                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Selesai</span>
+                                @endif
+                            </div>
+
+                            @if($order->status === \App\Models\B2bOrder::STATUS_COMPLETED)
+                                <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-800 space-y-1">
+                                    <p class="font-bold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Barang Sudah Diterima</p>
+                                    <p class="text-[11px] text-emerald-700/90">Pengiriman telah selesai dan dikonfirmasi desainer. Status tidak dapat diubah lagi.</p>
+                                </div>
+                            @else
                             <form method="POST" action="{{ b2b_route('seller.b2b.surat_jalan.update', $delivery) }}" class="space-y-3 text-xs">
                                 @csrf
                                 @method('PUT')
@@ -473,6 +525,7 @@
                                     Simpan Status
                                 </button>
                             </form>
+                            @endif
                         </div>
                     @endif
 

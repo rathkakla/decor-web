@@ -35,6 +35,10 @@ class ProductionController extends Controller
 
         abort_unless($milestone->order_id === $order->id, 403, 'Milestone tidak valid.');
 
+        if ($order->delivery()->exists() || in_array($order->status, [B2bOrder::STATUS_DELIVERED, B2bOrder::STATUS_COMPLETED], true)) {
+            return back()->withErrors(['locked' => 'Progres produksi tidak dapat diubah karena barang sudah dikirim atau pesanan selesai.']);
+        }
+
         // Foto bukti QC wajib ada di setiap milestone. Bila milestone belum
         // punya foto, unggahan baru diwajibkan sebelum progres boleh disimpan.
         $hasPhoto = filled($milestone->photo_url);
@@ -87,6 +91,10 @@ class ProductionController extends Controller
         $this->authorizeOrder($order, $seller);
 
         abort_unless($milestone->order_id === $order->id, 403, 'Milestone tidak valid.');
+
+        if ($order->delivery()->exists() || in_array($order->status, [B2bOrder::STATUS_DELIVERED, B2bOrder::STATUS_COMPLETED], true)) {
+            return back()->withErrors(['locked' => 'Progres produksi tidak dapat diubah karena barang sudah dikirim atau pesanan selesai.']);
+        }
 
         $validated = $request->validate([
             'photo' => ['required', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
