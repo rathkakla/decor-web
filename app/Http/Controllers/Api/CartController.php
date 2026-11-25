@@ -46,8 +46,11 @@ class CartController extends Controller
 
         // Cek stok produk
         $product = Product::find($productId);
-        if ($quantity > $product->stock) {
-            return $this->errorResponse('Stok produk tidak mencukupi.', 400);
+        if (!$product) {
+            return $this->errorResponse('Produk tidak ditemukan.', 404);
+        }
+        if ((int) $product->stock <= 0) {
+            return $this->errorResponse('Stok produk habis.', 400);
         }
 
         // Cari keranjang customer ini, kalau belum ada, buatkan baru
@@ -59,6 +62,16 @@ class CartController extends Controller
         $cartItem = CartItem::where('cart_id', $cart->id)
                             ->where('product_id', $productId)
                             ->first();
+
+        $existingQty = $cartItem ? (int) $cartItem->quantity : 0;
+
+        if ($existingQty + (int) $quantity > (int) $product->stock) {
+            $remaining = max(0, (int) $product->stock - $existingQty);
+            $message = $remaining > 0
+                ? "Stok tidak mencukupi. Tersisa {$remaining} unit."
+                : 'Jumlah barang di keranjang sudah mencapai batas stok.';
+            return $this->errorResponse($message, 400);
+        }
 
         if ($cartItem) {
             // Kalau sudah ada, tambahkan aja jumlahnya (quantity)
@@ -81,8 +94,13 @@ class CartController extends Controller
     {
         $request->validate(['quantity' => 'required|integer|min:1']);
         
-        $cartItem = CartItem::find($id);
+        $cartItem = CartItem::with('product')->find($id);
         if (!$cartItem) return $this->errorResponse('Barang tidak ditemukan.', 404);
+
+        $stock = (int) ($cartItem->product->stock ?? 0);
+        if ((int) $request->quantity > $stock) {
+            return $this->errorResponse("Stok tidak mencukupi. Tersisa {$stock} unit.", 400);
+        }
 
         $cartItem->update(['quantity' => $request->quantity]);
         return $this->successResponse($cartItem, 'Jumlah barang diperbarui.');
@@ -109,7 +127,12 @@ class CartController extends Controller
             'is_selected' => 'required|boolean'
         ]);
 
-        $cartItem = CartItem::find($request->cart_item_id);
+        $cartItem = CartItem::with('product')->find($request->cart_item_id);
+
+        if ($request->is_selected && (int) ($cartItem->product->stock ?? 0) <= 0) {
+            return $this->errorResponse('Produk sedang habis dan tidak dapat dipilih.', 400);
+        }
+
         $cartItem->update(['is_selected' => $request->is_selected]);
 
         return $this->successResponse($cartItem, 'Status seleksi diperbarui.');

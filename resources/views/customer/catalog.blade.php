@@ -110,6 +110,8 @@
 
     @include('customer.partials.navbar')
 
+    @include('customer.partials.flash')
+
     <main>
         <section class="content-container px-6 pt-14 pb-10">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-10">

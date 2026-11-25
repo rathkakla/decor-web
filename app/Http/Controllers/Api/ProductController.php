@@ -11,7 +11,7 @@ class ProductController extends Controller
     // READ ALL (Sudah kita buat sebelumnya)
     public function index()
     {
-        $products = Product::with(['images', 'seller'])->where('status', 'approved')->get();
+        $products = Product::with(['images', 'seller'])->where('status', 'approved')->where('stock', '>', 0)->get();
         return $this->successResponse($products, 'Data produk berhasil diambil');
     }
 
@@ -127,6 +127,7 @@ class ProductController extends Controller
         $products = \App\Models\Product::with('images')
             ->where('seller_id', $id)
             ->where('status', 'approved')
+            ->where('stock', '>', 0)
             ->get();
 
         $allReviews = \App\Models\Review::whereHas('product', function ($q) use ($id) {

@@ -3,8 +3,16 @@
     
     // Inisialisasi hitungan
     $subtotal = 0;
+    $stockIssue = false;
+    $stockIssueNames = [];
     if($cart && $cart->cartItems) {
         foreach ($cart->cartItems as $item) {
+            $itemStock = (int) ($item->product->stock ?? 0);
+            // Tandai item terpilih yang stoknya tidak mencukupi
+            if($item->is_selected && $itemStock < (int) $item->quantity) {
+                $stockIssue = true;
+                $stockIssueNames[] = $item->product->name;
+            }
             // Hanya hitung yang dicentang (is_selected)
             if($item->is_selected) {
                 $subtotal += ($item->product->price * $item->quantity);
@@ -49,6 +57,8 @@
 
     @include('customer.partials.navbar')
 
+    @include('customer.partials.flash')
+
     <main class="py-12 content-container px-6">
         <header class="mb-12">
             <h1 class="text-5xl font-bold tracking-tight mb-2">Your Cart</h1>
@@ -61,6 +71,10 @@
             <section class="space-y-10">
                 @if($cart && $cart->cartItems->count() > 0)
                     @foreach ($cart->cartItems as $item)
+                    @php
+                        $itemStock = (int) ($item->product->stock ?? 0);
+                        $isOutOfStock = $itemStock <= 0;
+                    @endphp
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-6 border-b border-gray-100 pb-10">
                         <div class="flex items-center h-full pt-1">
     <form action="{{ route('customer.cart.toggle', $item->id) }}" method="POST" class="m-0">
@@ -71,6 +85,7 @@
         <!-- Jika dicentang, akan mengirim nilai 1 -->
         <input type="checkbox" name="is_selected" value="1" class="custom-checkbox" 
                onchange="this.form.submit()" 
+               {{ $isOutOfStock ? 'disabled' : '' }}
                {{ $item->is_selected ? 'checked' : '' }}>
     </form>
 </div>
@@ -78,12 +93,24 @@
 
                         <div class="flex flex-1 flex-col md:flex-row gap-8 w-full">
                             <img src="{{ $item->product->images->first()->img_url ?? 'https://via.placeholder.com/400' }}" 
-                                 class="w-full md:w-44 h-44 object-cover rounded-lg bg-gray-50" alt="{{ $item->product->name }}">
+                                 class="w-full md:w-44 h-44 object-cover rounded-lg bg-gray-50 {{ $isOutOfStock ? 'opacity-60' : '' }}" alt="{{ $item->product->name }}">
                             
                             <div class="flex-1 flex flex-col justify-between">
                                 <div>
-                                    <h2 class="text-xl font-bold mb-1">{{ $item->product->name }}</h2>
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        <h2 class="text-xl font-bold {{ $isOutOfStock ? 'text-gray-400' : '' }}">{{ $item->product->name }}</h2>
+                                        @if($isOutOfStock)
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-1 rounded-full">Stok Habis</span>
+                                        @elseif($itemStock <= 5)
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-1 rounded-full">Sisa {{ $itemStock }}</span>
+                                        @else
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Stok {{ $itemStock }}</span>
+                                        @endif
+                                    </div>
                                     <p class="text-sm text-gray-400">{{ $item->product->category->name ?? 'Furniture' }}</p>
+                                    @if($item->is_selected && $itemStock < (int) $item->quantity)
+                                        <p class="text-[11px] text-red-500 font-semibold mt-2">Jumlah melebihi stok tersedia. Kurangi jumlahnya untuk melanjutkan.</p>
+                                    @endif
                                 </div>
                                 
                                 <div class="flex items-center gap-6 mt-4">
@@ -99,7 +126,7 @@
                                         <form action="{{ route('customer.cart.increment', $item->id) }}" method="POST" class="m-0">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="hover:text-primary transition-colors focus:outline-none">+</button>
+                                            <button type="submit" class="hover:text-primary transition-colors focus:outline-none {{ $item->quantity >= $itemStock ? 'opacity-30 cursor-not-allowed' : '' }}" {{ $item->quantity >= $itemStock ? 'disabled' : '' }}>+</button>
                                         </form>
                                     </div>
                                     
@@ -111,7 +138,7 @@
                                 </div>
                             </div>
                             <div class="text-right">
-                                <span class="text-lg font-bold text-primary">Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}</span>
+                                <span class="text-lg font-bold {{ $isOutOfStock ? 'text-gray-400' : 'text-primary' }}">Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
@@ -150,8 +177,17 @@
                         <span class="text-2xl font-bold text-primary">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
                     </div>
 
+                    @if($stockIssue)
+                        <div class="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
+                            <i class="fa-solid fa-circle-exclamation text-red-500 text-sm mt-0.5"></i>
+                            <p class="text-[11px] text-red-600 leading-relaxed font-medium">Beberapa item melebihi stok
+                                tersedia ({{ implode(', ', $stockIssueNames) }}). Sesuaikan jumlah atau hapus item
+                                tersebut sebelum checkout.</p>
+                        </div>
+                    @endif
+
                     <a href="{{ route('customer.checkout') }}" class="block w-full">
-                        <button class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-lg shadow-primary/20 {{ $subtotal == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $subtotal == 0 ? 'disabled' : '' }}>
+                        <button class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest transition shadow-lg shadow-primary/20 {{ ($subtotal == 0 || $stockIssue) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-90' }}" {{ ($subtotal == 0 || $stockIssue) ? 'disabled' : '' }}>
                             Proceed to Checkout
                         </button>
                     </a>

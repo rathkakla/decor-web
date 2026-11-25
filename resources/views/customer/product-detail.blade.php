@@ -135,6 +135,8 @@
 
     @include('customer.partials.navbar')
 
+    @include('customer.partials.flash')
+
     <div class="content-container px-6 py-4">
         <nav class="flex items-center gap-2 text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
             <a href="/" class="hover:text-primary transition-colors">Home</a>
@@ -282,15 +284,37 @@
                     <div class="flex items-baseline gap-3 mt-2">
                         <span class="text-3xl font-light text-primary">Rp
                             {{ number_format($product->price, 0, ',', '.') }}</span>
-                        @if($product->stock < 5)
-                            <span
-                                class="text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-1 rounded-full">Sisa
-                                {{ $product->stock }}!</span>
+                    </div>
+
+                    @php
+                        $stock = (int) $product->stock;
+                    @endphp
+                    <div class="mt-3">
+                        @if($stock <= 0)
+                            <span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-3 py-1.5 rounded-full">
+                                <i class="fa-solid fa-circle-xmark"></i> Stok Habis
+                            </span>
+                        @elseif($stock <= 5)
+                            <span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Sisa {{ $stock }} unit
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">
+                                <i class="fa-solid fa-check"></i> Stok tersedia: {{ $stock }} unit
+                            </span>
                         @endif
                     </div>
                 </div>
 
                 <p class="text-[13px] text-gray-500 leading-relaxed">{{ $product->description }}</p>
+
+                @if($stock <= 0)
+                    <div class="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-sm mt-0.5"></i>
+                        <p class="text-[12px] text-red-600 leading-relaxed font-medium">Produk ini sedang tidak tersedia
+                            untuk dibeli. Silakan cek kembali nanti atau jelajahi koleksi lainnya.</p>
+                    </div>
+                @endif
 
                 <div class="flex gap-3 items-center">
                     <form action="{{ route('customer.cart.store') }}" method="POST"
@@ -298,22 +322,22 @@
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                        <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white {{ $stock <= 0 ? 'opacity-50' : '' }}">
                             <button type="button"
                                 class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light"
-                                onclick="changeQty(-1)">−</button>
+                                onclick="changeQty(-1)" {{ $stock <= 0 ? 'disabled' : '' }}>−</button>
                             <input type="number" id="qty-input" name="quantity" value="1" min="1"
-                                max="{{ $product->stock }}"
+                                max="{{ $stock }}"
                                 class="w-10 text-center text-sm font-bold text-gray-800 border-none outline-none focus:ring-0 bg-transparent"
                                 readonly>
                             <button type="button"
                                 class="w-10 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-primary transition-colors text-lg font-light"
-                                onclick="changeQty(1, {{ $product->stock }})">+</button>
+                                onclick="changeQty(1, {{ $stock }})" {{ $stock <= 0 ? 'disabled' : '' }}>+</button>
                         </div>
 
-                        <button type="submit"
-                            class="flex-1 text-center bg-primary text-white py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-md shadow-primary/20 active:scale-[0.98]">
-                            Add to Cart
+                        <button type="submit" {{ $stock <= 0 ? 'disabled' : '' }}
+                            class="flex-1 text-center bg-primary text-white py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-md shadow-primary/20 {{ $stock <= 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90 active:scale-[0.98]' }}">
+                            {{ $stock <= 0 ? 'Stok Habis' : 'Add to Cart' }}
                         </button>
                     </form>
 

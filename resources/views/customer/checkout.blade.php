@@ -3,11 +3,18 @@
     
     // Hitung Subtotal berdasarkan item di keranjang
     $subtotal = 0;
+    $stockIssue = false;
+    $stockIssueNames = [];
     if($cart && $cart->cartItems) {
         foreach ($cart->cartItems as $item) {
             // Kita asumsikan semua barang di keranjang yang dicentang akan dicheckout
             if($item->is_selected) {
                 $subtotal += ($item->product->price * $item->quantity);
+
+                if((int) ($item->product->stock ?? 0) < (int) $item->quantity) {
+                    $stockIssue = true;
+                    $stockIssueNames[] = $item->product->name;
+                }
             }
         }
     }
@@ -47,6 +54,8 @@
 <body class="text-gray-800">
 
     @include('customer.partials.navbar')
+
+    @include('customer.partials.flash')
 
    <main class="py-16 content-container px-6">
         <form action="{{ route('customer.place-order') }}" method="POST">
@@ -163,6 +172,11 @@
                                         <div class="flex-1">
                                             <p class="text-sm font-bold">{{ $item->product->name }}</p>
                                             <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-1">Qty: {{ $item->quantity }}x</p>
+                                            @if((int) ($item->product->stock ?? 0) <= 0)
+                                                <p class="text-[9px] font-black uppercase tracking-wider text-red-600 bg-red-50 inline-block px-2 py-0.5 rounded-full mt-1">Stok Habis</p>
+                                            @elseif((int) $item->product->stock < (int) $item->quantity)
+                                                <p class="text-[9px] font-black uppercase tracking-wider text-red-600 bg-red-50 inline-block px-2 py-0.5 rounded-full mt-1">Sisa {{ (int) $item->product->stock }}</p>
+                                            @endif
                                             <p class="text-xs font-bold mt-1 text-primary">Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}</p>
                                             <input type="hidden" class="seller-id" value="{{ $item->product->seller_id }}">
                                         </div>
@@ -232,7 +246,16 @@
                             <span class="text-2xl font-black text-primary" id="final-total">Rp {{ number_format($total_amount, 0, ',', '.') }}</span>
                         </div>
 
-                        <button type="submit" class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition shadow-xl shadow-primary/30 {{ $subtotal == 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $subtotal == 0 ? 'disabled' : '' }}>
+                        @if($stockIssue)
+                            <div class="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
+                                <i class="fa-solid fa-circle-exclamation text-red-500 text-sm mt-0.5"></i>
+                                <p class="text-[11px] text-red-600 leading-relaxed font-medium">Stok tidak mencukupi untuk
+                                    {{ implode(', ', $stockIssueNames) }}. Kembali ke keranjang dan sesuaikan jumlah
+                                    sebelum melanjutkan pembayaran.</p>
+                            </div>
+                        @endif
+
+                        <button type="submit" class="w-full bg-primary text-white py-5 rounded-sm text-xs font-bold uppercase tracking-widest transition shadow-xl shadow-primary/30 {{ ($subtotal == 0 || $stockIssue) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-90' }}" {{ ($subtotal == 0 || $stockIssue) ? 'disabled' : '' }}>
                             Pay Now & Place Order
                         </button>
                         

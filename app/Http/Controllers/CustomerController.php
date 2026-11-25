@@ -111,6 +111,7 @@ class CustomerController extends Controller
         $relatedProducts = Product::with('images')
             ->where('category_id', $product->category_id)
             ->where('status', 'approved')
+            ->where('stock', '>', 0)
             ->where('id', '!=', $id)
             ->inRandomOrder()
             ->limit(3)
@@ -137,6 +138,7 @@ class CustomerController extends Controller
 
         $query = Product::with(['images', 'category'])
             ->where('status', 'approved')
+            ->where('stock', '>', 0)
             ->whereHas('seller', function ($q) {
                 $q->where('status', 'approved');
             });
@@ -189,14 +191,20 @@ class CustomerController extends Controller
 
     public function addToCart(Request $request)
     {
-        $customer = Customer::where('user_id', Auth::id())->first();
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'nullable|integer|min:1',
+        ]);
+
+        $customer = Customer::firstOrCreate(['user_id' => Auth::id()]);
 
         $productId = $request->input('product_id');
-        $quantity = $request->input('quantity', 1);
+        $quantity = (int) $request->input('quantity', 1);
 
         $product = Product::findOrFail($productId);
-        if ($quantity > $product->stock) {
-            return back()->with('error', 'Stok tidak mencukupi.');
+
+        if ((int) $product->stock <= 0) {
+            return back()->with('error', "Stok produk \"{$product->name}\" sedang habis.");
         }
 
         $cart = Cart::firstOrCreate([
@@ -206,6 +214,17 @@ class CustomerController extends Controller
         $cartItem = CartItem::where('cart_id', $cart->id)
             ->where('product_id', $productId)
             ->first();
+
+        $existingQty = $cartItem ? (int) $cartItem->quantity : 0;
+
+        if ($existingQty + $quantity > (int) $product->stock) {
+            $remaining = max(0, (int) $product->stock - $existingQty);
+            $message = $remaining > 0
+                ? "Stok tidak mencukupi. Tersisa {$remaining} unit untuk produk \"{$product->name}\"."
+                : "Jumlah produk \"{$product->name}\" di keranjang sudah mencapai batas stok.";
+
+            return back()->with('error', $message);
+        }
 
         if ($cartItem) {
             $cartItem->increment('quantity', $quantity);
@@ -223,7 +242,13 @@ class CustomerController extends Controller
 
     public function toggleCartItem(Request $request, $id)
     {
-        $cartItem = \App\Models\CartItem::findOrFail($id);
+        $cartItem = \App\Models\CartItem::with('product')->findOrFail($id);
+        $selecting = filter_var($request->is_selected, FILTER_VALIDATE_BOOLEAN);
+
+        if ($selecting && (int) ($cartItem->product->stock ?? 0) <= 0) {
+            return back()->with('error', "Produk \"{$cartItem->product->name}\" sedang habis dan tidak dapat dipilih.");
+        }
+
         $cartItem->is_selected = $request->is_selected;
         $cartItem->save();
         return back();
@@ -231,7 +256,13 @@ class CustomerController extends Controller
 
     public function incrementCart($id)
     {
-        $item = CartItem::findOrFail($id);
+        $item = CartItem::with('product')->findOrFail($id);
+        $stock = (int) ($item->product->stock ?? 0);
+
+        if ($item->quantity + 1 > $stock) {
+            return back()->with('error', "Stok produk \"{$item->product->name}\" tersisa {$stock} unit.");
+        }
+
         $item->increment('quantity');
         return back();
     }
@@ -263,6 +294,29 @@ class CustomerController extends Controller
 
         if (!$cart || $cart->cartItems->count() == 0) {
             return redirect()->route('customer.cart')->with('error', 'Keranjang kosong.');
+        }
+
+        // Validasi stok item yang dipilih sebelum masuk halaman checkout
+        $selectedItems = $cart->cartItems->where('is_selected', true);
+
+        if ($selectedItems->count() == 0) {
+            return redirect()->route('customer.cart')->with('error', 'Belum ada barang yang dipilih untuk dicheckout.');
+        }
+
+        $stockIssues = $selectedItems->filter(function ($item) {
+            return (int) $item->product->stock < (int) $item->quantity;
+        });
+
+        if ($stockIssues->isNotEmpty()) {
+            $names = $stockIssues->map(function ($item) {
+                $stock = (int) $item->product->stock;
+                return $stock <= 0
+                    ? "\"{$item->product->name}\" (stok habis)"
+                    : "\"{$item->product->name}\" (tersisa {$stock})";
+            })->implode(', ');
+
+            return redirect()->route('customer.cart')
+                ->with('error', "Stok tidak mencukupi untuk: {$names}. Silakan sesuaikan jumlah atau hapus item tersebut.");
         }
 
         // Fetch claimed and unused vouchers for this user
@@ -298,8 +352,26 @@ class CustomerController extends Controller
 
         $createdOrderId = null;
 
+        try {
         DB::transaction(function () use ($customer, $cart, $request, $address, &$createdOrderId) {
             $selectedItems = $cart->cartItems->where('is_selected', true);
+
+            // Kunci baris produk & validasi stok agar tidak minus saat stok berebut
+            $productIds = $selectedItems->pluck('product_id')->all();
+            $lockedProducts = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
+
+            $insufficient = [];
+            foreach ($selectedItems as $item) {
+                $locked = $lockedProducts->get($item->product_id);
+                if (!$locked || (int) $locked->stock < (int) $item->quantity) {
+                    $insufficient[] = $item->product->name;
+                }
+            }
+
+            if (!empty($insufficient)) {
+                throw new \RuntimeException('Stok tidak mencukupi untuk: ' . implode(', ', $insufficient) . '. Silakan sesuaikan keranjang Anda.');
+            }
+
             $subtotal = $selectedItems->sum(function ($item) {
                 return $item->quantity * $item->product->price;
             });
@@ -362,10 +434,13 @@ class CustomerController extends Controller
                     'price' => $item->product->price,
                 ]);
 
-                $item->product->decrement('stock', $item->quantity);
+                $lockedProducts->get($item->product_id)->decrement('stock', $item->quantity);
                 $item->delete();
             }
         });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         // Notify sellers
         $order = Order::with('orderItems.product.seller.user')->find($createdOrderId);
@@ -455,6 +530,7 @@ class CustomerController extends Controller
         $products = \App\Models\Product::with('images')
             ->where('seller_id', $id)
             ->where('status', 'approved')
+            ->where('stock', '>', 0)
             ->get();
         $totalProducts = $products->count();
 

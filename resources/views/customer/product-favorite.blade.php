@@ -122,6 +122,9 @@
                     <!-- Info -->
                     <div class="px-0.5">
                         <p class="text-[9px] font-black uppercase tracking-[0.18em] text-gray-300 mb-0.5">{{ $fav->product->style ?? 'FURNITURE' }} • {{ $fav->product->category->name ?? 'CATEGORY' }}</p>
+                        @if((int) $fav->product->stock <= 0)
+                            <span class="inline-block text-[9px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded-full mb-1">Stok Habis</span>
+                        @endif
                         <div class="flex items-center justify-between gap-2">
                             <h3 class="text-[13px] font-semibold text-gray-900 leading-snug group-hover:text-primary transition-colors truncate">{{ $fav->product->name }}</h3>
                             <span class="text-[12px] font-bold text-gray-700 shrink-0">Rp {{ number_format($fav->product->price, 0, ',', '.') }}</span>
@@ -149,6 +152,9 @@
                     <div class="flex-1 min-w-0">
                         <p class="text-[9px] font-black uppercase tracking-[0.18em] text-gray-300 mb-0.5">{{ $fav->product->style ?? 'FURNITURE' }} • {{ $fav->product->category->name ?? 'CATEGORY' }}</p>
                         <h3 class="text-[14px] font-semibold text-gray-900 group-hover:text-primary transition-colors truncate">{{ $fav->product->name }}</h3>
+                        @if((int) $fav->product->stock <= 0)
+                            <span class="inline-block text-[9px] font-black uppercase tracking-wider text-red-600 bg-red-50 px-2 py-0.5 rounded-full mt-1">Stok Habis</span>
+                        @endif
                     </div>
 
                     <!-- Price -->
