@@ -54,7 +54,7 @@ class RfqController extends Controller
 
         // Stats for header cards
         $completedOrders = B2bOrder::whereHas('rfq', fn ($q) => $q->where('seller_id', $seller->id))
-            ->where('status', B2bOrder::STATUS_COMPLETED);
+            ->whereIn('status', [B2bOrder::STATUS_COMPLETED, B2bOrder::STATUS_DELIVERED]);
 
         $stats = [
             'pending_quotation' => B2bRfq::where('seller_id', $seller->id)

@@ -35,7 +35,7 @@
             </div>
         </header>
 
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1 w-full max-w-[1600px] mx-auto">
             <!-- Breadcrumbs & Heading -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -102,7 +102,7 @@
                     <form method="GET" action="{{ b2b_route('seller.b2b.inbox') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <div class="relative flex-1 sm:w-72">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama proyek atau desainer..." class="w-full h-10 text-xs border border-gray-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari proyek atau desainer..." class="w-full h-10 text-xs border border-gray-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10">
                         </div>
                         <div class="relative">
                             <i class="fa-solid fa-filter absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
@@ -121,7 +121,9 @@
                         @if(request('search') || request('status'))
                             <a href="{{ b2b_route('seller.b2b.inbox') }}" class="inline-flex items-center justify-center h-10 px-3 border border-gray-200 text-gray-600 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-all whitespace-nowrap">Reset</a>
                         @endif
-<div class="overflow-x-auto">
+                    </form>
+                </div>
+                <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs min-w-[760px]">
                         <thead>
                             <tr class="bg-gray-50/70 border-b border-gray-100 text-gray-500 font-semibold uppercase text-[10px] tracking-wider">
@@ -239,7 +241,6 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
                 </div>
 
                 @include('partials.pagination', ['paginator' => $rfqs, 'label' => 'RFQ'])
