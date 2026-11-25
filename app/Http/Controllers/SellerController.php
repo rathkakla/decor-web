@@ -784,14 +784,14 @@ class SellerController extends Controller
     // READ: Detail Pesanan (show.blade.php)
     public function showOrder($id)
     {
-        $order = Order::with(['customer.user', 'orderItems.product.images'])->findOrFail($id);
+        $order = Order::with(['customer.user', 'orderItems.product.images', 'productReturn'])->findOrFail($id);
         return view('seller.orders.show', compact('order'));
     }
 
     // CETAK: Invoice (invoice.blade.php)
     public function printInvoice($id)
     {
-        $order = Order::with(['customer.user', 'orderItems.product'])->findOrFail($id);
+        $order = Order::with(['customer.user', 'orderItems.product.seller'])->findOrFail($id);
         return view('seller.orders.invoice', compact('order'));
     }
 
@@ -805,7 +805,7 @@ class SellerController extends Controller
     // CETAK: Label Pengiriman (label.blade.php)
     public function printLabel($id)
     {
-        $order = Order::with(['customer.user'])->findOrFail($id);
+        $order = Order::with(['customer.user', 'orderItems.product.seller'])->findOrFail($id);
         return view('seller.orders.label', compact('order'));
     }
 
