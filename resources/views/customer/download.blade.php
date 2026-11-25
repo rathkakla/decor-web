@@ -160,32 +160,7 @@
             </div>
         </section>
 
-        {{-- ── RIWAYAT VERSI ────────────────────────────────────────────── --}}
-        @if (count($history))
-            <section class="content-container px-6 pb-20">
-                <h2 class="text-[10px] uppercase tracking-[0.4em] text-primary font-bold mb-6">
-                    Previous versions
-                </h2>
-
-                <ul class="divide-y divide-gray-100 max-w-2xl">
-                    @foreach ($history as $old)
-                        <li class="py-4 flex items-center justify-between gap-6">
-                            <div>
-                                <p class="text-sm font-bold">v{{ $old['version'] }}</p>
-                                <p class="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-bold mt-1">
-                                    {{ $old['released_at']->format('d M Y') }} &middot; {{ $old['size_human'] }}
-                                </p>
-                            </div>
-                            <a href="{{ $old['url'] }}" download
-                                class="text-[10px] font-bold uppercase tracking-widest text-primary border-b border-primary/40 pb-0.5 hover:border-primary transition-colors">
-                                Download
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
-    </main>
+        </main>
 
     {{-- ── FOOTER RINGKAS ───────────────────────────────────────────────── --}}
     @include('customer.partials.footer')

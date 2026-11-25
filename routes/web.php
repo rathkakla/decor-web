@@ -28,7 +28,6 @@ Route::get('/design-lab', function () {
 Route::get('/download', function () {
     return view('customer.download', [
         'release' => \App\Services\AppRelease::latest(),
-        'history' => array_slice(\App\Services\AppRelease::all(), 1),
     ]);
 })->name('download');
 
