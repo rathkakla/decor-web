@@ -43,17 +43,10 @@ $totalTickets = ($stats['open'] ?? 0) + ($stats['replied'] ?? 0) + ($stats['reso
         </div>
     @endif
 
-    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-            <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Partnership Care</div>
-            <div class="text-2xl font-bold text-gray-900">Designer Support Hub</div>
-            <div class="text-xs text-gray-500 mt-1">Bantu desainer mengatasi kendala unggah portofolio, pencairan dana, dan sistem proyek.</div>
-        </div>
-        
-        <a href="{{ route('admin.designer-chat') }}" class="bg-primary text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-[#8A5229] transition-all inline-flex items-center gap-2 self-start sm:self-auto">
-            <i data-feather="message-circle" class="w-4 h-4"></i>
-            Live Chats
-        </a>
+    <div>
+        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Partnership Care</div>
+        <div class="text-2xl font-bold text-gray-900">Designer Support Hub</div>
+        <div class="text-xs text-gray-500 mt-1">Bantu desainer mengatasi kendala unggah portofolio, pencairan dana, dan sistem proyek.</div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
