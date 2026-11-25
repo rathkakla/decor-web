@@ -77,7 +77,7 @@ $admin_role = "ADMIN";
     </div>
 
     @if(isset($isWarning) && $isWarning)
-    <!-- Banner Audit & Suspensi (Muncul Otomatis saat Seller Status Warning) -->
+    <!-- Banner Penonaktifan Akun (Muncul Otomatis saat Seller Status Warning) -->
     <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
         <div class="flex items-start gap-4 flex-1">
             <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
@@ -85,15 +85,15 @@ $admin_role = "ADMIN";
             </div>
             <div>
                 <div class="flex items-center gap-2 mb-0.5">
-                    <h3 class="text-base font-bold text-amber-900">Status Toko: Warning (Perlu Tindakan Audit)</h3>
+                    <h3 class="text-base font-bold text-amber-900">Status Toko: Warning (Perlu Penonaktifan Akun)</h3>
                     <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-amber-200/70 text-amber-800">Inactive &gt; 30 Days</span>
                 </div>
-                <p class="text-xs text-amber-700 leading-relaxed">Toko ini tidak memiliki aktivitas transaksi dalam 30 hari terakhir atau terindikasi membutuhkan evaluasi kepatuhan. Anda dapat menjatuhkan sanksi Audit (Suspensi Sementara 7 / 14 / 30 Hari).</p>
+                <p class="text-xs text-amber-700 leading-relaxed">Toko ini tidak memiliki aktivitas transaksi dalam 30 hari terakhir atau terindikasi membutuhkan evaluasi kepatuhan. Anda dapat menjatuhkan penonaktifan akun (Suspensi Sementara 7 / 14 / 30 Hari).</p>
             </div>
         </div>
         <div class="shrink-0">
             <button type="button" onclick="openAuditModal()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition-colors shadow-sm">
-                <i data-feather="shield" class="w-4 h-4"></i> Tindakan Audit
+                <i data-feather="shield" class="w-4 h-4"></i> Nonaktifkan Akun
             </button>
         </div>
     </div>
@@ -494,7 +494,7 @@ $admin_role = "ADMIN";
     </div>
 </div>
 
-<!-- ══════════ AUDIT / TEMPORARY BAN MODAL ══════════ -->
+<!-- ══════════ PENONAKTIFAN AKUN MODAL ══════════ -->
 <div id="auditModal" class="modal">
     <div class="bg-white w-full max-w-md p-7 rounded-2xl shadow-2xl scale-95 transition-transform duration-300 transform" id="auditModalContent">
         <form action="{{ route('admin.user.warn', $seller->user_id) }}" method="POST">
@@ -504,13 +504,13 @@ $admin_role = "ADMIN";
                     <i data-feather="shield" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-gray-900">Tindakan Audit & Suspensi</h3>
+                    <h3 class="text-base font-bold text-gray-900">Penonaktifan Akun & Suspensi</h3>
                     <p class="text-[11px] text-gray-500">{{ $seller->store_name }} ({{ $seller->user->full_name }})</p>
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pilih Jenis Tindakan Audit</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pilih Jenis Tindakan</label>
                 <div class="grid grid-cols-2 gap-2.5">
                     <label class="cursor-pointer">
                         <input type="radio" name="duration" value="7" class="peer hidden" checked>
@@ -540,13 +540,13 @@ $admin_role = "ADMIN";
             </div>
 
             <div class="mb-6">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alasan Audit / Suspensi</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alasan Penonaktifan</label>
                 <textarea name="reason" required class="w-full h-28 p-3.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-gray-50" placeholder="Contoh: Toko tidak aktif melakukan transaksi lebih dari 30 hari atau ditemukan ketidaksesuaian standar layanan..."></textarea>
             </div>
 
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeAuditModal()" class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs hover:bg-gray-200 transition-colors">Batal</button>
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors shadow-sm">Terapkan Sanksi Audit</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors shadow-sm">Terapkan Tindakan</button>
             </div>
         </form>
     </div>

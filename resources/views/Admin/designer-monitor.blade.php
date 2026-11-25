@@ -51,7 +51,7 @@ $menu_items = [
     @endif
 
     <div class="mb-8">
-        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Audit & Compliance</div>
+        <div class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Manajemen Akun</div>
         <div class="text-2xl font-bold text-gray-900">Designer Monitor</div>
         <div class="text-xs text-gray-500 mt-1">Pantau performa dan kelola status kemitraan desainer.</div>
     </div>
@@ -192,8 +192,8 @@ $menu_items = [
                         View <i data-feather="arrow-right" class="w-3 h-3 ml-1"></i>
                     </a>
                     <?php if ($isSuspended): ?>
-                    <button type="button" onclick="openAuditModal('<?= $d->user_id ?>', '<?= addslashes($d->name) ?>')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-600 hover:text-white transition-colors" title="Audit / Temporary Ban">
-                        <i data-feather="shield" class="w-3.5 h-3.5"></i> Audit
+                    <button type="button" onclick="openAuditModal('<?= $d->user_id ?>', '<?= addslashes($d->name) ?>')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-600 hover:text-white transition-colors" title="Nonaktifkan Akun">
+                        <i data-feather="shield" class="w-3.5 h-3.5"></i> Nonaktifkan
                     </button>
                     <?php endif; ?>
                 </div>
@@ -212,7 +212,7 @@ $menu_items = [
     @include("Admin.partials.footer")
 </main>
 
-<!-- ══════════ AUDIT / TEMPORARY BAN MODAL ══════════ -->
+<!-- ══════════ PENONAKTIFAN AKUN MODAL ══════════ -->
 <div id="auditModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
     <div class="bg-white w-full max-w-md p-7 rounded-2xl shadow-2xl">
         <form id="auditForm" method="POST">
@@ -222,13 +222,13 @@ $menu_items = [
                     <i data-feather="shield" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-gray-900">Tindakan Audit & Suspensi</h3>
+                    <h3 class="text-base font-bold text-gray-900">Penonaktifan Akun & Suspensi</h3>
                     <p class="text-[11px] text-gray-500" id="auditTargetName">—</p>
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pilih Jenis Tindakan Audit</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Pilih Jenis Tindakan</label>
                 <div class="grid grid-cols-2 gap-2.5">
                     <label class="cursor-pointer">
                         <input type="radio" name="duration" value="7" class="peer hidden" checked>
@@ -258,13 +258,13 @@ $menu_items = [
             </div>
 
             <div class="mb-6">
-                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alasan Audit / Suspensi</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alasan Penonaktifan</label>
                 <textarea name="reason" required class="w-full h-28 p-3.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 bg-gray-50" placeholder="Contoh: Desainer tidak merespon konsultasi klien atau sedang dalam peninjauan kualitas layanan..."></textarea>
             </div>
 
             <div class="flex gap-3 justify-end">
                 <button type="button" onclick="closeAuditModal()" class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs hover:bg-gray-200 transition-colors">Batal</button>
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors shadow-sm">Terapkan Sanksi Audit</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors shadow-sm">Terapkan Tindakan</button>
             </div>
         </form>
     </div>

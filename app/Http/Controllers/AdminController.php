@@ -86,28 +86,28 @@ class AdminController extends Controller
             if ($user->seller) {
                 $user->seller->update([
                     'status' => 'rejected',
-                    'rejection_reason' => 'Akun dinonaktifkan melalui Tindakan Audit: ' . $reason,
+                    'rejection_reason' => 'Akun dinonaktifkan: ' . $reason,
                 ]);
             }
             if ($user->designer) {
                 $user->designer->update([
                     'status' => 'rejected',
-                    'rejection_reason' => 'Akun dinonaktifkan melalui Tindakan Audit: ' . $reason,
+                    'rejection_reason' => 'Akun dinonaktifkan: ' . $reason,
                 ]);
             }
-            $user->notify(new \App\Notifications\ViolationWarning("[AKUN DINONAKTIFKAN] Alasan Audit: {$reason}"));
-            return back()->with('success', "Akun {$user->full_name} telah dinonaktifkan berdasarkan hasil audit.");
+            $user->notify(new \App\Notifications\ViolationWarning("[AKUN DINONAKTIFKAN] Alasan: {$reason}"));
+            return back()->with('success', "Akun {$user->full_name} telah dinonaktifkan.");
         }
 
         $fullMessage = $duration
-            ? "[AUDIT SUSPENSI {$duration} HARI] Alasan: {$reason}"
+            ? "[SUSPENSI {$duration} HARI] Alasan: {$reason}"
             : $reason;
         
         // Notify the user
         $user->notify(new \App\Notifications\ViolationWarning($fullMessage));
         
         $feedback = $duration
-            ? "Sanksi Audit (Ban {$duration} Hari) berhasil diterapkan kepada {$user->full_name}."
+            ? "Sanksi Suspensi (Ban {$duration} Hari) berhasil diterapkan kepada {$user->full_name}."
             : "Warning notification has been sent to {$user->full_name}";
 
         return back()->with('success', $feedback);
